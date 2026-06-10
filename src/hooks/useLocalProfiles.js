@@ -10,6 +10,15 @@ import { storeBlob, getBlob, deleteBlob } from '../services/dbService.js';
 
 const LS_KEY = 'scout-ai-profiles-v1';
 
+// converts MM:SS to seconds - needed to store clip timestamps
+function toSec(ts) {
+  if (!ts) return 0;
+  const parts = String(ts).split(':').map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parseFloat(ts) || 0;
+}
+
 function loadMeta()         { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } }
 function saveMeta(profiles) { try { localStorage.setItem(LS_KEY, JSON.stringify(profiles)); } catch {} }
 
@@ -91,13 +100,17 @@ export function useLocalProfiles() {
         } else if (meta.videoUrl) {
           entry.videoUrl = meta.videoUrl;
         }
-        // Load metric clip blobs
+        // Load metric clips
         if (meta.metricClips?.length > 0) {
           const clipUrls = [];
           for (const clipMeta of meta.metricClips) {
-            if (clipMeta.url) {
-              // Shotstack CDN URL — use directly, no blob needed
+            if (clipMeta.url && !clipMeta.url.startsWith('blob:')) {
+              // Shotstack CDN or external URL - use as-is
               clipUrls.push(clipMeta);
+            } else if (clipMeta.source === 'instant') {
+              // Rebuild fragment URL from the video we just loaded above
+              const base = entry.videoUrl;
+              if (base) clipUrls.push({ ...clipMeta, url: `${base}#t=${clipMeta.startSec ?? 0},${clipMeta.endSec ?? 0}` });
             } else if (clipMeta.blobKey) {
               const blob = await getBlob(clipMeta.blobKey).catch(() => null);
               if (blob && !cancelled) clipUrls.push({ ...clipMeta, url: URL.createObjectURL(blob) });
@@ -166,19 +179,28 @@ export function useLocalProfiles() {
       idbEntry.videoUrl = videoUrl;
     }
 
-    // Store metric clip blobs
+    // Store metric clips
     const clipMetas = [];
     const clipUrlList = [];
     for (let i = 0; i < metricClips.length; i++) {
       const clip = metricClips[i];
-      if (!clip.blob) continue;
-      const blobKey = `${id}-clip-${i}`;
-      try {
-        await storeBlob(blobKey, clip.blob);
-        const meta = { blobKey, metric: clip.metric, clipIndex: clip.clipIndex, start: clip.start, end: clip.end, description: clip.description ?? '', name: clip.name ?? '' };
-        clipMetas.push(meta);
-        clipUrlList.push({ ...meta, url: URL.createObjectURL(clip.blob) });
-      } catch (e) { console.warn('IDB clip store failed:', e.message); }
+      if (clip.blob) {
+        // FFmpeg blob path (kept for future use)
+        const blobKey = `${id}-clip-${i}`;
+        try {
+          await storeBlob(blobKey, clip.blob);
+          const m = { blobKey, metric: clip.metric, clipIndex: clip.clipIndex ?? 1, start: clip.start, end: clip.end, description: clip.description ?? '', name: clip.name ?? '' };
+          clipMetas.push(m);
+          clipUrlList.push({ ...m, url: URL.createObjectURL(clip.blob) });
+        } catch (e) { console.warn('IDB clip store failed:', e.message); }
+      } else if (clip.url) {
+        // Instant media-fragment clip - store timestamps, rebuild URL on load
+        const startSec = clip.startSec ?? toSec(clip.start);
+        const endSec   = clip.endSec   ?? toSec(clip.end);
+        const m = { metric: clip.metric, clipIndex: clip.clipIndex ?? 1, start: clip.start, end: clip.end, startSec, endSec, description: clip.description ?? '', source: 'instant' };
+        clipMetas.push(m);
+        clipUrlList.push({ ...m, url: clip.url }); // valid for this session
+      }
     }
     if (clipUrlList.length > 0) idbEntry.clipUrls = clipUrlList;
 
@@ -210,15 +232,12 @@ export function useLocalProfiles() {
           const { headshotPublicUrl, videoPublicUrl } = await saveFullProfile({
             profileId: id, formData, headshotFile, videoFile, videoUrl, analysis,
           });
-          const supaEntry = {};
+          // Preserve all local URLs, then overlay Supabase public URLs on top
+          const supaEntry = { ...idbEntry };
           if (headshotPublicUrl) supaEntry.headshotUrl = headshotPublicUrl;
           if (videoPublicUrl)    supaEntry.videoUrl    = videoPublicUrl;
-          // Keep local clip URLs (not uploaded to Supabase yet)
-          if (idbEntry.clipUrls) supaEntry.clipUrls = idbEntry.clipUrls;
-          if (Object.keys(supaEntry).length) {
-            urlsRef.current[id] = supaEntry;
-            setBlobUrls(prev => ({ ...prev, [id]: supaEntry }));
-          }
+          urlsRef.current[id] = supaEntry;
+          setBlobUrls(prev => ({ ...prev, [id]: supaEntry }));
           setProfiles(prev => prev.map(p => p.id === id ? { ...p, _fromSupabase: true } : p));
           onSyncProgress?.({ status: 'done', videoPublicUrl: videoPublicUrl ?? null });
         } catch (err) {

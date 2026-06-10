@@ -245,24 +245,29 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 )}
               </div>
 
-              {/* Other clips */}
-              {group.keys.some(k => player.reels?.[k]) && (
+              {/* Evidence clips per metric */}
+              {group.keys.some(k => player.reels?.[k] && player.reels[k] !== player.reels.highlight) && (
                 <div style={{ marginTop: 20 }}>
                   <div style={{ fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#50535f', marginBottom: 12 }}>Evidence Clips</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 10 }}>
                     {group.keys.map((k, i) => {
                       const reel = player.reels?.[k];
-                      if (!reel) return null;
+                      if (!reel || reel === player.reels?.highlight) return null;
                       return (
                         <div
                           key={k}
                           onClick={() => onOpenLightbox(reel, group.labels[i])}
-                          style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid #2e3040', background: '#23252f', cursor: 'pointer', aspectRatio: '16/10', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'border-color 0.12s' }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor = '#3a3f54'}
+                          style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid #2e3040', background: '#000', cursor: 'pointer', aspectRatio: '16/9', position: 'relative' }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = '#3ecf70'}
                           onMouseLeave={e => e.currentTarget.style.borderColor = '#2e3040'}
                         >
-                          <span style={{ fontSize: '1.2rem', opacity: 0.5 }}>?</span>
-                          <span style={{ fontSize: '0.74rem', color: '#8c909f', textAlign: 'center', padding: '0 8px' }}>{group.labels[i]}</span>
+                          <video src={reel} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} muted playsInline preload="metadata" />
+                          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(62,207,112,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                              <span style={{ fontSize: '0.9rem', marginLeft: 2 }}>&#9654;</span>
+                            </div>
+                            <span style={{ fontSize: '0.72rem', color: '#fff', textTransform: 'capitalize' }}>{group.labels[i]}</span>
+                          </div>
                         </div>
                       );
                     })}
@@ -280,7 +285,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     <div key={i} style={{ border: '1px solid #2e3040', borderRadius: 8, overflow: 'hidden', background: '#23252f' }}>
                       <div style={{ padding: '10px 14px', borderBottom: '1px solid #1e2735', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.72rem', padding: '1px 7px', borderRadius: 2, background: 'rgba(0,200,83,0.08)', border: '1px solid rgba(0,200,83,0.18)', color: '#00c853', textTransform: 'capitalize' }}>{clip.metric}</span>
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.73rem', color: '#7e8fa3' }}>{clip.start} → {clip.end}</span>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.73rem', color: '#7e8fa3' }}>{clip.start} - {clip.end}</span>
                       </div>
                       <video src={clip.url} controls style={{ width: '100%', display: 'block', background: '#000', maxHeight: 280 }} />
                       {clip.description && <div style={{ padding: '8px 14px', fontSize: '0.78rem', color: '#4a5568', lineHeight: 1.4 }}>{clip.description}</div>}
@@ -289,9 +294,8 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '80px 20px', color: '#4a5568' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: 12, opacity: 0.25 }}>✂</div>
-                  <div style={{ fontSize: '0.90rem', marginBottom: 6 }}>No metric clips yet</div>
-                  <div style={{ fontSize: '0.78rem' }}>Upload footage in the Uploader portal — clips are auto-cut from AI timestamps and saved here.</div>
+                  <div style={{ fontSize: '0.90rem', marginBottom: 6 }}>No clips yet</div>
+                  <div style={{ fontSize: '0.78rem' }}>Upload a video in the portal to get auto-cut highlight clips.</div>
                 </div>
               )}
             </div>

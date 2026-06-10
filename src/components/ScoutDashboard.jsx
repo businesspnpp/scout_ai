@@ -21,6 +21,11 @@ function buildLocalPlayer(meta, urls = {}) {
   const metrics = {};
   group.keys.forEach(k => { metrics[k] = rawMet[k] ?? 70; });
   const videoUrl = urls.videoUrl ?? meta.videoUrl ?? '';
+
+  // map each metric key to its specific clip URL if we have one
+  const clipsByMetric = {};
+  (urls.clipUrls ?? []).forEach(c => { if (c.metric && c.url) clipsByMetric[c.metric] = c.url; });
+
   return {
     id: meta.id, slug: meta.id,
     name: meta.name || 'Unknown Player',
@@ -34,7 +39,10 @@ function buildLocalPlayer(meta, urls = {}) {
     metrics,
     bio: meta.analysis?.scoutNotes ?? 'Locally cached profile.',
     tags: ['uploaded', ...(meta.analysis?.developmentAreas?.slice(0, 2) ?? [])],
-    reels: { highlight: videoUrl, ...Object.fromEntries(group.keys.map(k => [k, videoUrl])) },
+    reels: {
+      highlight: videoUrl,
+      ...Object.fromEntries(group.keys.map(k => [k, clipsByMetric[k] || videoUrl])),
+    },
     headshot: urls.headshotUrl || '',
     clipUrls: urls.clipUrls ?? [],
     _local: true,
