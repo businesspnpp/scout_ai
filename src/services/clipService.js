@@ -1,17 +1,9 @@
-/**
- * clipService.js
- * Primary: Shotstack cloud API (returns permanent CDN URL)
- * Fallback: FFmpeg WASM (runs instantly in-browser, returns Blob)
- *
- * Pipeline:
- *  1. FFmpeg runs immediately for instant local clips
- *  2. Shotstack submits renders once video has a public URL (after Supabase upload)
- *  3. Profile clips auto-upgrade to CDN URLs when Shotstack is done
- */
+// clipService.js
+// handles video clip cutting - instant browser clips + Shotstack cloud renders
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 
-// -- Timestamp helpers ---------------------------------------------------------
+// converts MM:SS or HH:MM:SS to plain seconds
 export function parseToSeconds(ts) {
   if (!ts) return 0;
   const parts = String(ts).split(':').map(Number);
@@ -20,11 +12,11 @@ export function parseToSeconds(ts) {
   return parseFloat(ts) || 0;
 }
 
-// -- FFmpeg WASM (fallback / instant) -----------------------------------------
+// FFmpeg WASM - used for compression only now
 const ffmpeg = new FFmpeg();
 let ffmpegLoaded = false;
 
-// Served locally from public/ffmpeg/ — no CDN dependency
+// loaded from public/ffmpeg/ so it works offline
 const LOCAL_BASE = '/ffmpeg';
 
 export async function loadFFmpeg() {

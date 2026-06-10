@@ -1,13 +1,10 @@
-/**
- * geminiService.js
- * Gemini 2.5 Pro � streaming multimodal analysis.
- * Supports multiple video clips + headshot reference.
- */
+// geminiService.js
+// handles all the Gemini API calls, streaming, and fallback mock data
 
 import { GoogleGenAI } from '@google/genai';
 import { compressVideoForUpload } from './clipService.js';
 
-// Rotate through available keys on 429 — each key must be from a separate Google account to have independent quotas
+// try both keys in case one hits quota
 const API_KEYS = [
   import.meta.env.VITE_GEMINI_API_KEY,
   import.meta.env.VITE_GEMINI_API_KEY2,
@@ -15,7 +12,7 @@ const API_KEYS = [
 
 const API_KEY = API_KEYS[0]; // kept for mock-detection check below
 
-// -- Mock fallback -------------------------------------------------------------
+// mock data used when the API is down or no key is set
 function buildMockResponse(playerDetails) {
   const pos = playerDetails.position ?? 'ST';
   const isAttacker   = ['ST', 'CAM'].includes(pos);
@@ -41,21 +38,21 @@ function buildMockResponse(playerDetails) {
     analysisDate:      new Date().toISOString(),
     metrics:           baseMetrics,
     highlights: [
-      { timestampStart: '00:26', timestampEnd: '00:31', metric: Object.keys(baseMetrics)[0], description: 'High-intensity burst showing elite attribute expression', clipLabel: 'Clip A - 00:26-00:31' },
-      { timestampStart: '01:02', timestampEnd: '01:08', metric: Object.keys(baseMetrics)[1], description: 'Decisive movement under pressing - clean execution', clipLabel: 'Clip B - 01:02-01:08' },
-      { timestampStart: '01:50', timestampEnd: '01:57', metric: Object.keys(baseMetrics)[2], description: 'Technical quality in tight space vs two defenders', clipLabel: 'Clip C - 01:50-01:57' },
-      { timestampStart: '02:35', timestampEnd: '02:43', metric: Object.keys(baseMetrics)[3], description: 'Positional intelligence - third-man combination', clipLabel: 'Clip D - 02:35-02:43' },
+      { timestampStart: '00:26', timestampEnd: '00:31', metric: Object.keys(baseMetrics)[0], description: 'Good burst of pace, gets in behind the defensive line', clipLabel: 'Clip A - 00:26-00:31' },
+      { timestampStart: '01:02', timestampEnd: '01:08', metric: Object.keys(baseMetrics)[1], description: 'Holds up well under pressure, turns and drives', clipLabel: 'Clip B - 01:02-01:08' },
+      { timestampStart: '01:50', timestampEnd: '01:57', metric: Object.keys(baseMetrics)[2], description: 'Tight control in a small space with two defenders close', clipLabel: 'Clip C - 01:50-01:57' },
+      { timestampStart: '02:35', timestampEnd: '02:43', metric: Object.keys(baseMetrics)[3], description: 'Smart movement off the ball, arrives at the right moment', clipLabel: 'Clip D - 02:35-02:43' },
     ],
-    scoutNotes:       `High-ceiling ${pos} profile demonstrating consistent ${Object.keys(baseMetrics)[0]} quality.`,
-    developmentAreas: ['weak-foot refinement', 'pressing triggers', 'aerial duel consistency'],
+    scoutNotes:       `Good ${pos} with a strong showing in his ${Object.keys(baseMetrics)[0]}. Worth monitoring over the next few months.`,
+    developmentAreas: ['weak foot', 'pressing intensity', 'aerial duels'],
     potential:        overall >= 85 ? 'Elite (A-Grade)' : overall >= 78 ? 'High (B-Grade)' : 'Promising (C-Grade)',
     valuationBracket: overall >= 88 ? 'EUR 120,000 - EUR 250,000' : overall >= 80 ? 'EUR 50,000 - EUR 120,000' : 'EUR 15,000 - EUR 50,000',
-    recommendedPath:  'CAF Youth Development - European U23 Trial',
+    recommendedPath:  'CAF youth pathway, worth a trial at European U23 level',
     _isMock: true,
   };
 }
 
-// -- Prompt --------------------------------------------------------------------
+// builds the prompt we send to Gemini
 function buildPrompt(playerDetails, clipCount) {
   const { name, age, position, region } = playerDetails;
   return `You are an elite football talent scout AI analyzing African grassroots players.
@@ -100,7 +97,7 @@ Return ONLY a valid JSON object (no markdown, no explanation):
 }`.trim();
 }
 
-// -- File utilities ------------------------------------------------------------
+// file upload helpers
 async function uploadVideoFile(genai, file, onStream) {
   // Tick a dot every 4s so the UI doesn't look frozen during large uploads
   const heartbeat = setInterval(() => onStream?.(' .'), 4000);
@@ -140,12 +137,7 @@ async function fileToBase64(file) {
 
 // -- Main � streaming analysis -------------------------------------------------
 /**
- * analyzePlayer
- * @param {object}   playerDetails  � name, age, position, region
- * @param {File[]}   videoFiles     � array of video files (0 or more)
- * @param {string}   videoUrl       � fallback URL (text context only)
- * @param {File|null} headshotFile  � reference photo for player ID
- * @param {(token:string) => void} onStream � called with each streamed token
+ * main export - runs the full analysis pipeline
  */
 export async function analyzePlayer(
   playerDetails,

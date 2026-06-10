@@ -1,22 +1,9 @@
-/**
- * supabaseService.js
- * All Supabase operations for Scout AI:
- *   • uploadHeadshot  — compress + upload image to Storage
- *   • uploadVideo     — upload raw video file to Storage
- *   • saveProfileRow  — insert player_profiles row
- *   • saveFullProfile — orchestrates upload → insert → return public URLs
- *   • fetchProfiles   — load all profiles ordered by created_at desc
- *   • deleteProfile   — delete DB row + Storage files
- */
+// supabaseService.js
+// all the database and storage calls for profiles, headshots, videos
 
 import { supabase, BUCKET, TABLE, isSupabaseEnabled } from './supabaseClient.js';
 
-// ── Storage helpers ────────────────────────────────────────────────────────────
-
-/**
- * Upload a Blob/File to Supabase Storage.
- * @returns {{ path: string, publicUrl: string } | null}
- */
+// upload a file to Supabase storage and return the public URL
 async function uploadToStorage(storagePath, fileOrBlob, contentType) {
   if (!isSupabaseEnabled || !fileOrBlob) return null;
   try {

@@ -1,7 +1,4 @@
-/**
- * App.jsx — Root state controller.
- * Manages: active view, lightbox, saved shortlist, analysis results, local profile cache.
- */
+// App.jsx - root component, holds the main state
 import { useState, useCallback } from 'react';
 import Navigation      from './components/Navigation.jsx';
 import UploaderPortal  from './components/UploaderPortal.jsx';
@@ -16,10 +13,10 @@ export default function App() {
   const [newProfile,   setNewProfile]   = useState(null);
   const [toast,        setToast]        = useState({ visible: false, msg: '' });
 
-  // ── Local profile persistence ──────────────────────────────────────────────
+  // local profile storage
   const { profiles: localProfiles, blobUrls, addProfile, removeProfile, updateProfileClips } = useLocalProfiles();
 
-  // ── Lightbox ───────────────────────────────────────────────────────────────
+  // lightbox for video playback
   const openLightbox = useCallback((src, label) => {
     setLightbox({ open: true, src, label });
   }, []);
@@ -28,7 +25,7 @@ export default function App() {
     setLightbox({ open: false, src: '', label: '' });
   }, []);
 
-  // ── Shortlist ──────────────────────────────────────────────────────────────
+  // shortlist toggle
   const handleSaveToggle = useCallback(id => {
     setSavedIds(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
@@ -37,19 +34,19 @@ export default function App() {
     });
   }, []);
 
-  // ── Toast ──────────────────────────────────────────────────────────────────
+  // toast notifications
   function showToast(msg) {
     setToast({ visible: true, msg });
     setTimeout(() => setToast({ visible: false, msg: '' }), 2200);
   }
 
-  // ── After analysis completes in UploaderPortal ─────────────────────────────
+  // called when Gemini finishes the analysis
   const handleAnalysisComplete = useCallback(result => {
     setNewProfile(result);
     showToast('Analysis complete ✓');
   }, []);
 
-  // ── Save profile to local cache + Supabase ────────────────────────────────
+  // save profile locally and sync to Supabase
   const handleSaveProfile = useCallback(async (payload) => {
     const meta = await addProfile({
       ...payload,
@@ -57,7 +54,7 @@ export default function App() {
         const status = typeof prog === 'string' ? prog : prog?.status;
         if (status === 'uploading') showToast('Syncing to Supabase…');
         if (status === 'done')      showToast('Saved to cloud ✓');
-        if (status === 'error')     showToast('Cloud sync failed — saved locally');
+        if (status === 'error')     showToast('Cloud sync failed, saved locally');
         // Forward the full progress object so UploaderPortal can start Shotstack
         payload.onSyncProgress?.(prog);
       },

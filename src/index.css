@@ -18,11 +18,11 @@
   --color-text-2: #8c909f;
   --color-text-3: #50535f;
 
-  /* Accent — emerald (high scores, positive) */
+  /* green for high scores */
   --color-emerald:     #3ecf70;
   --color-emerald-mid: #27b357;
 
-  /* Accent — gold (mid scores) */
+  /* gold for mid scores */
   --color-gold:     #d4a850;
   --color-gold-mid: #b88e38;
 

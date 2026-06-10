@@ -27,7 +27,7 @@ function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo, uploadPct }) 
   ];
   const steps = hasUpload ? allSteps : allSteps.slice(1);
   const activeIdx = hasUpload ? stepIndex : Math.max(0, stepIndex - 1);
-  const displayLabel = isDone ? 'Complete' : isRetrying ? 'High demand — retrying...' : (steps[activeIdx]?.label ?? 'Analysing player');
+  const displayLabel = isDone ? 'Complete' : isRetrying ? 'High demand, retrying...' : (steps[activeIdx]?.label ?? 'Analysing player');
   const displayIcon  = isDone ? '✓' : steps[activeIdx]?.icon ?? '✦';
   return (
     <div style={{ marginTop: 16, background: '#131920', border: '1px solid #1e2735', borderRadius: 12, padding: '28px 24px', textAlign: 'center' }}>
@@ -49,7 +49,7 @@ function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo, uploadPct }) 
             <div style={{ height: '100%', background: '#3ecf70', borderRadius: 99, width: `${uploadPct * 100}%`, transition: 'width 0.5s ease' }} />
           </div>
           <div style={{ fontSize: '0.70rem', color: '#50535f', marginTop: 5 }}>
-            {uploadPct < 0.93 ? `${Math.round(uploadPct * 100)}% — ~${Math.round(Math.max(0, (uploadInfo.totalMB / 0.6) - (Date.now() - uploadInfo.startMs) / 1000))}s remaining` : 'Finalising...'}
+            {uploadPct < 0.93 ? `${Math.round(uploadPct * 100)}% (~${Math.round(Math.max(0, (uploadInfo.totalMB / 0.6) - (Date.now() - uploadInfo.startMs) / 1000))}s left)` : 'Finalising...'}
           </div>
         </div>
       )}
@@ -349,7 +349,7 @@ export default function UploaderPortal({
                       {urls.headshotUrl ? <img src={urls.headshotUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : (meta.name?.slice(0, 2).toUpperCase() || '--')}
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isEditing ? '#3ecf70' : '#f0f1f3' }}>{meta.name || '—'}</div>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isEditing ? '#3ecf70' : '#f0f1f3' }}>{meta.name || 'Unnamed'}</div>
                       <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>
                         {clipCount > 0 && <span style={{ color: '#3ecf70', marginRight: 6 }}>? {clipCount} clips</span>}
                         {meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}
@@ -480,7 +480,7 @@ export default function UploaderPortal({
               </button>
             )}
             <button className="btn-primary" onClick={handleAnalyze} disabled={!form.name.trim()} style={{ width: '100%', fontSize: '0.92rem', padding: '12px 20px' }}>
-              {editingId ? 'Re-analyze & Update' : `Analyze${videoFiles.length > 0 ? ` — ${videoFiles.length} clip${videoFiles.length > 1 ? 's' : ''}` : ''}`}
+              {editingId ? 'Re-analyze & Update' : `Analyze${videoFiles.length > 0 ? ` (${videoFiles.length} clip${videoFiles.length > 1 ? 's' : ''})` : ''}`}
             </button>
           </div>
         )}
@@ -647,10 +647,10 @@ function SyncBadge({ status }) {
 
 function ShotstackBadge({ status, done, total }) {
   const map = {
-    submitting: { color: '#c9a84c', label: `☁ Shotstack — submitting ${total} jobs…` },
-    rendering:  { color: '#c9a84c', label: `☁ Shotstack — rendering ${done}/${total}…` },
-    done:       { color: '#00c853', label: `☁ Shotstack — ${done} CDN clips ready` },
-    failed:     { color: '#c94f4f', label: '☁ Shotstack failed — FFmpeg clips kept' },
+    submitting: { color: '#c9a84c', label: `Rendering ${total} clips...` },
+    rendering:  { color: '#c9a84c', label: `Rendering ${done}/${total}...` },
+    done:       { color: '#00c853', label: `${done} clips ready` },
+    failed:     { color: '#c94f4f', label: 'Clip render failed, local clips kept' },
   };
   const cfg = map[status];
   if (!cfg) return null;

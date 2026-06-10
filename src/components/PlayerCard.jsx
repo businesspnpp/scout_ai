@@ -1,19 +1,17 @@
-/**
- * PlayerCard.jsx — Enterprise-grade player profile card.
- */
+// PlayerCard.jsx - the card shown in the scout grid
 import { useState } from 'react';
 import {
   getPositionGroup, getOverallColor, getScoreTone, initials, POS_COLORS,
 } from '../data/mockPlayers.js';
 
-// ── Score color (emerald / gold / muted) ─────────────────────────────────────
+// color based on score range
 function scoreColor(v) {
   if (v >= 85) return '#3ecf70';
   if (v >= 72) return '#d4a850';
   return '#8c909f';
 }
 
-// ── Radar chart ───────────────────────────────────────────────────────────────
+// radar chart component
 function RadarChart({ scores, labels, size = 200 }) {
   const cx = size / 2, cy = size / 2, maxR = size * 0.36, n = labels.length;
   const pt = (i, v) => {
@@ -50,7 +48,7 @@ function RadarChart({ scores, labels, size = 200 }) {
   );
 }
 
-// ── Card ──────────────────────────────────────────────────────────────────────
+// main card
 export default function PlayerCard({ player, onOpenLightbox, onSaveToggle, isSaved, animDelay = 0, onClick }) {
   const [expanded, setExpanded] = useState(false);
   const group  = getPositionGroup(player.pos);
