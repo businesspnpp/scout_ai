@@ -1,0 +1,24 @@
+{
+  "name": "scout-ai",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Scout AI - football talent discovery platform for Africa",
+  "scripts": {
+    "dev": "vite",
+    "prebuild": "node -e \"const fs=require('fs');fs.mkdirSync('public/ffmpeg',{recursive:true});fs.copyFileSync('node_modules/@ffmpeg/core/dist/umd/ffmpeg-core.js','public/ffmpeg/ffmpeg-core.js');fs.copyFileSync('node_modules/@ffmpeg/core/dist/umd/ffmpeg-core.wasm','public/ffmpeg/ffmpeg-core.wasm');\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^1.9.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.4",
+    "vite": "^6.3.2"
+  }
+}
