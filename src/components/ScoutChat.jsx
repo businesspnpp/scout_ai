@@ -69,16 +69,16 @@ function RenderMd({ text }) {
     <div>
       {text.split('\n').map((line, i) => {
         if (/^## /.test(line)) {
-          return <div key={i} style={{ fontWeight: 700, color: '#f0f1f3', fontSize: '0.82rem', marginTop: 10, marginBottom: 2 }}>{line.slice(3)}</div>;
+          return <div key={i} style={{ fontWeight: 600, color: '#d4d8e0', fontSize: '0.79rem', marginTop: 10, marginBottom: 3 }}>{line.slice(3)}</div>;
         }
         if (/^\s*\|/.test(line)) {
           const isDiv = /^[\s|:-]+$/.test(line.replace(/\|/g, ''));
           if (isDiv) return null;
           const cells = line.split('|').filter((_, ci) => ci > 0 && ci < line.split('|').length - 1);
           return (
-            <div key={i} style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1e2735', padding: '3px 0' }}>
+            <div key={i} style={{ display: 'flex', gap: 0, borderBottom: '1px solid #232529', padding: '3px 0' }}>
               {cells.map((cell, ci) => (
-                <div key={ci} style={{ flex: 1, fontSize: '0.68rem', fontFamily: 'JetBrains Mono, monospace', color: '#8c909f', padding: '1px 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div key={ci} style={{ flex: 1, fontSize: '0.69rem', color: '#6b7280', padding: '1px 5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {cell.trim()}
                 </div>
               ))}
@@ -90,8 +90,8 @@ function RenderMd({ text }) {
           <div key={i} style={{ lineHeight: 1.65, marginBottom: line === '' ? 5 : 0, fontSize: '0.80rem' }}>
             {parts.map((p, j) =>
               j % 2 === 1
-                ? <strong key={j} style={{ color: '#3ecf70', fontWeight: 600 }}>{p}</strong>
-                : <span key={j} style={{ color: '#b8beca' }}>{p}</span>
+                ? <strong key={j} style={{ color: '#c4cdd8', fontWeight: 600 }}>{p}</strong>
+                : <span key={j} style={{ color: '#9ba3af' }}>{p}</span>
             )}
           </div>
         );
@@ -208,49 +208,52 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
 
   return (
     <>
-      {/* ── Toggle button ── */}
+      {/* ── Toggle button — clean rectangular tab, no glow ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        title={open ? 'Close Scout AI' : 'Scout AI Executive Core'}
+        title={open ? 'Close' : 'Scout AI'}
         style={{
-          position: 'fixed', bottom: 20,
-          right: open ? 404 : 20,
+          position: 'fixed', bottom: 24,
+          right: open ? 406 : 24,
           zIndex: 400,
-          width: 46, height: 46, borderRadius: '50%',
-          background: open ? '#111520' : '#0d1a14',
-          border: `1px solid ${open ? '#3a3f54' : 'rgba(62,207,112,0.55)'}`,
-          color: open ? '#50535f' : '#3ecf70',
-          fontSize: '1.1rem', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: open ? 'none' : '0 0 18px rgba(62,207,112,0.18)',
-          transition: 'right 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s',
+          padding: '7px 13px',
+          borderRadius: 4,
+          background: '#1c1e25',
+          border: '1px solid #2e3038',
+          color: '#9ba3af',
+          fontSize: '0.76rem', fontWeight: 500, letterSpacing: '0.01em',
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 7,
+          transition: 'right 0.24s cubic-bezier(0.4,0,0.2,1), border-color 0.15s, color 0.15s',
         }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#3d4148'; e.currentTarget.style.color = '#c4cdd8'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#2e3038'; e.currentTarget.style.color = '#9ba3af'; }}
       >
-        {open ? '✕' : '◈'}
+        {open
+          ? <>✕ <span style={{ color: '#4a5161' }}>Close</span></>
+          : <><span style={{ fontSize: '0.68rem', opacity: 0.5 }}>&#9632;</span> Scout AI</>
+        }
       </button>
 
       {/* ── Side panel ── */}
       <div style={{
         position: 'fixed', top: 56, right: 0, bottom: 0,
-        width: 390,
-        background: '#08090e',
-        borderLeft: '1px solid #1a1d27',
+        width: 380,
+        background: '#111316',
+        borderLeft: '1px solid #232529',
         display: 'flex', flexDirection: 'column',
         zIndex: 299,
         transform: open ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.25s cubic-bezier(0.4,0,0.2,1)',
+        transition: 'transform 0.24s cubic-bezier(0.4,0,0.2,1)',
       }}>
 
         {/* Header */}
-        <div style={{ padding: '13px 16px 10px', borderBottom: '1px solid #1a1d27', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3ecf70', display: 'inline-block', animation: 'termBlink 1.4s step-end infinite' }} />
-            <span style={{ fontSize: '0.60rem', letterSpacing: '0.17em', textTransform: 'uppercase', color: '#3ecf70', fontWeight: 600 }}>Scout AI · Executive Core</span>
-          </div>
-          <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>
+        <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid #1c1e24', flexShrink: 0 }}>
+          <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#d4d8e0', marginBottom: 3 }}>Scout AI</div>
+          <div style={{ fontSize: '0.72rem', color: '#4a5161' }}>
             {focusName
-              ? <>Active context: <span style={{ color: '#8c909f' }}>{focusName}</span></>
-              : <>{buildRoster(localProfiles, blobUrls).length} profiles in registry · Full database access</>
+              ? <>{focusName} &mdash; active context</>
+              : <>{buildRoster(localProfiles, blobUrls).length} profiles &middot; full database access</>
             }
           </div>
         </div>
@@ -258,26 +261,26 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
         {/* Message list */}
         <div
           ref={msgListRef}
-          style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 4px', display: 'flex', flexDirection: 'column', gap: 14, scrollbarWidth: 'none' }}
+          style={{ flex: 1, overflowY: 'auto', padding: '16px 14px 6px', display: 'flex', flexDirection: 'column', gap: 16, scrollbarWidth: 'none' }}
         >
           {messages.map(msg => (
             <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{ fontSize: '0.58rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#3a3f54', marginBottom: 4 }}>
-                {msg.role === 'user' ? 'Scout' : 'AI Core'}
+              <div style={{ fontSize: '0.66rem', color: '#3d4148', marginBottom: 4, fontWeight: 500 }}>
+                {msg.role === 'user' ? 'You' : 'Scout AI'}
               </div>
               <div style={{
-                maxWidth: '92%',
+                maxWidth: '90%',
                 padding: '9px 12px',
-                borderRadius: msg.role === 'user' ? '8px 8px 2px 8px' : '2px 8px 8px 8px',
-                background: msg.role === 'user' ? 'rgba(62,207,112,0.05)' : '#0f1219',
-                border: `1px solid ${msg.role === 'user' ? 'rgba(62,207,112,0.15)' : '#1a1d27'}`,
+                borderRadius: msg.role === 'user' ? '6px 6px 2px 6px' : '2px 6px 6px 6px',
+                background: msg.role === 'user' ? '#1c1e25' : '#17191f',
+                border: '1px solid #232529',
               }}>
                 {msg.role === 'ai'
                   ? <RenderMd text={msg.text || (msg.streaming ? '' : '…')} />
-                  : <span style={{ fontSize: '0.80rem', color: '#c8cdd8', lineHeight: 1.6 }}>{msg.text}</span>
+                  : <span style={{ fontSize: '0.80rem', color: '#c4cdd8', lineHeight: 1.65 }}>{msg.text}</span>
                 }
                 {msg.streaming && (
-                  <span style={{ display: 'inline-block', width: 7, height: '0.85em', background: '#3ecf70', marginLeft: 2, verticalAlign: 'text-bottom', animation: 'termBlink 0.9s step-end infinite' }} />
+                  <span style={{ display: 'inline-block', width: 1, height: '0.85em', background: '#6b7280', marginLeft: 3, verticalAlign: 'text-bottom', animation: 'termBlink 0.8s step-end infinite' }} />
                 )}
               </div>
             </div>
@@ -285,31 +288,33 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
           <div ref={bottomRef} style={{ height: 1 }} />
         </div>
 
-        {/* Suggested prompts — shown until first user message */}
+        {/* Suggested prompts */}
         {messages.filter(m => m.role === 'user').length === 0 && (
-          <div style={{ padding: '8px 14px', display: 'flex', flexWrap: 'wrap', gap: 5, borderTop: '1px solid #1a1d27' }}>
-            <div style={{ width: '100%', fontSize: '0.58rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: '#3a3f54', marginBottom: 4 }}>Suggested queries</div>
-            {suggestedPrompts.map((q, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(q)}
-                style={{
-                  fontSize: '0.70rem', padding: '5px 9px', borderRadius: 4,
-                  border: '1px solid #1a1d27', background: '#0f1219',
-                  color: '#6b7280', cursor: 'pointer', lineHeight: 1.4, textAlign: 'left',
-                  transition: 'border-color 0.1s, color 0.1s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(62,207,112,0.28)'; e.currentTarget.style.color = '#a0a8b4'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1d27'; e.currentTarget.style.color = '#6b7280'; }}
-              >
-                {q}
-              </button>
-            ))}
+          <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #1c1e24' }}>
+            <div style={{ fontSize: '0.65rem', color: '#3d4148', marginBottom: 6, fontWeight: 500 }}>Suggestions</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {suggestedPrompts.map((q, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(q)}
+                  style={{
+                    fontSize: '0.76rem', padding: '5px 8px', borderRadius: 3, textAlign: 'left',
+                    border: 'none', background: 'transparent',
+                    color: '#5c6370', cursor: 'pointer', lineHeight: 1.4,
+                    transition: 'color 0.1s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#9ba3af'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#5c6370'}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Input bar */}
-        <div style={{ padding: '10px 12px 12px', borderTop: '1px solid #1a1d27', flexShrink: 0 }}>
+        {/* Input */}
+        <div style={{ padding: '10px 12px 14px', borderTop: '1px solid #1c1e24', flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: 7, alignItems: 'flex-end' }}>
             <textarea
               ref={inputRef}
@@ -323,36 +328,33 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
               }}
-              placeholder={streaming ? 'AI is responding…' : 'Ask the scout…'}
+              placeholder={streaming ? 'Responding…' : 'Ask anything about the roster…'}
               disabled={streaming}
               style={{
                 flex: 1, resize: 'none', overflow: 'hidden',
-                background: '#0c0e14', border: '1px solid #1a1d27', borderRadius: 7,
-                padding: '8px 11px', fontSize: '0.82rem', color: '#f0f1f3',
+                background: '#0e1014', border: '1px solid #232529', borderRadius: 5,
+                padding: '8px 11px', fontSize: '0.82rem', color: '#d4d8e0',
                 outline: 'none', lineHeight: 1.5, fontFamily: 'inherit',
                 transition: 'border-color 0.15s',
               }}
-              onFocus={e  => e.target.style.borderColor = 'rgba(62,207,112,0.35)'}
-              onBlur={e   => e.target.style.borderColor = '#1a1d27'}
+              onFocus={e  => e.target.style.borderColor = '#3d4148'}
+              onBlur={e   => e.target.style.borderColor = '#232529'}
             />
             <button
               onClick={() => sendMessage()}
               disabled={streaming || !input.trim()}
               style={{
-                flexShrink: 0, width: 36, height: 36,
-                borderRadius: 7, border: '1px solid rgba(62,207,112,0.25)',
-                background: streaming || !input.trim() ? 'transparent' : 'rgba(62,207,112,0.07)',
-                color: '#3ecf70', fontSize: '1rem', cursor: streaming ? 'not-allowed' : 'pointer',
+                flexShrink: 0, width: 34, height: 34,
+                borderRadius: 5, border: '1px solid #232529',
+                background: input.trim() && !streaming ? '#1c1e25' : 'transparent',
+                color: input.trim() && !streaming ? '#9ba3af' : '#3d4148',
+                cursor: streaming ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                opacity: (!input.trim() || streaming) ? 0.3 : 1,
-                transition: 'opacity 0.15s',
+                fontSize: '0.9rem', transition: 'all 0.15s',
               }}
             >
-              →
+              &uarr;
             </button>
-          </div>
-          <div style={{ fontSize: '0.60rem', color: '#2e3040', marginTop: 5, textAlign: 'right' }}>
-            Enter to send · Shift+Enter for new line
           </div>
         </div>
       </div>
