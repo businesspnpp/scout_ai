@@ -79,22 +79,49 @@ export function useLocalProfiles() {
           }));
 
           const urls = {};
-          rows.forEach(row => {
+          // Use async for-of so we can fall back to IndexedDB when Supabase video upload failed
+          for (const row of rows) {
+            if (cancelled) break;
             const entry = {};
-            if (row.headshot_url) entry.headshotUrl = row.headshot_url;
-            if (row.video_url)    entry.videoUrl    = row.video_url;
-            // Rebuild instant clip URLs using the Supabase video URL
+            if (row.headshot_url) {
+              entry.headshotUrl = row.headshot_url;
+            } else {
+              // Headshot upload may have failed - try IndexedDB
+              const blob = await getBlob(`${row.id}-headshot`).catch(() => null);
+              if (blob && !cancelled) entry.headshotUrl = URL.createObjectURL(blob);
+            }
+            if (row.video_url) {
+              entry.videoUrl = row.video_url;
+            } else if (!row.is_video_external) {
+              // Video upload to Supabase failed silently - recover from IndexedDB
+              const blob = await getBlob(`${row.id}-video`).catch(() => null);
+              if (blob && !cancelled) entry.videoUrl = URL.createObjectURL(blob);
+            }
+            // Rebuild instant clip URLs using the resolved video URL (Supabase or IndexedDB blob)
             const savedClips = localById[row.id]?.metricClips ?? [];
-            if (row.video_url && savedClips.length > 0) {
+            const videoBase  = entry.videoUrl;
+            if (videoBase && savedClips.length > 0) {
               entry.clipUrls = savedClips.map(c => {
                 if (c.source === 'instant') {
-                  return { ...c, url: `${row.video_url}#t=${c.startSec ?? 0},${c.endSec ?? 0}` };
+                  return { ...c, url: `${videoBase}#t=${c.startSec ?? 0},${c.endSec ?? 0}` };
                 }
-                return c; // Shotstack CDN or blob key - handled elsewhere
-              }).filter(c => c.url);
+                if (c.blobKey) return c; // resolved separately below
+                return c; // Shotstack CDN URL - use as-is
+              }).filter(c => c.url || c.blobKey);
+              // Resolve any blobKey clips from IndexedDB
+              const resolved = [];
+              for (const c of entry.clipUrls) {
+                if (c.blobKey && !c.url) {
+                  const b = await getBlob(c.blobKey).catch(() => null);
+                  if (b && !cancelled) resolved.push({ ...c, url: URL.createObjectURL(b) });
+                } else {
+                  resolved.push(c);
+                }
+              }
+              entry.clipUrls = resolved.filter(c => c.url);
             }
             if (Object.keys(entry).length) urls[row.id] = entry;
-          });
+          }
 
           urlsRef.current = urls;
           setProfilesRaw(metas);
