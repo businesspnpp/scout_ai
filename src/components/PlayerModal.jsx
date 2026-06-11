@@ -117,10 +117,10 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
             </div>
 
             {/* ── Comparable Professionals Badges ── */}
-            {player.analysis?.comparablePros?.length > 0 && (
+            {((player.comparablePros ?? player.analysis?.comparablePros)?.length > 0) && (
               <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar Profile:</span>
-                {player.analysis.comparablePros.slice(0, 3).map((pro, i) => (
+                {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
                   <span key={i} style={{
                     fontSize: '0.70rem', padding: '3px 9px', borderRadius: 3,
                     background: 'rgba(62,207,112,0.07)', border: '1px solid rgba(62,207,112,0.22)',

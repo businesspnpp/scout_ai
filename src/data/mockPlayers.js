@@ -92,6 +92,11 @@ export const mockPlayers = [
       dribbling:  '/reels/celestin-kamdem/dribbling.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Samuel Eto\u02bbo',  club: 'Barcelona (Youth Reference)', ageWhen: 18, similarity: 91 },
+      { name: 'Didier Drogba',     club: 'Le Mans (Academy)',            ageWhen: 18, similarity: 84 },
+      { name: 'Victor Osimhen',    club: 'VfL Wolfsburg (Youth)',        ageWhen: 19, similarity: 79 },
+    ],
   },
 
   {
@@ -120,6 +125,11 @@ export const mockPlayers = [
       passing:   '/reels/oumar-coulibaly/passing.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Hakim Ziyech',     club: 'SC Heerenveen (Youth)',       ageWhen: 18, similarity: 88 },
+      { name: 'Yaya Tour\u00e9',  club: 'ASEC Mimosas (Academy)',      ageWhen: 17, similarity: 82 },
+      { name: 'Idrissa Gueye',   club: 'Lille OSC (Youth Reference)', ageWhen: 19, similarity: 76 },
+    ],
   },
 
   {
@@ -148,6 +158,11 @@ export const mockPlayers = [
       pace:       '/reels/kwame-mensah/pace.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Asamoah Gyan',    club: 'Liberty Professionals (Youth)', ageWhen: 18, similarity: 87 },
+      { name: 'Obafemi Martins', club: 'Inter Milan (Youth)',            ageWhen: 19, similarity: 81 },
+      { name: 'Christian Atsu', club: 'Porto Academy',                  ageWhen: 18, similarity: 74 },
+    ],
   },
 
   {
@@ -176,6 +191,11 @@ export const mockPlayers = [
       finishing:  '/reels/ezra-mwangi/finishing.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Victor Osimhen',   club: 'Wolfsburg U17 (Reference)',   ageWhen: 17, similarity: 90 },
+      { name: 'Emmanuel Adebayor', club: 'AS Monaco (Youth)',           ageWhen: 18, similarity: 83 },
+      { name: 'Wilfried Bony',    club: 'Sparta Prague (Academy)',     ageWhen: 19, similarity: 77 },
+    ],
   },
 
   {
@@ -204,6 +224,11 @@ export const mockPlayers = [
       passing:    '/reels/amara-diallo/passing.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Sadio Man\u00e9',    club: 'Metz Academy (Reference)',    ageWhen: 18, similarity: 86 },
+      { name: 'Pape Matar Sarr',  club: 'FC Metz (Youth)',              ageWhen: 18, similarity: 82 },
+      { name: 'Keita Bald\u00e9', club: 'Barcelona B (Youth)',          ageWhen: 17, similarity: 75 },
+    ],
   },
 
   {
@@ -232,6 +257,11 @@ export const mockPlayers = [
       dribbling:  '/reels/samuel-bekele/dribbling.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Nicolas P\u00e9p\u00e9', club: 'Angers SCO (Academy)',    ageWhen: 17, similarity: 89 },
+      { name: 'Ademola Lookman',     club: 'Charlton Athletic (Youth)', ageWhen: 16, similarity: 84 },
+      { name: 'Samuel Chukwueze',   club: 'Diamond Academy (Youth)',   ageWhen: 17, similarity: 78 },
+    ],
   },
 
   {
@@ -260,6 +290,11 @@ export const mockPlayers = [
       workrate:   '/reels/lebo-molefe/workrate.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Michael Essien',   club: 'Bastia (Youth Reference)',    ageWhen: 19, similarity: 87 },
+      { name: 'Jean-Michaël Seri', club: 'Nice Academy',                ageWhen: 20, similarity: 81 },
+      { name: 'Percy Tau',        club: 'Mamelodi Sundowns (Youth)',   ageWhen: 19, similarity: 74 },
+    ],
   },
 
   {
@@ -288,6 +323,11 @@ export const mockPlayers = [
       dribbling:  '/reels/yusuf-hassan/dribbling.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Victor Moses',       club: 'Crystal Palace (Youth)',      ageWhen: 20, similarity: 85 },
+      { name: 'Samuel Chukwueze',  club: 'Diamond Academy',              ageWhen: 19, similarity: 80 },
+      { name: 'Wilfried Zaha',     club: 'Crystal Palace Academy',      ageWhen: 19, similarity: 73 },
+    ],
   },
 
   {
@@ -316,6 +356,11 @@ export const mockPlayers = [
       tackling:     '/reels/kofi-asante/tackling.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Thomas Partey',    club: 'Atl\u00e9tico Madrid (Youth)', ageWhen: 20, similarity: 92 },
+      { name: 'Wilfried Ndidi',  club: 'Genk Academy Reference',       ageWhen: 19, similarity: 85 },
+      { name: 'Cheikhou Kouyat\u00e9', club: 'FC Metz (Youth)',         ageWhen: 21, similarity: 77 },
+    ],
   },
 
   {
@@ -344,6 +389,11 @@ export const mockPlayers = [
       positioning:  '/reels/emeka-obi/positioning.mp4',
     },
     headshot: null,
+    comparablePros: [
+      { name: 'Joel Matip',            club: 'Schalke 04 (Youth)',      ageWhen: 20, similarity: 88 },
+      { name: 'William Troost-Ekong', club: 'Groningen (Academy)',      ageWhen: 20, similarity: 82 },
+      { name: 'Issa Diop',            club: 'Toulouse FC (Youth)',      ageWhen: 19, similarity: 75 },
+    ],
   },
 ];
 
