@@ -17,10 +17,10 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
   const isDone     = !analyzing && s.length > 5;
 
   const allSteps = [
-    { key: 'upload',  label: 'Uploading footage', icon: '↑' },
-    { key: 'scan',    label: 'Reading footage',    icon: '◉' },
-    { key: 'analyse', label: 'Analysing player',   icon: '✦' },
-    { key: 'done',    label: 'Complete',           icon: '✓' },
+    { key: 'upload',  label: 'Uploading footage', icon: 'UP' },
+    { key: 'scan',    label: 'Reading footage',    icon: 'AI' },
+    { key: 'analyse', label: 'Analysing player',   icon: '...' },
+    { key: 'done',    label: 'Complete',           icon: 'OK' },
   ];
   const steps     = hasUpload ? allSteps : allSteps.slice(1);
   const activeIdx = hasUpload ? stepIndex : Math.max(0, stepIndex - 1);
@@ -28,7 +28,7 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
   const displayLabel = isDone      ? 'Complete'
     : isRetrying                   ? 'High demand, retrying...'
     : (steps[activeIdx]?.label ?? 'Analysing player');
-  const displayIcon  = isDone ? '✓' : steps[activeIdx]?.icon ?? '✦';
+  const displayIcon  = isDone ? 'OK' : steps[activeIdx]?.icon ?? '...';
 
   return (
     <div style={{

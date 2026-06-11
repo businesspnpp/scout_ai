@@ -881,7 +881,7 @@ export default function ScoutDashboard({
   ];
 
   return (
-    <div style={{ background: C.bg, color: C.txt, height: 'calc(100vh - 56px)', display: 'flex', overflow: 'hidden' }}>
+    <div style={{ background: C.bg, color: C.txt, marginTop: 50, height: 'calc(100vh - 50px)', display: 'flex', overflow: 'hidden' }}>
       {/* Mobile nav backdrop */}
       {isMobile && navOpen && (
         <div onClick={() => setNavOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 200 }} />
@@ -894,7 +894,7 @@ export default function ScoutDashboard({
         display: 'flex', flexDirection: 'column',
         background: C.bg, overflow: 'hidden',
         ...(isMobile ? {
-          position: 'fixed', top: 56, left: 0, bottom: 0, zIndex: 210,
+          position: 'fixed', top: 50, left: 0, bottom: 0, zIndex: 210,
           transform: navOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)',
         } : {
@@ -1190,12 +1190,12 @@ export default function ScoutDashboard({
                   <p style={{ marginTop: 12, color: C.txtMd, fontSize: isMobile ? '0.85rem' : '0.92rem', lineHeight: 1.5 }}>
                     AI-powered scouting to discover, analyze and recruit talent worldwide.
                   </p>
-                  <button
+                  {/* <button
                     onClick={() => setNavSection('search')}
                     style={{ marginTop: 18, padding: '10px 22px', background: C.green, border: 'none', borderRadius: 10, color: '#0d0d0f', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 }}
                   >
                     Explore Players
-                  </button>
+                  </button> */}
                 </div>
               </section>
 

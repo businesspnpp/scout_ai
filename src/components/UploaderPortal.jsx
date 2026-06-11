@@ -318,7 +318,7 @@ export default function UploaderPortal({
   const cutting   = phase === 'cutting';
 
   return (
-    <div style={{ minHeight: '100vh', paddingTop: 72, paddingBottom: 60, background: 'transparent' }}>
+    <div style={{ minHeight: '100vh', paddingTop: 62, paddingBottom: 60, background: 'transparent' }}>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '0 12px' : '0 20px' }}>
 
         {/* -- Saved Profiles Table -- */}

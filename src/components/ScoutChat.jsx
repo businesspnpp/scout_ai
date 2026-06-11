@@ -262,7 +262,7 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
       {/* ── Side panel ── */}
       <div style={{
         position: 'fixed',
-        top: 56, right: 0, bottom: 0,
+        top: 50, right: 0, bottom: 0,
         width: isMobile ? '100vw' : 380,
         background: '#111316',
         borderLeft: isMobile ? 'none' : '1px solid #232529',

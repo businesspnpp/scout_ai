@@ -7,8 +7,8 @@ export default function Navigation({ view, setView, savedCount, cachedCount = 0 
   const { isMobile, isTablet } = useBreakpoint();
   return (
     <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
-      height: 56,
+      position: 'fixed', top: 6, left: 0, right: 0, zIndex: 300,
+      height: 44,
       background: '#0d0d0f',
       borderBottom: '1px solid #222225',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -35,8 +35,8 @@ export default function Navigation({ view, setView, savedCount, cachedCount = 0 
         display: 'flex', alignItems: 'center',
         background: '#1a1a1c', border: '1px solid #252527', borderRadius: 8, padding: 3,
       }}>
-        <RoleTab label={isMobile ? 'Upload' : 'Uploader Portal'}    sub={isMobile ? null : 'Coaches & Players'} icon="↑" active={view === 'uploader'} onClick={() => setView('uploader')} compact={isMobile} />
-        <RoleTab label={isMobile ? 'Scout'  : 'Scout Intelligence'} sub={isMobile ? null : 'Discover Talent'}   icon="◈" active={view === 'scouter'}  onClick={() => setView('scouter')}  compact={isMobile} />
+        <RoleTab label={isMobile ? 'Upload' : 'Uploader Portal'}    sub={isMobile ? null : 'Coaches & Players'} icon="+" active={view === 'uploader'} onClick={() => setView('uploader')} compact={isMobile} />
+        <RoleTab label={isMobile ? 'Scout'  : 'Scout Intelligence'} sub={isMobile ? null : 'Discover Talent'}   icon="#" active={view === 'scouter'}  onClick={() => setView('scouter')}  compact={isMobile} />
       </div>
 
       {/* Status — hidden on mobile */}

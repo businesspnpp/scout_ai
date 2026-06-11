@@ -31,7 +31,7 @@ export default function App() {
   const handleSaveToggle = useCallback(id => {
     setSavedIds(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      showToast(prev.includes(id) ? 'Removed from shortlist' : 'Added to shortlist ★');
+      showToast(prev.includes(id) ? 'Removed from shortlist' : 'Added to shortlist');
       return next;
     });
   }, []);
@@ -45,7 +45,7 @@ export default function App() {
   // called when Gemini finishes the analysis
   const handleAnalysisComplete = useCallback((result, clips = []) => {
     setNewProfile({ ...result, _clips: clips });
-    showToast('Analysis complete ✓');
+    showToast('Analysis complete');
   }, []);
 
   // append new video to an existing player profile
@@ -60,13 +60,13 @@ export default function App() {
       onSyncProgress: prog => {
         const status = typeof prog === 'string' ? prog : prog?.status;
         if (status === 'uploading') showToast('Syncing to Supabase…');
-        if (status === 'done')      showToast('Saved to cloud ✓');
+        if (status === 'done')      showToast('Saved to cloud');
         if (status === 'error')     showToast('Cloud sync failed, saved locally');
         // Forward the full progress object so UploaderPortal can start Shotstack
         payload.onSyncProgress?.(prog);
       },
     });
-    showToast('Profile cached locally ✓');
+    showToast('Profile cached locally');
     return meta;
   }, [addProfile]);
 
