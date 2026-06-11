@@ -151,6 +151,7 @@ export async function saveFullProfile({
   videoFile,
   videoUrl,   // external URL (YouTube/TikTok) when no file
   analysis,
+  metricClips = [],  // timestamps + metrics — persisted in analysis_json._clips
 }) {
   if (!isSupabaseEnabled) {
     return { headshotPublicUrl: null, videoPublicUrl: videoUrl || null, dbRow: null };
@@ -165,7 +166,7 @@ export async function saveFullProfile({
     region:               formData.region?.trim() || null,
     overall_score:        analysis?.overallScore         ?? null,
     ai_match_confidence:  analysis?.aiMatchConfidence    ?? null,
-    analysis_json:        analysis                       ?? null,
+    analysis_json:        analysis ? { ...analysis, _clips: metricClips } : (metricClips.length ? { _clips: metricClips } : null),
     headshot_url:         null,
     headshot_path:        null,
     video_url:            (!videoFile && videoUrl) ? videoUrl : null,
@@ -213,6 +214,13 @@ export async function saveFullProfile({
 // ── Row → local meta converter ────────────────────────────────────────────────
 /** Converts a Supabase DB row into the shape used by useLocalProfiles */
 export function rowToLocalMeta(row) {
+  const analysisJson = row.analysis_json ?? null;
+  // Strip internal _clips key so analysis object stays clean
+  let analysis = null;
+  if (analysisJson) {
+    const { _clips: _ignored, ...rest } = analysisJson;
+    analysis = Object.keys(rest).length ? rest : null;
+  }
   return {
     id:           row.id,
     createdAt:    row.created_at,
@@ -225,10 +233,26 @@ export function rowToLocalMeta(row) {
     videoFileName: row.video_file_name,
     videoFileSize: row.video_file_size,
     videoUrl:      row.video_url,
-    analysis:      row.analysis_json,
+    analysis,
+    metricClips:   row.analysis_json?._clips ?? [],
     // Storage paths for deletion
     _headshotPath: row.headshot_path,
     _videoPath:    row.video_path,
     _fromSupabase: true,
   };
+}
+
+/**
+ * Persist updated metric clips back to Supabase by merging into analysis_json._clips.
+ * Called after Shotstack CDN clips arrive or any clip update.
+ */
+export async function patchProfileClips(profileId, allClips, existingAnalysis) {
+  if (!isSupabaseEnabled) return;
+  try {
+    await updateProfileRow(profileId, {
+      analysis_json: { ...(existingAnalysis ?? {}), _clips: allClips },
+    });
+  } catch (err) {
+    console.warn('[supabaseService] patchProfileClips failed:', err.message);
+  }
 }

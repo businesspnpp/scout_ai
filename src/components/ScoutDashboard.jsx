@@ -356,6 +356,15 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
                 {isSaved ? 'Saved' : 'Save'}
               </button>
             )}
+            {onFullAnalysis && (
+              <button onClick={onFullAnalysis} style={{
+                background: C.gnDim, border: `1px solid ${C.gnBdr}`,
+                borderRadius: 9, padding: '6px 11px', color: C.green,
+                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+              }}>
+                Full Report
+              </button>
+            )}
             <button onClick={onClose} style={{ background: 'none', border: `1px solid ${C.border}`, borderRadius: 9, padding: '6px 10px', color: C.txtMd, cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}>
               x
             </button>

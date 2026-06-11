@@ -5,6 +5,7 @@ import {
   fetchProfiles,
   deleteProfile as supabaseDelete,
   rowToLocalMeta,
+  patchProfileClips,
 } from '../services/supabaseService.js';
 import { storeBlob, getBlob, deleteBlob } from '../services/dbService.js';
 
@@ -73,10 +74,15 @@ export function useLocalProfiles() {
           const localMetas = loadMeta();
           const localById  = Object.fromEntries(localMetas.map(m => [m.id, m]));
 
-          const metas = rows.map(row => ({
-            ...rowToLocalMeta(row),
-            metricClips: localById[row.id]?.metricClips ?? [],
-          }));
+          const metas = rows.map(row => {
+            const meta = rowToLocalMeta(row);
+            // rowToLocalMeta already extracts _clips from analysis_json._clips
+            // fall back to localStorage only if Supabase row has no clips yet
+            if (!meta.metricClips?.length && localById[row.id]?.metricClips?.length) {
+              meta.metricClips = localById[row.id].metricClips;
+            }
+            return meta;
+          });
 
           const urls = {};
           // Use async for-of so we can fall back to IndexedDB when Supabase video upload failed
@@ -278,6 +284,7 @@ export function useLocalProfiles() {
           onSyncProgress?.('uploading');
           const { headshotPublicUrl, videoPublicUrl } = await saveFullProfile({
             profileId: id, formData, headshotFile, existingHeadshotUrl, videoFile, videoUrl, analysis,
+            metricClips: clipMetas,  // persist timestamps + metrics to Supabase
           });
           // Preserve all local URLs, then overlay Supabase public URLs on top
           const supaEntry = { ...idbEntry };
@@ -311,11 +318,17 @@ export function useLocalProfiles() {
       urlsRef.current[id] = { ...existing, clipUrls: merged };
       return { ...prev, [id]: { ...existing, clipUrls: merged } };
     });
-    // Also persist Shotstack URLs into localStorage meta
+    // Also persist Shotstack URLs into localStorage meta + Supabase
     setProfiles(prev => prev.map(p => {
       if (p.id !== id) return p;
       const oldMeta = (p.metricClips ?? []).filter(c => !ssMetrics.has(c.metric));
       const newMeta = [...shotstackClips.map(c => ({ metric: c.metric, start: c.start, end: c.end, url: c.url, description: c.description, source: 'shotstack', name: c.name })), ...oldMeta];
+      // Persist updated clips to Supabase so they survive restarts
+      if (isSupabaseEnabled) {
+        patchProfileClips(id, newMeta, p.analysis).catch(err =>
+          console.warn('[updateProfileClips] Supabase patch failed:', err)
+        );
+      }
       return { ...p, metricClips: newMeta };
     }));
   }, [setProfiles]);
