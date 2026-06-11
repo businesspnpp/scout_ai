@@ -42,6 +42,8 @@ function buildMockResponse(playerDetails) {
       { timestampStart: '01:02', timestampEnd: '01:08', metric: Object.keys(baseMetrics)[1], description: 'Holds up well under pressure, turns and drives', clipLabel: 'Clip B - 01:02-01:08' },
       { timestampStart: '01:50', timestampEnd: '01:57', metric: Object.keys(baseMetrics)[2], description: 'Tight control in a small space with two defenders close', clipLabel: 'Clip C - 01:50-01:57' },
       { timestampStart: '02:35', timestampEnd: '02:43', metric: Object.keys(baseMetrics)[3], description: 'Smart movement off the ball, arrives at the right moment', clipLabel: 'Clip D - 02:35-02:43' },
+      { timestampStart: '03:10', timestampEnd: '03:18', metric: Object.keys(baseMetrics)[4], description: 'High energy press, covers ground quickly to close down the defender', clipLabel: 'Clip E - 03:10-03:18' },
+      { timestampStart: '03:55', timestampEnd: '04:02', metric: Object.keys(baseMetrics)[5], description: 'Wins the aerial duel cleanly, good timing on the jump', clipLabel: 'Clip F - 03:55-04:02' },
     ],
     scoutNotes:       `Good ${pos} with a strong showing in his ${Object.keys(baseMetrics)[0]}. Worth monitoring over the next few months.`,
     developmentAreas: ['weak foot', 'pressing intensity', 'aerial duels'],
@@ -86,7 +88,7 @@ Return ONLY a valid JSON object (no markdown, no explanation):
       "clipIndex": number (1-based, which video clip this moment is from),
       "metric": string,
       "description": string,
-      "clipLabel": "Clip X � MM:SS�MM:SS"
+      "clipLabel": "Clip X - MM:SS-MM:SS"
     }
   ],
   "scoutNotes": string,
