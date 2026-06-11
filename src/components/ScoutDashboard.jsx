@@ -722,7 +722,7 @@ export default function ScoutDashboard({
       {/* MAIN CONTENT */}
       <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         {/* Sticky search bar */}
-        <div style={{ padding: isMobile ? '12px 14px' : '18px 24px', position: 'sticky', top: 0, zIndex: 50, background: C.bg, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ padding: isMobile ? '12px 14px' : '18px 24px', position: 'sticky', top: 0, zIndex: 50, background: C.bg }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {isMobile && (
               <button
@@ -752,12 +752,12 @@ export default function ScoutDashboard({
           {!showGrid ? (
             <>
               {/* Hero Banner */}
-              <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 220 : 280, marginBottom: 32, background: '#111113', border: `1px solid ${C.border}` }}>
+              <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 260 : 380, marginBottom: 32, background: '#111113', border: `1px solid ${C.border}` }}>
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #0b0b0d 0%, rgba(11,11,13,0.85) 50%, rgba(11,11,13,0) 100%)', zIndex: 1 }} />
                 <div style={{ position: 'absolute', right: 0, top: 0, width: '60%', height: '100%', overflow: 'hidden' }}>
                   <img src="/assets/banner.png" alt="Scout AI hero" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
                 </div>
-                <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '28px 22px' : '42px 40px', maxWidth: 500 }}>
+                <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '28px 22px' : '36px 40px', maxWidth: 500 }}>
                   <div style={{ fontSize: isMobile ? '1.7rem' : '2.8rem', fontWeight: 800, lineHeight: 1.15, fontFamily: 'syne, sans-serif' }}>
                     Find the{' '}<span style={{ color: C.green }}>next generation</span>{' '}of stars
                   </div>
