@@ -71,7 +71,14 @@ app.post('/api/gemini/stream', async (req, res) => {
   res.flushHeaders();
 
   if (!GEMINI_KEYS.length) {
-    res.write('data: [MOCK]\n\n');
+    // No API key — stream a mock response word by word
+    const mockReply = "Scout AI is running in demo mode (no Gemini API key configured on the server). To enable live AI responses, add GEMINI_API_KEY to your .env file and restart the server. In the meantime, the scouting database, player profiles, video analysis, and all other features are fully functional.";
+    const words = mockReply.split(' ');
+    for (const word of words) {
+      res.write(`data: ${JSON.stringify({ t: word + ' ' })}\n\n`);
+      await new Promise(r => setTimeout(r, 18));
+    }
+    res.write('data: [DONE]\n\n');
     return res.end();
   }
 
