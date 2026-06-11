@@ -42,7 +42,7 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background: linear-gradient(160deg, #1c1d25 0%, #14151b 45%, #1b1c24 100%);
+  background: #0d0d0f;
   background-attachment: fixed;
   color: #f0f1f3;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -55,8 +55,8 @@ body {
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2e3040; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3f54; }
+::-webkit-scrollbar-thumb { background: #2a2a2d; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3e; }
 
 /* ── Typography ────────────────────────────────────────────────────────────── */
 .font-syne { font-family: 'Inter', system-ui, sans-serif; font-weight: 700; }
@@ -93,7 +93,7 @@ body {
 /* ── Input ─────────────────────────────────────────────────────────────────── */
 .input-base {
   width: 100%;
-  background: #1d1f27;
+  background: #141416;
   border: 1px solid #2e3040;
   border-radius: 8px;
   padding: 10px 13px;
@@ -107,7 +107,7 @@ body {
   border-color: #3a3f54;
 }
 .input-base::placeholder { color: #50535f; }
-.input-base option { background: #1d1f27; color: #f0f1f3; }
+.input-base option { background: #141416; color: #f0f1f3; }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────────── */
 .btn-primary {
@@ -139,12 +139,12 @@ body {
   transition: border-color 0.13s, color 0.13s, background 0.13s;
   font-family: 'Inter', sans-serif;
 }
-.btn-ghost:hover  { border-color: #3a3f54; color: #f0f1f3; background: #23252f; }
+.btn-ghost:hover  { border-color: #2e2e32; color: #f0f1f3; background: #1e1e21; }
 .btn-ghost:active { transform: translateY(1px); }
 
 /* ── Panels ───────────────────────────────────────────────────────────────────── */
-.glass      { background: #23252f; border: 1px solid #2e3040; }
-.glass-dark { background: #1d1f27; border: 1px solid #2e3040; }
+.glass      { background: #1e1e21; border: 1px solid #2a2a2d; }
+.glass-dark { background: #141416; border: 1px solid #2a2a2d; }
 
 /* ── Terminal / code blocks ─────────────────────────────────────────────────── */
 .terminal-block {

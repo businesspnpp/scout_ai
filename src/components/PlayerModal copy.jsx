@@ -1,7 +1,7 @@
 ﻿/**
  * PlayerModal.jsx - Full-Screen Tac-Dark Detail Modal Matrix
  */
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getPositionGroup, initials } from '../data/mockPlayers.js';
 import { THEME, getScoreColor } from './modal/theme.js';
 import RadarChart from './modal/RadarChart.jsx';
@@ -9,7 +9,6 @@ import VideoHUD   from './modal/VideoHUD.jsx';
 import MetricRow  from './modal/MetricRow.jsx';
 import Panel      from './modal/Panel.jsx';
 import useBreakpoint from '../hooks/useBreakpoint.js';
-import { generateTransferPitch } from '../services/geminiService.js';
 
 // ── Inline sub-components extracted to src/components/modal/ ──────────────
 // THEME, getScoreColor → modal/theme.js
@@ -19,28 +18,11 @@ import { generateTransferPitch } from '../services/geminiService.js';
 // Panel      → modal/Panel.jsx
 
 // ── FULL DOSSIER PORTAL MODAL COMPONENT ─────────────────────────────────────
-export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, onSaveToggle, notes = '', onSaveNote, onSaveReport, watchlistIds = [], onWatchlistToggle }) {
+export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, onSaveToggle }) {
   const [tab, setTab] = useState('overview');
   const [open, setOpen] = useState(false);
-  const [pitchText,    setPitchText]    = useState('');
-  const [pitchLoading, setPitchLoading] = useState(false);
-  const [localNote, setLocalNote] = useState(notes);
   const bodyRef = useRef(null);
   const { isMobile } = useBreakpoint();
-
-  const handleGeneratePitch = useCallback(async () => {
-    setPitchText('');
-    setPitchLoading(true);
-    let fullText = '';
-    try {
-      await generateTransferPitch(player, chunk => { fullText += chunk; setPitchText(t => t + chunk); });
-      if (fullText && onSaveReport) onSaveReport(player.id, player.name, fullText);
-    } catch (err) {
-      setPitchText('⚠ Error: ' + err.message);
-    } finally {
-      setPitchLoading(false);
-    }
-  }, [player, onSaveReport]);
 
   const group   = getPositionGroup(player.pos);
   const scores  = group.keys.map(k => player.metrics[k] ?? 0);
@@ -64,7 +46,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
     return () => window.removeEventListener('keydown', h);
   }, []);
 
-  const TABS = ['overview', 'metrics', 'highlights', 'clips', 'notes'];
+  const TABS = ['overview', 'metrics', 'highlights', 'clips'];
 
   return (
     <div
@@ -118,23 +100,6 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
               <span style={{ color: THEME.colors.textDark }}>•</span>
               <span style={{ color: THEME.colors.textDark }}>{player.club}</span>
             </div>
-
-            {/* ── Comparable Professionals Badges ── */}
-            {((player.comparablePros ?? player.analysis?.comparablePros)?.length > 0) && (
-              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar Profile:</span>
-                {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
-                  <span key={i} style={{
-                    fontSize: '0.70rem', padding: '3px 9px', borderRadius: 3,
-                    background: 'rgba(62,207,112,0.07)', border: '1px solid rgba(62,207,112,0.22)',
-                    color: THEME.colors.accentHigh, fontWeight: 600, whiteSpace: 'nowrap',
-                    fontFamily: 'Inter, sans-serif', letterSpacing: '0.01em',
-                  }}>
-                    {pro.name} <span style={{ opacity: 0.6 }}>(age {pro.ageWhen})</span> · <span style={{ fontFamily: 'monospace' }}>{pro.similarity}%</span>
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Core Analytics Target Score Block */}
@@ -153,15 +118,6 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
             >
               {isSaved ? '★' : '☆'}
             </button>
-            {onWatchlistToggle && (
-              <button
-                onClick={() => onWatchlistToggle(player.id)}
-                style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.4)' : THEME.colors.borderDim}`, background: watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.1)' : THEME.colors.surfaceAlt, color: watchlistIds.includes(player.id) ? '#60a5fa' : THEME.colors.textMuted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
-                title={watchlistIds.includes(player.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-              >
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 7.5S3.5 2 7.5 2s6 5.5 6 5.5-2 5.5-6 5.5-6-5.5-6-5.5Z" stroke="currentColor" strokeWidth="1.3"/><circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.3" fill={watchlistIds.includes(player.id) ? 'currentColor' : 'none'}/></svg>
-              </button>
-            )}
             <button
               onClick={handleClose}
               style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, color: THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.90rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
@@ -232,44 +188,6 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     </div>
                   ) : null)}
                 </Panel>
-
-                {/* ── AI Transfer Pitch Generator ── */}
-                <div style={{ border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
-                  <div style={{ padding: '12px 16px', background: THEME.colors.surfaceAlt, borderBottom: pitchText ? `1px solid ${THEME.colors.borderDim}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <div>
-                      <div style={{ fontSize: '0.60rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 800 }}>Recruitment Intelligence</div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: THEME.colors.textMain, marginTop: 2 }}>Transfer Pitch Generator</div>
-                    </div>
-                    <button
-                      onClick={handleGeneratePitch}
-                      disabled={pitchLoading}
-                      style={{
-                        padding: '8px 16px', borderRadius: 6, cursor: pitchLoading ? 'wait' : 'pointer',
-                        background: pitchLoading ? 'rgba(62,207,112,0.04)' : 'rgba(62,207,112,0.10)',
-                        border: `1px solid ${pitchLoading ? 'rgba(62,207,112,0.15)' : 'rgba(62,207,112,0.35)'}`,
-                        color: THEME.colors.accentHigh, fontSize: '0.78rem', fontWeight: 700,
-                        display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
-                        transition: 'all 0.12s',
-                      }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-                        {pitchLoading
-                          ? <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="8 4" strokeLinecap="round"/>
-                          : <><rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><line x1="4.5" y1="4.5" x2="9.5" y2="4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="6.5" x2="9.5" y2="6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="8.5" x2="7.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>}
-                      </svg>
-                      {pitchLoading ? 'GENERATING...' : 'GENERATE RECRUITMENT MEMO'}
-                    </button>
-                  </div>
-                  {pitchText && (
-                    <div style={{ padding: '20px 20px', background: THEME.colors.bgCanvas, fontFamily: '"JetBrains Mono", "Courier New", monospace', fontSize: '0.78rem', color: THEME.colors.textMain, lineHeight: 1.8, whiteSpace: 'pre-wrap', borderTop: `1px solid ${THEME.colors.borderDim}` }}>
-                      <div style={{ fontSize: '0.58rem', letterSpacing: '0.14em', color: THEME.colors.accentHigh, fontWeight: 800, marginBottom: 12, textTransform: 'uppercase' }}>
-                        ● TRANSMISSION ACTIVE {pitchLoading ? '— STREAMING' : '— COMPLETE'}
-                      </div>
-                      {pitchText}
-                      {pitchLoading && <span style={{ display: 'inline-block', width: 8, height: 14, background: THEME.colors.accentHigh, marginLeft: 2, animation: 'none', verticalAlign: 'middle', opacity: 0.8 }}>▋</span>}
-                    </div>
-                  )}
-                </div>
               </div>
 
               {/* Right Radar Column Panel */}
@@ -319,54 +237,23 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
           {/* MAP MODE: MASTER REELS */}
           {tab === 'highlights' && (
             <div style={{ maxWidth: 860, margin: '0 auto' }}>
-              {/* Multi-video: show every uploaded video for this player */}
-              {player.videos?.length > 0 ? (
-                player.videos.map((vid, i) => (
-                  <div key={vid.id || i} style={{ marginBottom: 28 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <span style={{ fontSize: '0.65rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 800 }}>
-                        Video {i + 1}
-                      </span>
-                      {vid.fileName && (
-                        <span style={{ fontSize: '0.72rem', color: THEME.colors.textMuted }}>{vid.fileName}</span>
-                      )}
-                      {vid.uploadedAt && (
-                        <span style={{ fontSize: '0.68rem', color: THEME.colors.textDark, marginLeft: 'auto' }}>
-                          {new Date(vid.uploadedAt).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
-                      {vid.url ? (
-                        <video src={vid.url} controls style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }} />
-                      ) : (
-                        <div style={{ aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: THEME.colors.textDark, fontSize: '0.85rem' }}>
-                          Video unavailable
-                        </div>
-                      )}
-                    </div>
+              <div style={{ background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
+                {player.reels?.highlight ? (
+                  <VideoHUD>
+                    <video
+                      src={player.reels.highlight}
+                      controls
+                      autoPlay
+                      style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }}
+                    />
+                  </VideoHUD>
+                ) : (
+                  <div style={{ aspectRatio: '16/9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: THEME.colors.textDark }}>
+                    <span style={{ fontSize: '2.5rem' }}>⊙</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 500, color: THEME.colors.textMuted }}>Primary Video Stream Unavailable</span>
                   </div>
-                ))
-              ) : (
-                /* Single video fallback (mock players or old single-video profiles) */
-                <div style={{ background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
-                  {player.reels?.highlight ? (
-                    <VideoHUD>
-                      <video
-                        src={player.reels.highlight}
-                        controls
-                        autoPlay
-                        style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }}
-                      />
-                    </VideoHUD>
-                  ) : (
-                    <div style={{ aspectRatio: '16/9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: THEME.colors.textDark }}>
-                      <span style={{ fontSize: '2.5rem' }}>⊙</span>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 500, color: THEME.colors.textMuted }}>Primary Video Stream Unavailable</span>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Per-metric evidence clips */}
               {Object.keys(player.reels || {}).some(k => k !== 'highlight' && player.reels[k] && player.reels[k] !== player.reels?.highlight) && (
@@ -435,41 +322,6 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                   <div style={{ fontSize: '0.78rem', color: THEME.colors.textMuted }}>Ingest full matches via server portals to generate automated micro clips.</div>
                 </div>
               )}
-            </div>
-          )}
-
-          {tab === 'notes' && (
-            <div style={{ maxWidth: 700, margin: '0 auto' }}>
-              <p style={{ color: THEME.colors.textMuted, fontSize: '0.85rem', marginTop: 0, marginBottom: 16 }}>
-                Personal scouting notes for <strong style={{ color: THEME.colors.textMain }}>{player.name}</strong>. Saved locally in your browser.
-              </p>
-              <textarea
-                value={localNote}
-                onChange={e => setLocalNote(e.target.value)}
-                placeholder="Add your scouting notes here — observations, recommendations, development areas..."
-                style={{
-                  width: '100%', background: THEME.colors.surfaceAlt,
-                  border: `1px solid ${THEME.colors.borderDim}`,
-                  borderRadius: THEME.radius.card, padding: '14px 16px',
-                  color: THEME.colors.textMain, fontSize: '0.88rem',
-                  fontFamily: 'Inter, sans-serif', lineHeight: 1.6,
-                  resize: 'vertical', minHeight: 220, outline: 'none',
-                  boxSizing: 'border-box', transition: 'border-color 0.12s',
-                }}
-                onFocus={e => e.target.style.borderColor = THEME.colors.borderMid}
-                onBlur={e => { e.target.style.borderColor = THEME.colors.borderDim; onSaveNote?.(player.id, localNote); }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-                <span style={{ fontSize: '0.74rem', color: THEME.colors.textDark }}>
-                  {localNote.length > 0 ? `${localNote.length} characters · auto-saved on blur` : 'No notes yet'}
-                </span>
-                <button
-                  onClick={() => onSaveNote?.(player.id, localNote)}
-                  style={{ padding: '8px 18px', borderRadius: 6, background: 'rgba(62,207,112,0.10)', border: '1px solid rgba(62,207,112,0.35)', color: THEME.colors.accentHigh, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  Save Note
-                </button>
-              </div>
             </div>
           )}
         </div>

@@ -141,7 +141,23 @@ function MiniRadar({ scores, labels, size = 180 }) {
 }
 
 // ── COMPACT PLAYER CARD ───────────────────────────────────────────────────────
-function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
+// ── LOCAL STORAGE HOOK ──────────────────────────────────────────────────────
+function useLocalStorage(key, init) {
+  const [val, setVal] = useState(() => {
+    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init; }
+    catch { return init; }
+  });
+  const set = useCallback(fn => {
+    setVal(prev => {
+      const next = typeof fn === 'function' ? fn(prev) : fn;
+      try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+  return [val, set];
+}
+
+function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true, isWatched, onWatchToggle, viewCount }) {
   const [hov, setHov] = useState(false);
   return (
     <div
@@ -211,6 +227,29 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
         >
           {isSaved ? '★' : '☆'}
         </button>
+      )}
+
+      {/* Watchlist button */}
+      {onWatchToggle && (
+        <button
+          onClick={e => { e.stopPropagation(); onWatchToggle(); }}
+          style={{
+            position: 'absolute', top: 8, left: onSaveToggle ? 44 : 8, zIndex: 2,
+            background: 'rgba(5,11,20,0.70)', backdropFilter: 'blur(6px)',
+            border: `1px solid ${isWatched ? 'rgba(96,165,250,0.35)' : 'rgba(255,255,255,0.08)'}`,
+            borderRadius: 7, padding: '4px 8px',
+            color: isWatched ? '#60a5fa' : 'rgba(255,255,255,0.4)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4Z" stroke="currentColor" strokeWidth="1.2"/><circle cx="6" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.2" fill={isWatched ? 'currentColor' : 'none'}/></svg>
+        </button>
+      )}
+
+      {viewCount > 0 && (
+        <div style={{ position: 'absolute', top: 36, right: 10, zIndex: 2, background: 'rgba(5,11,20,0.82)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '2px 6px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace' }}>
+          {viewCount}×
+        </div>
       )}
 
       {/* Text overlay — bottom */}
@@ -483,6 +522,196 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
   );
 }
 
+// ── COMPARE VIEW ──────────────────────────────────────────────────────────────
+function CompareView({ allPlayers, compareIds, setCompareIds, onSelect }) {
+  const [searchA, setSearchA] = useState('');
+  const [searchB, setSearchB] = useState('');
+  const playerA = allPlayers.find(p => String(p.id) === String(compareIds[0]));
+  const playerB = allPlayers.find(p => String(p.id) === String(compareIds[1]));
+  const mkList = (excludeId, q) => allPlayers.filter(p =>
+    String(p.id) !== String(excludeId) &&
+    (!q || `${p.name} ${p.pos} ${p.country}`.toLowerCase().includes(q.toLowerCase()))
+  );
+  const metricKeys = playerA && playerB
+    ? [...new Set([...Object.keys(playerA.metrics), ...Object.keys(playerB.metrics)])]
+    : [];
+
+  const Slot = ({ player, idx, search, setSearch }) => (
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, overflow: 'hidden' }}>
+      {player ? (
+        <>
+          <div style={{ padding: '14px 14px 10px', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 10, overflow: 'hidden', background: '#0e0e10', flexShrink: 0, border: `1px solid ${C.border}` }}>
+              {player.headshot ? <img src={player.headshot} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> :
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 800, color: 'rgba(255,255,255,0.08)' }}>{player.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</div>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.93rem', color: C.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</div>
+              <div style={{ fontSize: '0.76rem', color: C.txtMd, marginTop: 2 }}>{player.pos} &middot; {player.age} &middot; {player.country}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              <button onClick={() => onSelect(player)} style={{ padding: '4px 9px', borderRadius: 7, background: C.gnDim, border: `1px solid ${C.gnBdr}`, color: C.green, cursor: 'pointer', fontSize: '0.70rem', fontWeight: 600 }}>Profile</button>
+              <button onClick={() => setCompareIds(p => idx === 0 ? [null, p[1]] : [p[0], null])} style={{ padding: '4px 9px', borderRadius: 7, background: 'transparent', border: `1px solid ${C.border}`, color: C.txtDim, cursor: 'pointer', fontSize: '0.70rem' }}>Remove</button>
+            </div>
+          </div>
+          <div style={{ borderTop: `1px solid ${C.border}`, padding: '10px 14px', display: 'flex', gap: 16 }}>
+            <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: scoreCol(player.overall), fontFamily: 'monospace' }}>{player.overall}</div><div style={{ fontSize: '0.58rem', color: C.txtDim, textTransform: 'uppercase' }}>Overall</div></div>
+            <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: C.txtMd, fontFamily: 'monospace' }}>{player.aiMatch}%</div><div style={{ fontSize: '0.58rem', color: C.txtDim, textTransform: 'uppercase' }}>AI Match</div></div>
+          </div>
+        </>
+      ) : (
+        <div style={{ padding: 14 }}>
+          <div style={{ fontSize: '0.62rem', color: C.txtDim, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 10 }}>Player {idx === 0 ? 'A' : 'B'} — Select</div>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, position, country..." style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 10px', color: C.txt, outline: 'none', fontSize: '0.82rem', boxSizing: 'border-box', marginBottom: 10 }} />
+          <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+            {mkList(idx === 0 ? compareIds[1] : compareIds[0], search).slice(0, 14).map(p => (
+              <button key={p.id} onClick={() => setCompareIds(prev => idx === 0 ? [p.id, prev[1]] : [prev[0], p.id])} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', background: 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', marginBottom: 1 }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: posColor(p.pos), background: 'rgba(255,255,255,0.05)', borderRadius: 3, padding: '1px 5px' }}>{p.pos}</span>
+                <span style={{ flex: 1, fontSize: '0.82rem', color: C.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                <span style={{ fontSize: '0.76rem', fontWeight: 700, color: scoreCol(p.overall), fontFamily: 'monospace' }}>{p.overall}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{ marginBottom: 22 }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>Compare Players</h2>
+        <div style={{ fontSize: '0.8rem', color: C.txtDim }}>Select two players to compare their stats side by side</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 36px minmax(0,1fr)', gap: 10, marginBottom: 24, alignItems: 'start' }}>
+        <Slot player={playerA} idx={0} search={searchA} setSearch={setSearchA} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 60, color: C.txtDim, fontWeight: 700, fontSize: '0.82rem' }}>vs</div>
+        <Slot player={playerB} idx={1} search={searchB} setSearch={setSearchB} />
+      </div>
+      {playerA && playerB && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1fr', background: '#0e0e10', borderBottom: `1px solid ${C.border}`, padding: '12px 16px' }}>
+            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: C.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerA.name}</div>
+            <div style={{ textAlign: 'center', fontSize: '0.60rem', color: C.txtDim, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.08em', alignSelf: 'center' }}>Metric</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: C.txt, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{playerB.name}</div>
+          </div>
+          {[['Overall', playerA.overall, playerB.overall], ...metricKeys.map(k => [k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()), playerA.metrics[k] ?? 0, playerB.metrics[k] ?? 0])].map(([label, aV, bV], i) => {
+            const w = aV > bV ? 'A' : bV > aV ? 'B' : '';
+            return (
+              <div key={label} style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1fr', padding: '9px 16px', borderBottom: i < metricKeys.length ? `1px solid ${C.border}` : 'none', background: i % 2 === 1 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: w === 'A' ? 700 : 400, color: w === 'A' ? C.green : C.txt, fontFamily: 'monospace', minWidth: 26 }}>{aV || '—'}</span>
+                  <div style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}><div style={{ height: '100%', borderRadius: 2, width: aV ? `${Math.min(aV, 100)}%` : '0%', background: w === 'A' ? C.green : C.txtDim, transition: 'width 0.5s' }} /></div>
+                </div>
+                <div style={{ textAlign: 'center', fontSize: '0.64rem', color: C.txtDim, textTransform: 'uppercase', letterSpacing: '0.04em', alignSelf: 'center' }}>{label}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexDirection: 'row-reverse' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: w === 'B' ? 700 : 400, color: w === 'B' ? C.green : C.txt, fontFamily: 'monospace', minWidth: 26, textAlign: 'right' }}>{bV || '—'}</span>
+                  <div style={{ flex: 1, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}><div style={{ height: '100%', borderRadius: 2, width: bV ? `${Math.min(bV, 100)}%` : '0%', background: w === 'B' ? C.green : C.txtDim, transition: 'width 0.5s', marginLeft: 'auto' }} /></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── REPORTS VIEW ──────────────────────────────────────────────────────────────
+function ReportsView({ savedReports, allPlayers, onSelect }) {
+  const [expanded, setExpanded] = useState(null);
+  const entries = Object.entries(savedReports).sort((a, b) => new Date(b[1].generatedAt) - new Date(a[1].generatedAt));
+  if (entries.length === 0) return (
+    <div>
+      <h2 style={{ margin: '0 0 24px', fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>Reports</h2>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: C.txtDim }}>
+        <div style={{ fontSize: '2rem', marginBottom: 12 }}>○</div>
+        <div style={{ fontWeight: 600, color: C.txtMd, marginBottom: 8 }}>No reports yet</div>
+        <div style={{ fontSize: '0.82rem' }}>Generate a Transfer Pitch from a player profile to save it here automatically</div>
+      </div>
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ marginBottom: 22 }}><h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>Reports</h2><div style={{ fontSize: '0.8rem', color: C.txtDim }}>{entries.length} saved report{entries.length !== 1 ? 's' : ''}</div></div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {entries.map(([id, report]) => {
+          const player = allPlayers.find(p => String(p.id) === String(id));
+          const isExp = expanded === id;
+          return (
+            <div key={id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => setExpanded(isExp ? null : id)}>
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: '#0e0e10', border: `1px solid ${C.border}`, overflow: 'hidden', flexShrink: 0 }}>
+                  {player?.headshot ? <img src={player.headshot} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 700, color: 'rgba(255,255,255,0.1)' }}>{report.playerName?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'}</div>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: C.txt }}>{report.playerName}</div>
+                  <div style={{ fontSize: '0.70rem', color: C.txtDim, marginTop: 2 }}>{new Date(report.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                  {!isExp && <div style={{ fontSize: '0.76rem', color: C.txtMd, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.text.slice(0, 90)}…</div>}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  {player && <button onClick={e => { e.stopPropagation(); onSelect(player); }} style={{ padding: '4px 9px', borderRadius: 6, background: C.gnDim, border: `1px solid ${C.gnBdr}`, color: C.green, cursor: 'pointer', fontSize: '0.70rem', fontWeight: 600 }}>Profile</button>}
+                  <button style={{ padding: '4px 9px', borderRadius: 6, background: 'transparent', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.70rem' }}>{isExp ? '▲' : '▼'}</button>
+                </div>
+              </div>
+              {isExp && <div style={{ padding: '0 16px 16px', borderTop: `1px solid ${C.border}` }}><div style={{ paddingTop: 14, fontFamily: '"JetBrains Mono","Courier New",monospace', fontSize: '0.76rem', color: C.txt, lineHeight: 1.8, whiteSpace: 'pre-wrap', background: '#0b0b0d', borderRadius: 8, padding: '14px 16px' }}>{report.text}</div></div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── MY NOTES VIEW ─────────────────────────────────────────────────────────────
+function MyNotesView({ notes, saveNote, allPlayers, onSelect }) {
+  const [editing, setEditing] = useState(null);
+  const [editText, setEditText] = useState('');
+  const noted = allPlayers.filter(p => notes[p.id]?.trim());
+  if (noted.length === 0) return (
+    <div>
+      <h2 style={{ margin: '0 0 24px', fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>My Notes</h2>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: C.txtDim }}>
+        <div style={{ fontSize: '2rem', marginBottom: 12 }}>○</div>
+        <div style={{ fontWeight: 600, color: C.txtMd, marginBottom: 8 }}>No notes yet</div>
+        <div style={{ fontSize: '0.82rem' }}>Open a player profile and go to the Notes tab to write your scouting notes</div>
+      </div>
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ marginBottom: 22 }}><h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>My Notes</h2><div style={{ fontSize: '0.8rem', color: C.txtDim }}>{noted.length} player{noted.length !== 1 ? 's' : ''} with notes</div></div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {noted.map(p => {
+          const isEd = editing === p.id;
+          return (
+            <div key={p.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: '#0e0e10', border: `1px solid ${C.border}`, overflow: 'hidden', flexShrink: 0, cursor: 'pointer' }} onClick={() => onSelect(p)}>
+                  {p.headshot ? <img src={p.headshot} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.1)' }}>{p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</div>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => onSelect(p)}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: C.txt }}>{p.name}</div>
+                  <div style={{ fontSize: '0.74rem', color: C.txtMd, marginTop: 1 }}>{p.pos} &middot; {p.club}</div>
+                </div>
+                <button onClick={() => { if (isEd) { setEditing(null); } else { setEditing(p.id); setEditText(notes[p.id] || ''); } }} style={{ padding: '5px 10px', borderRadius: 7, background: isEd ? C.gnDim : 'transparent', border: `1px solid ${isEd ? C.gnBdr : C.border}`, color: isEd ? C.green : C.txtMd, cursor: 'pointer', fontSize: '0.72rem', flexShrink: 0 }}>{isEd ? 'Close' : 'Edit'}</button>
+              </div>
+              {isEd ? (
+                <div style={{ padding: '0 16px 14px', borderTop: `1px solid ${C.border}` }}>
+                  <textarea value={editText} onChange={e => setEditText(e.target.value)} style={{ marginTop: 12, width: '100%', minHeight: 120, background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 12px', color: C.txt, fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                  <button onClick={() => { saveNote(p.id, editText); setEditing(null); }} style={{ marginTop: 8, padding: '7px 16px', borderRadius: 7, background: C.gnDim, border: `1px solid ${C.gnBdr}`, color: C.green, cursor: 'pointer', fontSize: '0.80rem', fontWeight: 600 }}>Save</button>
+                </div>
+              ) : (
+                <div style={{ padding: '0 16px 14px', borderTop: `1px solid ${C.border}` }}><div style={{ paddingTop: 10, fontSize: '0.82rem', color: C.txtMd, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{notes[p.id]}</div></div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN DASHBOARD ────────────────────────────────────────────────────────────
 export default function ScoutDashboard({
   onOpenLightbox, savedIds, onSaveToggle, newProfile,
@@ -505,6 +734,14 @@ export default function ScoutDashboard({
   const [navOpen,         setNavOpen]         = useState(false);
   const [insightsOpen,    setInsightsOpen]    = useState(true);
   const [myScoutingOpen,  setMyScoutingOpen]  = useState(true);
+
+  // ── PERSISTED LOCAL-STORAGE STATE ──────────────────────────────────────────────────
+  const [watchlistIds, setWatchlistIds] = useLocalStorage('scoutai_watchlist', []);
+  const [notes,        setNotes]        = useLocalStorage('scoutai_notes', {});
+  const [seenData,     setSeenData]     = useLocalStorage('scoutai_seen', {});
+  const [recentIds,    setRecentIds]    = useLocalStorage('scoutai_recent', []);
+  const [savedReports, setSavedReports] = useLocalStorage('scoutai_reports', {});
+  const [compareIds,   setCompareIds]   = useLocalStorage('scoutai_compare', [null, null]);
 
   const allPlayers = useMemo(() => {
     const locals = localProfiles.map(m => buildLocalPlayer(m, blobUrls[m.id] ?? {}));
@@ -551,7 +788,29 @@ export default function ScoutDashboard({
     });
   }, [allPlayers, search, posFilter, regionFilter, ageMax, scoreMin, sortBy, savedOnly, savedIds, navSection]);
 
-  const selectPlayer = useCallback(p => { setSelectedPlayer(p); onPlayerFocus?.(p); }, [onPlayerFocus]);
+  const selectPlayer = useCallback(p => {
+    setSelectedPlayer(p); onPlayerFocus?.(p);
+    const now = new Date().toISOString();
+    setSeenData(prev => ({ ...prev, [p.id]: { count: (prev[p.id]?.count ?? 0) + 1, lastSeen: now } }));
+    setRecentIds(prev => [p.id, ...prev.filter(id => String(id) !== String(p.id))].slice(0, 20));
+  }, [onPlayerFocus]);
+
+  const toggleWatchlist = useCallback(id => setWatchlistIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]), []);
+  const saveNote        = useCallback((id, text) => setNotes(prev => ({ ...prev, [id]: text })), []);
+  const saveReport      = useCallback((id, name, text) => setSavedReports(prev => ({ ...prev, [id]: { text, generatedAt: new Date().toISOString(), playerName: name } })), []);
+
+  const trendingPlayers = useMemo(() =>
+    [...allPlayers].sort((a, b) => ((seenData[b.id]?.count ?? 0) - (seenData[a.id]?.count ?? 0)) || b.overall - a.overall),
+    [allPlayers, seenData]);
+  const topPerformerPlayers = useMemo(() =>
+    [...allPlayers].filter(p => p.overall >= 82).sort((a, b) => b.overall - a.overall), [allPlayers]);
+  const newUploadPlayers = useMemo(() => allPlayers.filter(p => p._local || p._injected), [allPlayers]);
+  const seenPlayersList  = useMemo(() =>
+    [...allPlayers].filter(p => seenData[p.id]).sort((a, b) => (seenData[b.id]?.count ?? 0) - (seenData[a.id]?.count ?? 0)),
+    [allPlayers, seenData]);
+  const recentlyViewedPlayers = useMemo(() =>
+    recentIds.map(id => allPlayers.find(p => String(p.id) === String(id))).filter(Boolean),
+    [allPlayers, recentIds]);
 
   const aiPicks    = useMemo(() => [...allPlayers].sort((a, b) => b.overall - a.overall).slice(0, 4), [allPlayers]);
   const recentAdds = useMemo(() => {
@@ -909,7 +1168,14 @@ export default function ScoutDashboard({
       {/* MAIN CONTENT */}
       <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: isMobile ? '18px 14px 80px' : '24px 24px 60px', flex: 1 }}>
-          {!showGrid ? (
+          {/* ─── MULTI-SECTION CONTENT ───────────────────────────────────────────────────── */}
+          {navSection === 'compare' ? (
+            <CompareView allPlayers={allPlayers} compareIds={compareIds} setCompareIds={setCompareIds} onSelect={selectPlayer} />
+          ) : navSection === 'reports' ? (
+            <ReportsView savedReports={savedReports} allPlayers={allPlayers} onSelect={selectPlayer} />
+          ) : navSection === 'myNotes' ? (
+            <MyNotesView notes={notes} saveNote={saveNote} allPlayers={allPlayers} onSelect={selectPlayer} />
+          ) : navSection === 'discover' && !hasActiveFilters ? (
             <>
               {/* Hero Banner */}
               <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 200 : 280, marginBottom: 32, background: '#111113', border: `1px solid ${C.border}` }}>
@@ -925,7 +1191,7 @@ export default function ScoutDashboard({
                     AI-powered scouting to discover, analyze and recruit talent worldwide.
                   </p>
                   <button
-                    onClick={() => setSortBy('overall')}
+                    onClick={() => setNavSection('search')}
                     style={{ marginTop: 18, padding: '10px 22px', background: C.green, border: 'none', borderRadius: 10, color: '#0d0d0f', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 }}
                   >
                     Explore Players
@@ -933,15 +1199,15 @@ export default function ScoutDashboard({
                 </div>
               </section>
 
-              {/* AI Picks For You */}
+              {/* AI Picks */}
               <section style={{ marginBottom: 32 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>AI Picks For You</h2>
-                  <button onClick={() => setNavSection('search-all')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem' }}>View All</button>
+                  <button onClick={() => setNavSection('topPerformers')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem' }}>View All</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 14 }}>
                   {aiPicks.map(p => (
-                    <CompactCard key={p.id} player={p} tall={true} onClick={() => selectPlayer(p)} isSaved={savedIds.includes(p.id)} onSaveToggle={onSaveToggle} />
+                    <CompactCard key={p.id} player={p} tall={true} onClick={() => selectPlayer(p)} isSaved={savedIds.includes(p.id)} onSaveToggle={onSaveToggle} isWatched={watchlistIds.includes(p.id)} onWatchToggle={() => toggleWatchlist(p.id)} viewCount={seenData[p.id]?.count} />
                   ))}
                 </div>
               </section>
@@ -950,11 +1216,11 @@ export default function ScoutDashboard({
               <section style={{ marginBottom: 32 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>Recently Added</h2>
-                  <button onClick={() => setNavSection('search-all')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem' }}>View All</button>
+                  <button onClick={() => setNavSection('newUploads')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem' }}>View All</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12 }}>
                   {recentAdds.map(p => (
-                    <CompactCard key={p.id} player={p} tall={false} onClick={() => selectPlayer(p)} isSaved={savedIds.includes(p.id)} onSaveToggle={onSaveToggle} />
+                    <CompactCard key={p.id} player={p} tall={false} onClick={() => selectPlayer(p)} isSaved={savedIds.includes(p.id)} onSaveToggle={onSaveToggle} isWatched={watchlistIds.includes(p.id)} onWatchToggle={() => toggleWatchlist(p.id)} />
                   ))}
                 </div>
               </section>
@@ -965,7 +1231,7 @@ export default function ScoutDashboard({
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {TRENDING.map(t => (
                     <button
-                      key={t} onClick={() => setSearch(t)}
+                      key={t} onClick={() => { setSearch(t); setNavSection('search'); }}
                       style={{ padding: '9px 18px', borderRadius: 999, background: '#131315', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.12s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = C.brdHi; e.currentTarget.style.color = C.txt; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.txtMd; }}
@@ -977,45 +1243,83 @@ export default function ScoutDashboard({
               </section>
             </>
           ) : (
-            /* GRID VIEW */
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>
-                    {navSection === 'shortlist' ? 'Shortlist' : search ? `"${search}"` : 'All Players'}
-                  </h2>
-                  <div style={{ fontSize: '0.8rem', color: C.txtDim, marginTop: 2 }}>{filtered.length} of {allPlayers.length} players</div>
-                </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {hasActiveFilters && (
-                    <button onClick={clearFilters} style={{ padding: '7px 12px', borderRadius: 9, background: 'transparent', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.78rem' }}>
-                      Clear filters
-                    </button>
+            /* ── STANDARD GRID VIEWS ────────────────────────────────────────────────────────────── */
+            (() => {
+              let players = filtered;
+              let title = search ? `"${search}"` : 'All Players';
+              let subtitle = `${filtered.length} of ${allPlayers.length} players`;
+              let emptyTitle = 'No players found';
+              let emptyNote = '';
+              const ns = navSection;
+
+              if (ns === 'shortlist') {
+                players = allPlayers.filter(p => savedIds.includes(p.id));
+                title = 'My Shortlist'; subtitle = `${players.length} saved`;
+                emptyTitle = 'Your shortlist is empty'; emptyNote = 'Click ☆ on any player card to save them here';
+              } else if (ns === 'watchlist') {
+                players = allPlayers.filter(p => watchlistIds.includes(p.id));
+                title = 'Watchlist'; subtitle = `${players.length} players being watched`;
+                emptyTitle = 'Your watchlist is empty'; emptyNote = 'Click the eye icon on any player card to add them';
+              } else if (ns === 'search') {
+                title = search ? `"${search}"` : 'All Players'; subtitle = `${players.length} results`;
+                emptyTitle = 'No matches'; emptyNote = 'Try a different name, country or position';
+              } else if (ns === 'trending') {
+                players = trendingPlayers; title = 'Trending'; subtitle = 'Most viewed in your session';
+              } else if (ns === 'topPerformers') {
+                players = topPerformerPlayers; title = 'Top Performers'; subtitle = `${players.length} players scoring 82+`;
+              } else if (ns === 'newUploads') {
+                players = newUploadPlayers; title = 'New Uploads'; subtitle = `${players.length} uploaded`;
+                emptyTitle = 'No uploads yet'; emptyNote = 'Upload player profiles from the Uploader';
+              } else if (ns === 'playersSeen') {
+                players = seenPlayersList; title = 'Players Seen'; subtitle = `${players.length} profiles viewed`;
+                emptyTitle = 'No players viewed yet'; emptyNote = 'Open a player profile to track it here';
+              } else if (ns === 'recentlyViewed') {
+                players = recentlyViewedPlayers; title = 'Recently Viewed'; subtitle = 'Most recent first';
+                emptyTitle = 'No recent views'; emptyNote = 'Players you open will appear here';
+              }
+
+              const noSort = ['watchlist','shortlist','trending','topPerformers','newUploads','playersSeen','recentlyViewed'].includes(ns);
+              return (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+                    <div>
+                      <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>{title}</h2>
+                      <div style={{ fontSize: '0.8rem', color: C.txtDim, marginTop: 2 }}>{subtitle}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      {hasActiveFilters && !noSort && (
+                        <button onClick={clearFilters} style={{ padding: '7px 12px', borderRadius: 9, background: 'transparent', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.78rem' }}>Clear filters</button>
+                      )}
+                      {!noSort && (
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: '7px 12px', borderRadius: 9, background: '#131315', border: `1px solid ${C.border}`, color: C.txt, cursor: 'pointer', fontSize: '0.82rem', outline: 'none' }}>
+                          <option value="overall">Top Score</option>
+                          <option value="aiMatch">AI Fit</option>
+                          <option value="age">Youngest</option>
+                          <option value="name">A-Z</option>
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                  {players.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px 20px', color: C.txtDim }}>
+                      <div style={{ fontSize: '2rem', marginBottom: 12 }}>○</div>
+                      <div style={{ fontWeight: 600, color: C.txtMd, marginBottom: 8 }}>{emptyTitle}</div>
+                      {emptyNote && <div style={{ fontSize: '0.82rem', color: C.txtDim }}>{emptyNote}</div>}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? '155px' : '195px'}, 1fr))`, gap: 14 }}>
+                      {players.map(p => (
+                        <CompactCard key={p.id} player={p} tall={true} onClick={() => selectPlayer(p)}
+                          isSaved={savedIds.includes(p.id)} onSaveToggle={onSaveToggle}
+                          isWatched={watchlistIds.includes(p.id)} onWatchToggle={() => toggleWatchlist(p.id)}
+                          viewCount={seenData[p.id]?.count}
+                        />
+                      ))}
+                    </div>
                   )}
-                  <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: '7px 12px', borderRadius: 9, background: '#131315', border: `1px solid ${C.border}`, color: C.txt, cursor: 'pointer', fontSize: '0.82rem', outline: 'none' }}>
-                    <option value="overall">Top Score</option>
-                    <option value="aiMatch">AI Fit</option>
-                    <option value="age">Youngest</option>
-                    <option value="name">A-Z</option>
-                  </select>
-                </div>
-              </div>
-              {filtered.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px', color: C.txtDim }}>
-                  <div style={{ fontSize: '2rem', marginBottom: 12 }}>O</div>
-                  <div style={{ fontWeight: 600, color: C.txtMd, marginBottom: 8 }}>No players found</div>
-                  <button onClick={clearFilters} style={{ padding: '8px 18px', borderRadius: 10, background: '#131315', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.84rem', marginTop: 6 }}>
-                    Clear filters
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? '155px' : '195px'}, 1fr))`, gap: 14 }}>
-                  {filtered.map(p => (
-                    <CompactCard key={p.id} player={p} tall={true} onClick={() => selectPlayer(p)} isSaved={savedIds.includes(p.id)} onSaveToggle={onSaveToggle} />
-                  ))}
-                </div>
-              )}
-            </>
+                </>
+              );
+            })()
           )}
         </div>
       </main>
@@ -1046,6 +1350,11 @@ export default function ScoutDashboard({
           onOpenLightbox={onOpenLightbox}
           isSaved={savedIds.includes((fullAnalysisFor ?? selectedPlayer).id)}
           onSaveToggle={onSaveToggle}
+          notes={notes[(fullAnalysisFor ?? selectedPlayer).id] || ''}
+          onSaveNote={saveNote}
+          onSaveReport={saveReport}
+          watchlistIds={watchlistIds}
+          onWatchlistToggle={toggleWatchlist}
         />
       )}
     </div>
