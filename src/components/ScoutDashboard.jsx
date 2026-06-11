@@ -176,10 +176,10 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
         </div>
       )}
 
-      {/* Dark gradient overlay from bottom */}
+      {/* Dark gradient — bottom third only */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(5,11,20,0.97) 0%, rgba(5,11,20,0.65) 42%, rgba(5,11,20,0.15) 72%, transparent 100%)',
+        background: 'linear-gradient(to top, rgba(5,11,20,0.96) 0%, rgba(5,11,20,0.88) 18%, rgba(5,11,20,0.45) 36%, rgba(5,11,20,0.08) 52%, transparent 65%)',
       }} />
 
       {/* Score badge — top right */}
