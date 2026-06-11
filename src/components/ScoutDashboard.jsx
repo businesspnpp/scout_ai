@@ -752,13 +752,13 @@ export default function ScoutDashboard({
           {!showGrid ? (
             <>
               {/* Hero Banner */}
-              <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 260 : 380, marginBottom: 32, background: '#111113', border: `1px solid ${C.border}` }}>
+              <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 200 : 280, marginBottom: 32, background: '#111113', border: `1px solid ${C.border}` }}>
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #0b0b0d 0%, rgba(11,11,13,0.85) 50%, rgba(11,11,13,0) 100%)', zIndex: 1 }} />
                 <div style={{ position: 'absolute', right: 0, top: 0, width: '60%', height: '100%', overflow: 'hidden' }}>
                   <img src="/assets/banner.png" alt="Scout AI hero" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
                 </div>
-                <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '28px 22px' : '36px 40px', maxWidth: 500 }}>
-                  <div style={{ fontSize: isMobile ? '1.7rem' : '2.8rem', fontWeight: 800, lineHeight: 1.15, fontFamily: 'syne, sans-serif' }}>
+                <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '22px 20px' : '26px 36px', maxWidth: 500 }}>
+                  <div style={{ fontSize: isMobile ? '1.5rem' : '2.2rem', fontWeight: 800, lineHeight: 1.15, fontFamily: 'syne, sans-serif' }}>
                     Find the{' '}<span style={{ color: C.green }}>next generation</span>{' '}of stars
                   </div>
                   <p style={{ marginTop: 12, color: C.txtMd, fontSize: isMobile ? '0.85rem' : '0.92rem', lineHeight: 1.5 }}>
