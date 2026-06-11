@@ -221,9 +221,9 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     ['Nationality', player.country],
                     ['Scouting Region', player.region],
                     ['Age Profile', `${player.age} yrs`],
-                    ['Club / Source Assignment', player.club],
-                    ['Height', player.height || '-'],
-                    ['Preferred Foot', player.foot || '-'],
+                    ['Current Club / Academy', player.club || 'Not provided'],
+                    ['Height', player.height || 'Not provided'],
+                    ['Preferred Foot', player.foot || 'Not provided'],
                     ['Scout Match Confidence', `${player.aiMatch}%`],
                   ].map(([k, v]) => v ? (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${THEME.colors.borderDim}` }}>

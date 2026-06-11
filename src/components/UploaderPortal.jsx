@@ -12,7 +12,7 @@ export default function UploaderPortal({
   onAnalysisComplete, onSaveProfile, onAppendVideo, onGoToScout,
   localProfiles = [], blobUrls = {}, onRemoveProfile, onUpdateProfileClips,
 }) {
-  const [form,             setForm]             = useState({ name: '', age: '', region: '', position: 'ST' });
+  const [form,             setForm]             = useState({ name: '', age: '', region: '', position: 'ST', height: '', foot: 'Right', club: '' });
   const [headshot,         setHeadshot]         = useState(null);
   const [headshotPreview,  setHeadshotPreview]  = useState(null);
   const [videoFiles,       setVideoFiles]       = useState([]);
@@ -112,7 +112,7 @@ export default function UploaderPortal({
 
   const loadProfile = meta => {
     setEditingId(meta.id);
-    setForm({ name: meta.name || '', age: meta.age || '', region: meta.region || '', position: meta.position || 'ST' });
+    setForm({ name: meta.name || '', age: meta.age || '', region: meta.region || '', position: meta.position || 'ST', height: meta.height || '', foot: meta.foot || 'Right', club: meta.club || '' });
     const urls = blobUrls[meta.id] ?? {};
     if (urls.headshotUrl) setHeadshotPreview(urls.headshotUrl);
     setHeadshot(null); setVideoFiles([]); setVideoUrl(meta.videoUrl || '');
@@ -125,7 +125,7 @@ export default function UploaderPortal({
 
   const clearEdit = () => {
     setEditingId(null);
-    setForm({ name: '', age: '', region: '', position: 'ST' });
+    setForm({ name: '', age: '', region: '', position: 'ST', height: '', foot: 'Right', club: '' });
     setHeadshot(null); setHeadshotPreview(null); setHeadshotWarn('');
     setVideoFiles([]); setVideoUrl('');
     setResult(null); setError(''); setStreamOutput('');
@@ -145,7 +145,7 @@ export default function UploaderPortal({
     try {
       // -- Phase 1: Gemini analysis --
       let analysisResult = await analyzePlayer(
-        { name: form.name, age: form.age, position: form.position, region: form.region },
+        { name: form.name, age: form.age, position: form.position, region: form.region, height: form.height, foot: form.foot, club: form.club },
         videoMode === 'file' ? videoFiles : [],
         videoMode === 'url'  ? videoUrl   : '',
         headshot,
@@ -401,9 +401,9 @@ export default function UploaderPortal({
                 setTargetProfileId(val);
                 if (val) {
                   const p = localProfiles.find(x => x.id === val);
-                  if (p) setForm({ name: p.name || '', age: String(p.age || ''), region: p.region || '', position: p.position || 'ST' });
+                  if (p) setForm({ name: p.name || '', age: String(p.age || ''), region: p.region || '', position: p.position || 'ST', height: p.height || '', foot: p.foot || 'Right', club: p.club || '' });
                 } else {
-                  setForm({ name: '', age: '', region: '', position: 'ST' });
+                  setForm({ name: '', age: '', region: '', position: 'ST', height: '', foot: 'Right', club: '' });
                 }
               }}
               style={{ flex: 1, minWidth: 160, height: 36, borderRadius: 6, background: '#0d0d0f', border: '1px solid #222225', color: '#f0f1f3', fontSize: '0.82rem', padding: '0 10px', cursor: 'pointer' }}
@@ -416,7 +416,7 @@ export default function UploaderPortal({
               ))}
             </select>
             {targetProfileId && (
-              <button onClick={() => { setTargetProfileId(null); setForm({ name: '', age: '', region: '', position: 'ST' }); }}
+              <button onClick={() => { setTargetProfileId(null); setForm({ name: '', age: '', region: '', position: 'ST', height: '', foot: 'Right', club: '' }); }}
                 style={{ fontSize: '0.70rem', padding: '4px 10px', borderRadius: 4, border: '1px solid #222225', background: 'transparent', color: '#8c909f', cursor: 'pointer' }}>
                 Clear
               </button>
@@ -441,6 +441,19 @@ export default function UploaderPortal({
             </Field>
             <Field label="Region / City, Country">
               <input className="input-base" name="region" value={form.region} onChange={handleForm} placeholder="e.g. Lagos, Nigeria" autoComplete="off" />
+            </Field>
+            <Field label="Current Club / Academy">
+              <input className="input-base" name="club" value={form.club} onChange={handleForm} placeholder="e.g. Bamako United FC" autoComplete="off" />
+            </Field>
+            <Field label="Height">
+              <input className="input-base" name="height" value={form.height} onChange={handleForm} placeholder="e.g. 182cm" autoComplete="off" />
+            </Field>
+            <Field label="Preferred Foot">
+              <select className="input-base" name="foot" value={form.foot} onChange={handleForm}>
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+                <option value="Both">Both</option>
+              </select>
             </Field>
           </div>
         </div>
