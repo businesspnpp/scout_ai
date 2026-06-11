@@ -3,11 +3,7 @@
 // API keys live only on the server — they are never included in the browser bundle.
 
 import { compressVideoForUpload } from './clipService.js';
-
-// Kept only for the mock-fallback path (no API key configured on the server).
-const _API_KEY_REMOVED = true; // VITE_GEMINI_API_KEY env vars are intentionally unused client-side
-
-const API_KEY = API_KEYS[0]; // kept for mock-detection check below
+// API keys live server-side only — see server.js / api/ directory.
 
 // mock data used when the API is down or no key is set
 function buildMockResponse(playerDetails) {

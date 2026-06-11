@@ -1,5 +1,11 @@
 // AnalysisStatusCard.jsx — progress ring + step dots shown during Gemini analysis
+import { useRef, useEffect } from 'react';
+
 export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo, uploadPct }) {
+  const termRef = useRef(null);
+  useEffect(() => {
+    if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight;
+  }, [streamOutput]);
   const s = streamOutput || '';
   let stepIndex = 0;
   if (s.includes('Uploading video'))                             stepIndex = 0;
@@ -46,6 +52,29 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
       <div className="font-syne" style={{ fontWeight: 700, fontSize: '1.05rem', color: '#f0f1f3', marginBottom: 6 }}>
         {displayLabel}
       </div>
+
+      {/* ── Live token stream — judges see Gemini thinking in real-time ── */}
+      {analyzing && s.length > 4 && (
+        <div style={{ marginTop: 18, textAlign: 'left' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#3ecf70', display: 'inline-block', animation: 'termBlink 0.9s step-end infinite' }} />
+            <span style={{ fontSize: '0.60rem', letterSpacing: '0.13em', textTransform: 'uppercase', color: '#3ecf70' }}>Gemini 2.5 Flash · Live Output</span>
+          </div>
+          <div
+            ref={termRef}
+            style={{
+              background: '#07090d', border: '1px solid #1e2735', borderRadius: 6,
+              padding: '10px 12px', height: 150, overflowY: 'auto',
+              fontFamily: 'JetBrains Mono, monospace', fontSize: '0.67rem',
+              lineHeight: 1.55, color: '#3ecf70', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+              scrollbarWidth: 'none',
+            }}
+          >
+            {s.indexOf('{') !== -1 ? s.slice(s.indexOf('{')) : s}
+            <span style={{ display: 'inline-block', width: 7, height: '0.9em', background: '#3ecf70', marginLeft: 1, verticalAlign: 'text-bottom', animation: 'termBlink 0.9s step-end infinite' }} />
+          </div>
+        </div>
+      )}
 
       {uploadInfo && (
         <div style={{ margin: '12px auto 0', maxWidth: 240 }}>
