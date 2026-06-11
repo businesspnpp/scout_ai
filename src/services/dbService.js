@@ -1,6 +1,6 @@
-/**
+﻿/**
  * dbService.js
- * IndexedDB wrapper — persists headshot and video blobs across sessions.
+ * IndexedDB wrapper - persists headshot and video blobs across sessions.
  * All functions are promise-based and fail gracefully.
  */
 

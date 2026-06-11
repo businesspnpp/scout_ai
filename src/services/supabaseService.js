@@ -147,6 +147,7 @@ export async function saveFullProfile({
   profileId,
   formData,
   headshotFile,
+  existingHeadshotUrl = null,  // carry over existing CDN URL when editing without a new file
   videoFile,
   videoUrl,   // external URL (YouTube/TikTok) when no file
   analysis,
@@ -187,6 +188,10 @@ export async function saveFullProfile({
         headshot_path: hs.path,
       });
     }
+  } else if (existingHeadshotUrl && !existingHeadshotUrl.startsWith('blob:')) {
+    // Editing with an existing CDN URL - carry it over to the new row
+    headshotPublicUrl = existingHeadshotUrl;
+    await updateProfileRow(profileId, { headshot_url: existingHeadshotUrl });
   }
 
   // ── Step 3: Upload video → patch URL (links video back to profile) ───────

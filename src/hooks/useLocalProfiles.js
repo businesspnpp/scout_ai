@@ -183,8 +183,9 @@ export function useLocalProfiles() {
           hasHeadshot = true;
           idbEntry.headshotUrl = URL.createObjectURL(blob);
         } else {
-          // CDN / Supabase URL — use directly, no IDB needed
+          // CDN/Supabase URL - use directly, no IDB needed
           idbEntry.headshotUrl = existingHeadshotUrl;
+          hasHeadshot = true;
         }
       } catch (e) { console.warn('IDB headshot copy failed:', e.message); }
     }
@@ -249,7 +250,7 @@ export function useLocalProfiles() {
         try {
           onSyncProgress?.('uploading');
           const { headshotPublicUrl, videoPublicUrl } = await saveFullProfile({
-            profileId: id, formData, headshotFile, videoFile, videoUrl, analysis,
+            profileId: id, formData, headshotFile, existingHeadshotUrl, videoFile, videoUrl, analysis,
           });
           // Preserve all local URLs, then overlay Supabase public URLs on top
           const supaEntry = { ...idbEntry };

@@ -1,5 +1,5 @@
-/**
- * mockPlayers.js — 10 pre-loaded deep-data profiles for Scout AI
+﻿/**
+ * mockPlayers.js - 10 pre-loaded deep-data profiles for Scout AI
  * Position-specific radar axes ensure each role is evaluated correctly.
  */
 
@@ -91,7 +91,7 @@ export const mockPlayers = [
       pace:       '/reels/celestin-kamdem/pace.mp4',
       dribbling:  '/reels/celestin-kamdem/dribbling.mp4',
     },
-    headshot: '/headshots/player1.jpg',
+    headshot: null,
   },
 
   {
@@ -112,14 +112,14 @@ export const mockPlayers = [
       finishing: 78, pace: 82, dribbling: 91,
       positioning: 84, workrate: 79, heading: 67,
     },
-    bio: 'Technically gifted attacking midfielder comfortable with both feet — a rare quality at this level. Consistently the best player on the pitch in every observed match. Unlocks defences with a single touch.',
+    bio: 'Technically gifted attacking midfielder comfortable with both feet - a rare quality at this level. Consistently the best player on the pitch in every observed match. Unlocks defences with a single touch.',
     tags: ['two-footed', 'elite-tech', 'game-changer'],
     reels: {
       highlight: '/reels/oumar-coulibaly/highlight.mp4',
       dribbling: '/reels/oumar-coulibaly/dribbling.mp4',
       passing:   '/reels/oumar-coulibaly/passing.mp4',
     },
-    headshot: '/headshots/player2.jpg',
+    headshot: null,
   },
 
   {
@@ -147,7 +147,7 @@ export const mockPlayers = [
       finishing:  '/reels/kwame-mensah/finishing.mp4',
       pace:       '/reels/kwame-mensah/pace.mp4',
     },
-    headshot: '/headshots/player3.jpg',
+    headshot: null,
   },
 
   {
@@ -175,7 +175,7 @@ export const mockPlayers = [
       pace:       '/reels/ezra-mwangi/pace.mp4',
       finishing:  '/reels/ezra-mwangi/finishing.mp4',
     },
-    headshot: '/headshots/player4.jpg',
+    headshot: null,
   },
 
   {
@@ -203,7 +203,7 @@ export const mockPlayers = [
       dribbling:  '/reels/amara-diallo/dribbling.mp4',
       passing:    '/reels/amara-diallo/passing.mp4',
     },
-    headshot: '/headshots/player5.jpg',
+    headshot: null,
   },
 
   {
@@ -231,7 +231,7 @@ export const mockPlayers = [
       pace:       '/reels/samuel-bekele/pace.mp4',
       dribbling:  '/reels/samuel-bekele/dribbling.mp4',
     },
-    headshot: '/headshots/player6.jpg',
+    headshot: null,
   },
 
   {
@@ -252,14 +252,14 @@ export const mockPlayers = [
       passing: 89, pressResistance: 84, positioning: 85,
       workrate: 88, dribbling: 75, pace: 72,
     },
-    bio: 'Complete midfielder with exceptional reading of the game. Runs the midfield with discipline and quality. Outstanding work rate and press resistance — hallmarks of a modern Premier League profile.',
+    bio: 'Complete midfielder with exceptional reading of the game. Runs the midfield with discipline and quality. Outstanding work rate and press resistance - hallmarks of a modern Premier League profile.',
     tags: ['engine', 'passing', 'press-resistant'],
     reels: {
       highlight:  '/reels/lebo-molefe/highlight.mp4',
       passing:    '/reels/lebo-molefe/passing.mp4',
       workrate:   '/reels/lebo-molefe/workrate.mp4',
     },
-    headshot: '/headshots/player7.jpg',
+    headshot: null,
   },
 
   {
@@ -280,14 +280,14 @@ export const mockPlayers = [
       pace: 91, dribbling: 77, crossing: 75,
       finishing: 68, positioning: 75, workrate: 84,
     },
-    bio: 'Blistering pace on the right flank. One of the fastest players on the platform — consistently hitting top sprints over 35 km/h. Devastating in behind and improving his final product significantly.',
+    bio: 'Blistering pace on the right flank. One of the fastest players on the platform - consistently hitting top sprints over 35 km/h. Devastating in behind and improving his final product significantly.',
     tags: ['explosive', 'direct', 'pace'],
     reels: {
       highlight:  '/reels/yusuf-hassan/highlight.mp4',
       pace:       '/reels/yusuf-hassan/pace.mp4',
       dribbling:  '/reels/yusuf-hassan/dribbling.mp4',
     },
-    headshot: '/headshots/player8.jpg',
+    headshot: null,
   },
 
   {
@@ -315,7 +315,7 @@ export const mockPlayers = [
       positioning:  '/reels/kofi-asante/positioning.mp4',
       tackling:     '/reels/kofi-asante/tackling.mp4',
     },
-    headshot: '/headshots/player9.jpg',
+    headshot: null,
   },
 
   {
@@ -343,7 +343,7 @@ export const mockPlayers = [
       aerial:       '/reels/emeka-obi/aerial.mp4',
       positioning:  '/reels/emeka-obi/positioning.mp4',
     },
-    headshot: '/headshots/player10.jpg',
+    headshot: null,
   },
 ];
 

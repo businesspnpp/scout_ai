@@ -1,5 +1,5 @@
-/**
- * PlayerCard.jsx — Enterprise-grade player profile card.
+﻿/**
+ * PlayerCard.jsx - Enterprise-grade player profile card.
  */
 import { useState } from 'react';
 import {

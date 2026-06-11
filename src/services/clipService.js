@@ -1,4 +1,4 @@
-// clipService.js
+﻿// clipService.js
 // handles video clip cutting - instant browser clips + Shotstack cloud renders
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
@@ -39,7 +39,7 @@ export async function cutClipFFmpeg(videoFile, start, end, outputName) {
   return blob;
 }
 
-/** Run FFmpeg on all highlights — immediate, works with local File objects */
+/** Run FFmpeg on all highlights - immediate, works with local File objects */
 export async function processHighlightsFFmpeg(videoFiles, highlights, onProgress) {
   onProgress?.({ phase: 'loading', message: 'Loading FFmpeg WASM…' });
   await loadFFmpeg();
@@ -66,7 +66,7 @@ export async function processHighlightsFFmpeg(videoFiles, highlights, onProgress
 
 /**
  * Instant clip extraction using HTML5 media fragments (#t=start,end).
- * No WASM, no encoding — browser seeks natively. Works with local File objects.
+ * No WASM, no encoding - browser seeks natively. Works with local File objects.
  */
 export function processHighlightsInstant(videoFiles, highlights) {
   // One blob URL per source file (reused across clips)

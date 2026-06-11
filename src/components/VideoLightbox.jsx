@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef } from 'react';
 
 export default function VideoLightbox({ src, label, onClose }) {
   const videoRef = useRef(null);
@@ -15,7 +15,7 @@ export default function VideoLightbox({ src, label, onClose }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#3ecf70', display: 'inline-block' }} />
           <span className="font-mono" style={{ fontSize: '0.72rem', color: '#8c909f', letterSpacing: '0.10em', textTransform: 'uppercase' }}>
-            {label ? `${label} — Evidence Clip` : 'Highlight Reel'}
+            {label ? `${label} - Evidence Clip` : 'Highlight Reel'}
           </span>
         </div>
         <button onClick={onClose} style={{
@@ -28,7 +28,7 @@ export default function VideoLightbox({ src, label, onClose }) {
         <video ref={videoRef} controls playsInline style={{ width: '100%', display: 'block', maxHeight: '72vh', background: '#000' }}>
           <source src={src} type="video/mp4" />
         </video>
-        {/* Placeholder — shown only when video is missing */}
+        {/* Placeholder - shown only when video is missing */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: '#17181e', pointerEvents: 'none' }}>
             <div style={{ width: 48, height: 48, borderRadius: 8, background: '#23252f', border: '1px solid #3a3f54', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8c909f' }}>▶</div>
           <div style={{ textAlign: 'center' }}>

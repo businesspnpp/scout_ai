@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+﻿import { useState, useRef, useCallback, useEffect } from 'react';
 import { analyzePlayer } from '../services/geminiService.js';
 import { processHighlightsInstant, processHighlightsShotstack } from '../services/clipService.js';
 
@@ -509,7 +509,7 @@ export default function UploaderPortal({
                 <div style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.80rem', marginBottom: 6 }}>
                     <span style={{ color: '#dde3ec', textTransform: 'capitalize' }}>{cuttingProgress.metric}</span>
-                    <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#7e8fa3' }}>{cuttingProgress.start} — {cuttingProgress.end}</span>
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#7e8fa3' }}>{cuttingProgress.start} - {cuttingProgress.end}</span>
                   </div>
                   <div style={{ height: 3, background: '#0d1117', borderRadius: 2 }}>
                     <div style={{ height: '100%', borderRadius: 2, background: '#c9a84c', width: `${(cuttingProgress.current / cuttingProgress.total) * 100}%`, transition: 'width 0.3s ease' }} />
@@ -575,7 +575,7 @@ export default function UploaderPortal({
               </div>
             )}
 
-            {/* Timestamp References — hidden from end users, data still used for clip cutting
+            {/* Timestamp References - hidden from end users, data still used for clip cutting
             {result.highlights?.length > 0 && metricClips.length === 0 && (
               <div style={{ background: '#131920', border: '1px solid #1e2735', borderRadius: 3, padding: '14px 16px', marginBottom: 14 }}>
                 <Label>Timestamp References</Label>

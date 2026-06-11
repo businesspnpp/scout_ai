@@ -1,4 +1,4 @@
-// geminiService.js
+﻿// geminiService.js
 // handles all the Gemini API calls, streaming, and fallback mock data
 
 import { GoogleGenAI } from '@google/genai';
@@ -165,7 +165,7 @@ export async function analyzePlayer(
     });
   }
 
-  // Try each available API key — useful when keys are from different accounts
+  // Try each available API key - useful when keys are from different accounts
   let lastErr;
   for (let keyIdx = 0; keyIdx < API_KEYS.length; keyIdx++) {
     const key = API_KEYS[keyIdx];
@@ -176,7 +176,7 @@ export async function analyzePlayer(
       const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED');
       const is503 = err?.status === 503 || err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE');
       if ((is429 || is503) && keyIdx < API_KEYS.length - 1) {
-        onStream?.(`\n[Key ${keyIdx + 1} quota exhausted — trying next key...]`);
+        onStream?.(`\n[Key ${keyIdx + 1} quota exhausted - trying next key...]`);
         lastErr = err;
         continue;
       }
@@ -192,7 +192,7 @@ async function runAnalysis(apiKey, playerDetails, videoFiles, headshotFile, onSt
     const genai = new GoogleGenAI({ apiKey });
     const parts = [];
 
-    // 1. Reference photo — sent first so Gemini knows who to track
+    // 1. Reference photo - sent first so Gemini knows who to track
     if (headshotFile) {
       const b64 = await fileToBase64(headshotFile);
       parts.push({ inlineData: { mimeType: headshotFile.type || 'image/jpeg', data: b64 } });
@@ -244,7 +244,7 @@ Running analysis...`);
       }
     }
 
-    // 3. Stream the response — retry up to 4x on 503 overload
+    // 3. Stream the response - retry up to 4x on 503 overload
     // NOTE: 503s fire during stream consumption, so the whole call+consume must be inside the retry loop
     let accumulated = '';
     for (let attempt = 1; attempt <= 4; attempt++) {
@@ -262,12 +262,12 @@ Running analysis...`);
             onStream?.(token);
           }
         }
-        break; // success — exit retry loop
+        break; // success - exit retry loop
       } catch (e) {
         const retryable = e?.status === 503 || String(e?.message).includes('503') || String(e?.message).includes('UNAVAILABLE');
         if (retryable && attempt < 4) {
           const wait = attempt * 8000;
-          onStream?.(`\nHigh demand — retrying in ${wait / 1000}s...`);
+          onStream?.(`\nHigh demand - retrying in ${wait / 1000}s...`);
           await new Promise(r => setTimeout(r, wait));
         } else { throw e; }
       }

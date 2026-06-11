@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PlayerModal.jsx � full-screen slide-up player detail modal
  */
 import { useEffect, useRef, useState } from 'react';
@@ -172,7 +172,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
               {/* Left: bio + tags */}
               <div>
                 <Panel label="Scout Notes">
-                  <p style={{ fontSize: '0.90rem', color: '#f0f1f3', lineHeight: 1.65 }}>{player.bio || '—'}</p>
+                  <p style={{ fontSize: '0.90rem', color: '#f0f1f3', lineHeight: 1.65 }}>{player.bio || '-'}</p>
                   {player.tags?.length > 0 && (
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
                       {player.tags.map(t => (

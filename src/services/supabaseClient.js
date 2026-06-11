@@ -1,6 +1,6 @@
-/**
- * supabaseClient.js — Single Supabase client instance for the whole app.
- * Reads from .env.local — no credentials are hard-coded.
+﻿/**
+ * supabaseClient.js - Single Supabase client instance for the whole app.
+ * Reads from .env.local - no credentials are hard-coded.
  */
 import { createClient } from '@supabase/supabase-js';
 
@@ -17,5 +17,5 @@ export const supabase = isSupabaseEnabled
   : null;
 
 if (!isSupabaseEnabled) {
-  console.info('[Scout AI] Supabase not configured — running in offline-only mode.');
+  console.info('[Scout AI] Supabase not configured - running in offline-only mode.');
 }
