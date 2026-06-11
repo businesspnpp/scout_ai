@@ -240,7 +240,11 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                         transition: 'all 0.12s',
                       }}
                     >
-                      <span style={{ fontSize: '0.85rem' }}>{pitchLoading ? '◌' : '⚡'}</span>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                        {pitchLoading
+                          ? <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="8 4" strokeLinecap="round"/>
+                          : <><rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><line x1="4.5" y1="4.5" x2="9.5" y2="4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="6.5" x2="9.5" y2="6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="8.5" x2="7.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>}
+                      </svg>
                       {pitchLoading ? 'GENERATING...' : 'GENERATE RECRUITMENT MEMO'}
                     </button>
                   </div>

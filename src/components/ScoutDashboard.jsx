@@ -499,7 +499,7 @@ export default function ScoutDashboard({
   const [savedOnly,    setSavedOnly]    = useState(false);
   const [navSection,      setNavSection]      = useState('discover');
   const [selectedPlayer,  setSelectedPlayer]  = useState(null);
-  const [filtersOpen,     setFiltersOpen]     = useState(false);
+  const [filtersOpen,     setFiltersOpen]     = useState(true);
   const [fullAnalysisFor, setFullAnalysisFor] = useState(null);
   const [navOpen,         setNavOpen]         = useState(false);
 

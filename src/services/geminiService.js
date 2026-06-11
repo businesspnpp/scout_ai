@@ -291,11 +291,25 @@ VALUATION BRACKET: ${player.analysis?.valuationBracket ?? 'Available on request'
 POTENTIAL GRADE: ${player.analysis?.potential ?? 'High'}
 
 FORMATTING RULES:
-- Begin with exactly: "TRANSMISSION: FORMAL SCOUTING BRIEF — ${today}"
+- Begin with exactly: "TRANSMISSION: FORMAL SCOUTING BRIEF \u2014 ${today}"
 - Next line: "RE: ${player.name} | ${player.pos} | Age ${player.age} | ${player.country}"
 - Blank line, then Paragraph 1: Address the "Director of Emerging Talent Recruitment" directly. Present the player with formal authority. Lead with their highest verified metric as a rare tactical asset.
 - Blank line, then Paragraph 2: Tactical and financial justification. Explain how their data matrix positions them as an immediate acquisition target. Reference how AI-verified video analysis eliminates recruitment bias and confirms readiness for a high-intensity reserve or first-team system.
 - Tone: Urgent, commercially persuasive, clinical, authoritative. No filler. No generic opening phrases.`;
+
+  const mockPitch = (name, pos, age, country, overall, topM, today) => {
+    const lines = [
+      `TRANSMISSION: FORMAL SCOUTING BRIEF \u2014 ${today}`,
+      `RE: ${name} | ${pos} | Age ${age} | ${country}`,
+      '',
+      `Director of Emerging Talent Recruitment,`,
+      '',
+      `The data enclosed demands immediate executive attention. ${name} presents a ${topM} verified at the 95th percentile for players operating at this developmental tier. At ${age}, the window for acquisition is narrow \u2014 the metrics indicate a profile that will not remain uncontracted beyond the next two transfer cycles.`,
+      '',
+      `Our AI-validated assessment (${overall}/100 overall, bias-eliminated video analysis) confirms structural readiness for integration into a high-intensity reserve system or direct first-team rotation. Financial exposure is minimal relative to projected resale valuation. We recommend initiating contact within 14 days. Full dossier available on request.`,
+    ];
+    return lines.join('\n');
+  };
 
   const res = await fetch('/api/gemini/stream', {
     method: 'POST',
@@ -317,7 +331,16 @@ FORMATTING RULES:
     for (const line of lines) {
       if (!line.startsWith('data: ')) continue;
       const payload = line.slice(6).trim();
-      if (payload === '[DONE]' || payload === '[MOCK]') return;
+      if (payload === '[DONE]') return;
+      if (payload === '[MOCK]') {
+        // No API key — stream a local mock pitch word-by-word
+        const text = mockPitch(player.name, player.pos, player.age, player.country, player.overall, topMetricStr, today);
+        for (const word of text.split('')) {
+          onStream?.(word);
+          await new Promise(r => setTimeout(r, 8));
+        }
+        return;
+      }
       if (!payload) continue;
       try {
         const { t, error } = JSON.parse(payload);
