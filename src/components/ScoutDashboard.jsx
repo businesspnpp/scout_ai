@@ -640,12 +640,19 @@ export default function ScoutDashboard({
             }}
           >
             <span style={{ fontSize: '0.62rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700 }}>Filters</span>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transition: 'transform 0.18s', transform: sidebarFiltersOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)', transform: sidebarFiltersOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
               <path d="M2 4l4 4 4-4" stroke={C.txtDim} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
 
-          {sidebarFiltersOpen && <>
+          <div style={{
+            overflow: 'hidden',
+            maxHeight: sidebarFiltersOpen ? '1200px' : '0px',
+            opacity: sidebarFiltersOpen ? 1 : 0,
+            transition: sidebarFiltersOpen
+              ? 'max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease 0.05s'
+              : 'max-height 0.35s cubic-bezier(0.4, 0, 1, 1), opacity 0.2s ease',
+          }}>
           {/* Search */}
           <input
             value={search} onChange={e => setSearch(e.target.value)}
@@ -732,7 +739,7 @@ export default function ScoutDashboard({
               Clear all filters
             </button>
           )}
-          </>}
+          </div>
         </div>
 
 
