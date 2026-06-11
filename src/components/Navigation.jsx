@@ -16,13 +16,11 @@ export default function Navigation({ view, setView, savedCount, cachedCount = 0 
     }}>
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 3, height: 22, background: '#3ecf70', borderRadius: 1, flexShrink: 0 }} />
-        <span className="font-syne" style={{
-          fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: '#dde3ec',
-        }}>
-          Scout<span style={{ color: '#3ecf70' }}>AI</span>
-        </span>
+        <img
+          src="/assets/ScoutAI-logo.png"
+          alt="Scout AI"
+          style={{ height: 28, width: 'auto', objectFit: 'contain', display: 'block' }}
+        />
         {!isMobile && (
           <span style={{
             marginLeft: 10, fontSize: '0.68rem', color: '#4a5568',
