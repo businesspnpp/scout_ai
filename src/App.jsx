@@ -113,6 +113,7 @@ export default function App() {
         focusPlayer={focusPlayer}
         localProfiles={localProfiles}
         blobUrls={blobUrls}
+        activeView={view}
       />
 
       {/* Toast */}

@@ -110,9 +110,16 @@ const DEFAULT_PROMPTS = [
 ];
 
 // ── MAIN COMPONENT ─────────────────────────────────────────────────────────────
-export default function ScoutChat({ focusPlayer = null, localProfiles = [], blobUrls = {} }) {
+export default function ScoutChat({ focusPlayer = null, localProfiles = [], blobUrls = {}, activeView = 'scouter' }) {
   const { isMobile } = useBreakpoint();
   const [open,      setOpen]      = useState(false);
+
+  // Close panel and hide button when not on scout view
+  useEffect(() => {
+    if (activeView !== 'scouter') setOpen(false);
+  }, [activeView]);
+
+  if (activeView !== 'scouter') return null;
   const [messages,  setMessages]  = useState([{
     role: 'ai',
     text: 'Scout AI Executive Core **online**.\n\nFull database access confirmed. I can run tactical assessments, cross-database player filters, head-to-head comparisons, and recruitment evaluations.\n\nWhat does the scout need?',

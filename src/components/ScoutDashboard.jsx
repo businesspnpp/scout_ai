@@ -93,7 +93,8 @@ export default function ScoutDashboard({
   const [scoreMin,     setScoreMin]     = useState(0);
   const [sortBy,       setSortBy]       = useState('overall');
   const [savedOnly,    setSavedOnly]    = useState(false);
-  const [sidebarOpen,  setSidebarOpen]  = useState(true);
+  // Start sidebar closed on mobile so it doesn't block the screen
+  const [sidebarOpen,  setSidebarOpen]  = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 640 : true);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const allPlayers = useMemo(() => {
@@ -286,16 +287,45 @@ export default function ScoutDashboard({
         {/* Workspace Toolbar Context */}
         <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: isMobile ? 16 : 24 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <button 
-              onClick={() => setSidebarOpen(x => !x)} 
-              style={{ 
-                marginBottom: 10, padding: '6px 12px', background: THEME.colors.surfaceCard, 
-                border: `1px solid ${THEME.colors.borderDim}`, color: THEME.colors.textMuted, 
-                borderRadius: THEME.radius.element, fontSize: '0.78rem', cursor: 'pointer', fontWeight: 500 
-              }}
-            >
-              {sidebarOpen ? (isMobile ? '× Filters' : 'Collapse Side Panel') : (isMobile ? '≣ Filters' : 'Expand Side Panel')}
-            </button>
+            {/* Mobile: prominent filter bar */}
+            {isMobile ? (
+              <button
+                onClick={() => setSidebarOpen(x => !x)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  marginBottom: 12, padding: '9px 14px',
+                  background: sidebarOpen ? 'rgba(62,207,112,0.06)' : THEME.colors.surfaceCard,
+                  border: `1px solid ${sidebarOpen ? 'rgba(62,207,112,0.3)' : THEME.colors.borderMid}`,
+                  color: sidebarOpen ? THEME.colors.accentHigh : THEME.colors.textMain,
+                  borderRadius: 6, fontSize: '0.84rem', cursor: 'pointer', fontWeight: 600,
+                  width: '100%',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ flexShrink: 0 }}>
+                  <line x1="2" y1="4" x2="13" y2="4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  <line x1="2" y1="7.5" x2="13" y2="7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  <line x1="2" y1="11" x2="13" y2="11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  {sidebarOpen && <>
+                    <line x1="10" y1="2" x2="13" y2="5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    <line x1="13" y1="2" x2="10" y2="5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  </>}
+                </svg>
+                {sidebarOpen ? 'Close Filters' : `Filters${hasActiveFilters ? ` (•)` : ''}`}
+                {!sidebarOpen && hasActiveFilters && <span style={{ marginLeft: 'auto', fontSize: '0.70rem', color: THEME.colors.accentHigh }}>active</span>}
+                {sidebarOpen && <span style={{ marginLeft: 'auto', fontSize: '0.80rem' }}>×</span>}
+              </button>
+            ) : (
+              <button
+                onClick={() => setSidebarOpen(x => !x)}
+                style={{
+                  marginBottom: 10, padding: '6px 12px', background: THEME.colors.surfaceCard,
+                  border: `1px solid ${THEME.colors.borderDim}`, color: THEME.colors.textMuted,
+                  borderRadius: THEME.radius.element, fontSize: '0.78rem', cursor: 'pointer', fontWeight: 500
+                }}
+              >
+                {sidebarOpen ? 'Collapse Side Panel' : 'Expand Side Panel'}
+              </button>
+            )}
             {!isMobile && <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 700 }}>Scout Pipeline Portal</div>}
             <h1 className="font-syne" style={{ fontSize: isMobile ? '1.3rem' : 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: isMobile ? 0 : 4, color: THEME.colors.textMain }}>
               {isMobile ? <><span style={{ color: THEME.colors.accentHigh }}>African</span> Talent</> : <>Intel Matrix: <span style={{ color: THEME.colors.accentHigh }}>African</span> Talent</>}
