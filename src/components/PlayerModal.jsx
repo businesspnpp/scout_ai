@@ -222,10 +222,10 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     ['Scouting Region', player.region],
                     ['Age Profile', `${player.age} yrs`],
                     ['Club / Source Assignment', player.club],
-                    ['Stature Height', player.height],
-                    ['Dominant Footing', player.foot],
+                    ['Height', player.height || '-'],
+                    ['Preferred Foot', player.foot || '-'],
                     ['Scout Match Confidence', `${player.aiMatch}%`],
-                  ].map(([k, v]) => v && v !== '-' ? (
+                  ].map(([k, v]) => v ? (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${THEME.colors.borderDim}` }}>
                       <span style={{ fontSize: '0.78rem', color: THEME.colors.textMuted }}>{k}</span>
                       <span style={{ fontSize: '0.82rem', color: THEME.colors.textMain, fontWeight: 600 }}>{v}</span>
