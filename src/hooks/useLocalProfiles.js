@@ -6,6 +6,7 @@ import {
   deleteProfile as supabaseDelete,
   rowToLocalMeta,
   patchProfileClips,
+  appendVideoToSupabase,
 } from '../services/supabaseService.js';
 import { storeBlob, getBlob, deleteBlob } from '../services/dbService.js';
 
@@ -92,40 +93,59 @@ export function useLocalProfiles() {
             if (row.headshot_url) {
               entry.headshotUrl = row.headshot_url;
             } else {
-              // Headshot upload may have failed - try IndexedDB
               const blob = await getBlob(`${row.id}-headshot`).catch(() => null);
               if (blob && !cancelled) entry.headshotUrl = URL.createObjectURL(blob);
             }
-            if (row.video_url) {
+
+            // ── Multi-video: resolve each video entry in _videos[] ──
+            const savedVideoEntries = row.analysis_json?._videos ?? [];
+            if (savedVideoEntries.length > 0) {
+              const resolvedVideos = [];
+              for (const vid of savedVideoEntries) {
+                if (vid.url) {
+                  resolvedVideos.push(vid); // Supabase CDN URL
+                } else if (vid.idbKey) {
+                  const blob = await getBlob(vid.idbKey).catch(() => null);
+                  resolvedVideos.push({ ...vid, url: blob && !cancelled ? URL.createObjectURL(blob) : null });
+                } else {
+                  resolvedVideos.push(vid);
+                }
+              }
+              entry.videos = resolvedVideos;
+              // Latest video is the primary for panel display
+              const latestUrl = resolvedVideos[resolvedVideos.length - 1]?.url || null;
+              entry.videoUrl = latestUrl || row.video_url || null;
+            } else if (row.video_url) {
               entry.videoUrl = row.video_url;
             } else if (!row.is_video_external) {
-              // Video upload to Supabase failed silently - recover from IndexedDB
               const blob = await getBlob(`${row.id}-video`).catch(() => null);
               if (blob && !cancelled) entry.videoUrl = URL.createObjectURL(blob);
             }
-            // Rebuild instant clip URLs using the resolved video URL (Supabase or IndexedDB blob)
-            const savedClips = localById[row.id]?.metricClips ?? [];
-            const videoBase  = entry.videoUrl;
-            if (videoBase && savedClips.length > 0) {
-              entry.clipUrls = savedClips.map(c => {
-                if (c.source === 'instant') {
-                  return { ...c, url: `${videoBase}#t=${c.startSec ?? 0},${c.endSec ?? 0}` };
-                }
-                if (c.blobKey) return c; // resolved separately below
-                return c; // Shotstack CDN URL - use as-is
-              }).filter(c => c.url || c.blobKey);
-              // Resolve any blobKey clips from IndexedDB
-              const resolved = [];
-              for (const c of entry.clipUrls) {
-                if (c.blobKey && !c.url) {
+
+            // Build a videoId→url map for resolving clip URLs
+            const videoUrlById = {};
+            (entry.videos ?? []).forEach(v => { if (v.id && v.url) videoUrlById[v.id] = v.url; });
+            const fallbackVideoUrl = entry.videoUrl;
+
+            // ── Resolve all clips, supporting multi-video ──
+            const allClipMetas = row.analysis_json?._clips ?? localById[row.id]?.metricClips ?? [];
+            if (allClipMetas.length > 0) {
+              const clipUrls = [];
+              for (const c of allClipMetas) {
+                if (c.url && !c.url.startsWith('blob:')) {
+                  // Supabase CDN or Shotstack URL — use as-is
+                  clipUrls.push(c);
+                } else if (c.source === 'instant') {
+                  const base = (c.videoId && videoUrlById[c.videoId]) || fallbackVideoUrl;
+                  if (base) clipUrls.push({ ...c, url: `${base}#t=${c.startSec ?? 0},${c.endSec ?? 0}` });
+                } else if (c.blobKey) {
                   const b = await getBlob(c.blobKey).catch(() => null);
-                  if (b && !cancelled) resolved.push({ ...c, url: URL.createObjectURL(b) });
-                } else {
-                  resolved.push(c);
+                  if (b && !cancelled) clipUrls.push({ ...c, url: URL.createObjectURL(b) });
                 }
               }
-              entry.clipUrls = resolved.filter(c => c.url);
+              if (clipUrls.length) entry.clipUrls = clipUrls;
             }
+
             if (Object.keys(entry).length) urls[row.id] = entry;
           }
 
@@ -305,6 +325,104 @@ export function useLocalProfiles() {
   }, [setProfiles]);
 
   /**
+   * Append a new video + its clips to an EXISTING player profile.
+   * Does NOT create a new profile — accumulates under the same player.
+   */
+  const appendVideoToProfile = useCallback(async ({
+    targetId, videoFile, videoUrl: extVideoUrl, analysis, metricClips = [], onSyncProgress,
+  }) => {
+    const videoId    = `v-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
+    const idbKey     = videoFile ? `${targetId}-video-${videoId}` : null;
+    let localVideoUrl = null;
+
+    if (videoFile) {
+      try {
+        await storeBlob(idbKey, videoFile);
+        localVideoUrl = URL.createObjectURL(videoFile);
+      } catch (e) { console.warn('IDB video store failed:', e.message); }
+    } else if (extVideoUrl) {
+      localVideoUrl = extVideoUrl;
+    }
+
+    const newClipMetas = metricClips.map(c => ({
+      videoId,
+      metric: c.metric, start: c.start, end: c.end,
+      startSec: c.startSec ?? toSec(c.start),
+      endSec:   c.endSec   ?? toSec(c.end),
+      description: c.description ?? '', name: c.name ?? '', source: 'instant',
+    }));
+    const newClipUrls = newClipMetas
+      .map(c => ({ ...c, url: localVideoUrl ? `${localVideoUrl}#t=${c.startSec},${c.endSec}` : null }))
+      .filter(c => c.url);
+
+    const newVideoEntry = {
+      id: videoId, uploadedAt: new Date().toISOString(),
+      url: localVideoUrl, idbKey, fileName: videoFile?.name, fileSize: videoFile?.size,
+    };
+
+    // Update local state
+    setProfiles(prev => prev.map(p => {
+      if (p.id !== targetId) return p;
+      return {
+        ...p,
+        videos:      [...(p.videos ?? []), newVideoEntry],
+        metricClips: [...(p.metricClips ?? []), ...newClipMetas],
+        analysis:    analysis ?? p.analysis,
+      };
+    }));
+    setBlobUrls(prev => {
+      const ex = prev[targetId] ?? {};
+      return {
+        ...prev,
+        [targetId]: {
+          ...ex,
+          videoUrl: localVideoUrl ?? ex.videoUrl,
+          videos:   [...(ex.videos ?? []), newVideoEntry],
+          clipUrls: [...(ex.clipUrls ?? []), ...newClipUrls],
+        },
+      };
+    });
+    if (urlsRef.current[targetId]) {
+      urlsRef.current[targetId] = {
+        ...urlsRef.current[targetId],
+        videoUrl: localVideoUrl ?? urlsRef.current[targetId].videoUrl,
+      };
+    }
+
+    // Supabase sync
+    if (isSupabaseEnabled) {
+      (async () => {
+        try {
+          onSyncProgress?.('uploading');
+          const { supaVideoUrl } = await appendVideoToSupabase(targetId, videoId, videoFile ?? null, newClipMetas);
+          if (supaVideoUrl) {
+            setBlobUrls(prev => {
+              const ex = prev[targetId] ?? {};
+              return {
+                ...prev,
+                [targetId]: {
+                  ...ex,
+                  videoUrl: supaVideoUrl,
+                  videos:   (ex.videos ?? []).map(v => v.id === videoId ? { ...v, url: supaVideoUrl } : v),
+                  clipUrls: (ex.clipUrls ?? []).map(c =>
+                    c.videoId === videoId ? { ...c, url: `${supaVideoUrl}#t=${c.startSec},${c.endSec}` } : c
+                  ),
+                },
+              };
+            });
+          }
+          onSyncProgress?.({ status: 'done', videoPublicUrl: supaVideoUrl ?? null });
+        } catch (err) {
+          console.error('[appendVideoToProfile] Supabase sync failed:', err.message);
+          onSyncProgress?.({ status: 'error' });
+        }
+      })();
+    }
+
+    return { id: targetId };
+  }, [setProfiles]);
+
+  /**
    * Replace/merge clipUrls for a profile (called when Shotstack CDN clips are ready).
    * Shotstack clips override FFmpeg clips for the same metric.
    */
@@ -364,5 +482,5 @@ export function useLocalProfiles() {
     setProfiles([]);
   }, [setProfiles]);
 
-  return { profiles, blobUrls, loading, addProfile, removeProfile, updateProfileClips, clearAll };
+  return { profiles, blobUrls, loading, addProfile, appendVideoToProfile, removeProfile, updateProfileClips, clearAll };
 }

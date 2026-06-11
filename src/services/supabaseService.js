@@ -215,10 +215,10 @@ export async function saveFullProfile({
 /** Converts a Supabase DB row into the shape used by useLocalProfiles */
 export function rowToLocalMeta(row) {
   const analysisJson = row.analysis_json ?? null;
-  // Strip internal _clips key so analysis object stays clean
+  // Strip internal _clips / _videos keys so analysis object stays clean
   let analysis = null;
   if (analysisJson) {
-    const { _clips: _ignored, ...rest } = analysisJson;
+    const { _clips: _c, _videos: _v, ...rest } = analysisJson;
     analysis = Object.keys(rest).length ? rest : null;
   }
   return {
@@ -235,6 +235,7 @@ export function rowToLocalMeta(row) {
     videoUrl:      row.video_url,
     analysis,
     metricClips:   row.analysis_json?._clips ?? [],
+    videos:        row.analysis_json?._videos ?? [],
     // Storage paths for deletion
     _headshotPath: row.headshot_path,
     _videoPath:    row.video_path,
@@ -243,9 +244,55 @@ export function rowToLocalMeta(row) {
 }
 
 /**
- * Persist updated metric clips back to Supabase by merging into analysis_json._clips.
- * Called after Shotstack CDN clips arrive or any clip update.
+ * Append a new video (+ its clips) to an existing player profile in Supabase.
+ * Uploads the video file to a unique path, then merges into analysis_json._videos + _clips.
  */
+export async function appendVideoToSupabase(profileId, videoId, videoFile, newClipMetas) {
+  if (!isSupabaseEnabled) return { supaVideoUrl: null };
+  try {
+    let supaVideoUrl = null;
+    if (videoFile) {
+      const ext  = videoFile.name.split('.').pop()?.toLowerCase() || 'mp4';
+      const path = `${profileId}/${videoId}.${ext}`;
+      const { error } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, videoFile, { contentType: videoFile.type || 'video/mp4', upsert: false });
+      if (!error) {
+        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        supaVideoUrl = data.publicUrl;
+      }
+    }
+
+    // Read current row to merge
+    const { data: row } = await supabase.from(TABLE).select('analysis_json').eq('id', profileId).single();
+    const existing = row?.analysis_json ?? {};
+
+    const finalClips = newClipMetas.map(c => ({
+      ...c,
+      url: supaVideoUrl ? `${supaVideoUrl}#t=${c.startSec ?? 0},${c.endSec ?? 0}` : undefined,
+    }));
+
+    await updateProfileRow(profileId, {
+      ...(supaVideoUrl ? { video_url: supaVideoUrl } : {}),
+      analysis_json: {
+        ...existing,
+        _videos: [
+          ...(existing._videos ?? []),
+          { id: videoId, uploadedAt: new Date().toISOString(), url: supaVideoUrl ?? null,
+            fileName: videoFile?.name ?? null, fileSize: videoFile?.size ?? null },
+        ],
+        _clips: [...(existing._clips ?? []), ...finalClips],
+      },
+    });
+
+    return { supaVideoUrl };
+  } catch (err) {
+    console.error('[appendVideoToSupabase] failed:', err.message);
+    return { supaVideoUrl: null };
+  }
+}
+
+/** Patch clips array in Supabase (called after Shotstack CDN clips arrive) */
 export async function patchProfileClips(profileId, allClips, existingAnalysis) {
   if (!isSupabaseEnabled) return;
   try {
@@ -253,6 +300,6 @@ export async function patchProfileClips(profileId, allClips, existingAnalysis) {
       analysis_json: { ...(existingAnalysis ?? {}), _clips: allClips },
     });
   } catch (err) {
-    console.warn('[supabaseService] patchProfileClips failed:', err.message);
+    console.warn('[patchProfileClips] failed:', err.message);
   }
 }

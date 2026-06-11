@@ -16,7 +16,7 @@ export default function App() {
   const [focusPlayer,  setFocusPlayer]  = useState(null);
 
   // local profile storage
-  const { profiles: localProfiles, blobUrls, addProfile, removeProfile, updateProfileClips } = useLocalProfiles();
+  const { profiles: localProfiles, blobUrls, addProfile, appendVideoToProfile, removeProfile, updateProfileClips } = useLocalProfiles();
 
   // lightbox for video playback
   const openLightbox = useCallback((src, label) => {
@@ -47,6 +47,11 @@ export default function App() {
     setNewProfile({ ...result, _clips: clips });
     showToast('Analysis complete ✓');
   }, []);
+
+  // append new video to an existing player profile
+  const handleAppendVideo = useCallback(async (payload) => {
+    return appendVideoToProfile(payload);
+  }, [appendVideoToProfile]);
 
   // save profile locally and sync to Supabase
   const handleSaveProfile = useCallback(async (payload) => {
@@ -79,6 +84,7 @@ export default function App() {
         <UploaderPortal
           onAnalysisComplete={handleAnalysisComplete}
           onSaveProfile={handleSaveProfile}
+          onAppendVideo={handleAppendVideo}
           onGoToScout={() => setView('scouter')}
           localProfiles={localProfiles}
           blobUrls={blobUrls}

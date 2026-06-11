@@ -237,23 +237,54 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
           {/* MAP MODE: MASTER REELS */}
           {tab === 'highlights' && (
             <div style={{ maxWidth: 860, margin: '0 auto' }}>
-              <div style={{ background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
-                {player.reels?.highlight ? (
-                  <VideoHUD>
-                    <video
-                      src={player.reels.highlight}
-                      controls
-                      autoPlay
-                      style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }}
-                    />
-                  </VideoHUD>
-                ) : (
-                  <div style={{ aspectRatio: '16/9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: THEME.colors.textDark }}>
-                    <span style={{ fontSize: '2.5rem' }}>⊙</span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 500, color: THEME.colors.textMuted }}>Primary Video Stream Unavailable</span>
+              {/* Multi-video: show every uploaded video for this player */}
+              {player.videos?.length > 0 ? (
+                player.videos.map((vid, i) => (
+                  <div key={vid.id || i} style={{ marginBottom: 28 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <span style={{ fontSize: '0.65rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 800 }}>
+                        Video {i + 1}
+                      </span>
+                      {vid.fileName && (
+                        <span style={{ fontSize: '0.72rem', color: THEME.colors.textMuted }}>{vid.fileName}</span>
+                      )}
+                      {vid.uploadedAt && (
+                        <span style={{ fontSize: '0.68rem', color: THEME.colors.textDark, marginLeft: 'auto' }}>
+                          {new Date(vid.uploadedAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
+                      {vid.url ? (
+                        <video src={vid.url} controls style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }} />
+                      ) : (
+                        <div style={{ aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: THEME.colors.textDark, fontSize: '0.85rem' }}>
+                          Video unavailable
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                ))
+              ) : (
+                /* Single video fallback (mock players or old single-video profiles) */
+                <div style={{ background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
+                  {player.reels?.highlight ? (
+                    <VideoHUD>
+                      <video
+                        src={player.reels.highlight}
+                        controls
+                        autoPlay
+                        style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }}
+                      />
+                    </VideoHUD>
+                  ) : (
+                    <div style={{ aspectRatio: '16/9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: THEME.colors.textDark }}>
+                      <span style={{ fontSize: '2.5rem' }}>⊙</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 500, color: THEME.colors.textMuted }}>Primary Video Stream Unavailable</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Per-metric evidence clips */}
               {Object.keys(player.reels || {}).some(k => k !== 'highlight' && player.reels[k] && player.reels[k] !== player.reels?.highlight) && (
