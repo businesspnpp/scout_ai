@@ -1167,7 +1167,26 @@ export default function ScoutDashboard({
 
       {/* MAIN CONTENT */}
       <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: isMobile ? '18px 14px 80px' : '24px 24px 60px', flex: 1 }}>
+        {/* Mobile top bar: hamburger + section label */}
+        {isMobile && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px 0', flexShrink: 0 }}>
+            <button
+              onClick={() => setNavOpen(o => !o)}
+              style={{ width: 36, height: 36, borderRadius: 8, background: 'transparent', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              aria-label="Open navigation"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <line x1="2" y1="4.5" x2="14" y2="4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                <line x1="2" y1="11.5" x2="14" y2="11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+            </button>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: C.txt, textTransform: 'capitalize' }}>
+              {[...NAV_MAIN, ...NAV_INSIGHTS, ...NAV_MY_SCOUTING].find(n => n.id === navSection)?.label ?? 'Discover'}
+            </span>
+          </div>
+        )}
+        <div style={{ padding: isMobile ? '12px 14px 80px' : '24px 24px 60px', flex: 1 }}>
           {/* ─── MULTI-SECTION CONTENT ───────────────────────────────────────────────────── */}
           {navSection === 'compare' ? (
             <CompareView allPlayers={allPlayers} compareIds={compareIds} setCompareIds={setCompareIds} onSelect={selectPlayer} />
