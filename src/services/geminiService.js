@@ -43,6 +43,11 @@ function buildMockResponse(playerDetails) {
     potential:        overall >= 85 ? 'Elite (A-Grade)' : overall >= 78 ? 'High (B-Grade)' : 'Promising (C-Grade)',
     valuationBracket: overall >= 88 ? 'EUR 120,000 - EUR 250,000' : overall >= 80 ? 'EUR 50,000 - EUR 120,000' : 'EUR 15,000 - EUR 50,000',
     recommendedPath:  'CAF youth pathway, worth a trial at European U23 level',
+    comparablePros: [
+      { name: 'Thomas Partey',       club: 'Atletico Madrid (Youth Reference)', ageWhen: 18, similarity: 89 },
+      { name: 'Wilfried Ndidi',      club: 'Genk Academy Reference',            ageWhen: 19, similarity: 83 },
+      { name: 'Emmanuel Adebayor',   club: 'AS Monaco (Youth)',                 ageWhen: 17, similarity: 76 },
+    ],
     _isMock: true,
   };
 }
@@ -94,8 +99,18 @@ Return ONLY a valid JSON object (no markdown, no explanation):
   "developmentAreas": string[],
   "potential": "Elite (A-Grade)" | "High (B-Grade)" | "Promising (C-Grade)" | "Developmental",
   "valuationBracket": string,
-  "recommendedPath": string
-}`.trim();
+  "recommendedPath": string,
+  "comparablePros": [
+    {
+      "name": string (real professional footballer),
+      "club": string (e.g. "Atletico Madrid (Youth Reference)"),
+      "ageWhen": number (age of the pro when they were at this level),
+      "similarity": number (0-100, based on structural metrics match)
+    }
+  ]
+  IMPORTANT: Include 2-3 real professionals whose playing style genuinely mirrors this player's calculated metrics and position. Only select players whose tactical profile matches the data — do not output generic superstar names unless explicitly justified by the metrics.
+}
+`;
 }
 
 // uploadVideoFile and waitForFileActive have been moved to server.js (proxy).
@@ -247,5 +262,68 @@ async function streamViaProxy(parts, playerDetails, onStream) {
   } catch (e) {
     console.warn('[geminiService] JSON parse error:', e.message);
     return buildMockResponse(playerDetails);
+  }
+}
+
+// ── Transfer Pitch Generator ───────────────────────────────────────────────────
+/**
+ * Stream a professional scouting memo for the given player.
+ * Calls the same /api/gemini/stream proxy as the analysis pipeline.
+ */
+export async function generateTransferPitch(player, onStream) {
+  const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  const topMetric = Object.entries(player.metrics ?? {}).sort((a, b) => b[1] - a[1])[0];
+  const topMetricStr = topMetric ? `${topMetric[0].replace(/([A-Z])/g, ' $1').trim()}: ${topMetric[1]}/100` : '';
+
+  const prompt = `You are a master international football agent and chief corporate sports director specializing in elite player placements inside European leagues (EPL, La Liga, Bundesliga, Ligue 1).
+
+Synthesize the following player data profile into an elite, compelling 2-paragraph executive recruitment memo.
+
+PLAYER NAME: ${player.name}
+POSITIONAL INTERFACE: ${player.pos}
+AGE: ${player.age}
+REGION: ${player.country}
+OVERALL RATING: ${player.overall}/100
+AI MATCH CONFIDENCE: ${player.aiMatch}%
+TOP VERIFIED METRIC: ${topMetricStr}
+FULL METRICS PORTFOLIO: ${JSON.stringify(player.metrics ?? {})}
+VALUATION BRACKET: ${player.analysis?.valuationBracket ?? 'Available on request'}
+POTENTIAL GRADE: ${player.analysis?.potential ?? 'High'}
+
+FORMATTING RULES:
+- Begin with exactly: "TRANSMISSION: FORMAL SCOUTING BRIEF — ${today}"
+- Next line: "RE: ${player.name} | ${player.pos} | Age ${player.age} | ${player.country}"
+- Blank line, then Paragraph 1: Address the "Director of Emerging Talent Recruitment" directly. Present the player with formal authority. Lead with their highest verified metric as a rare tactical asset.
+- Blank line, then Paragraph 2: Tactical and financial justification. Explain how their data matrix positions them as an immediate acquisition target. Reference how AI-verified video analysis eliminates recruitment bias and confirms readiness for a high-intensity reserve or first-team system.
+- Tone: Urgent, commercially persuasive, clinical, authoritative. No filler. No generic opening phrases.`;
+
+  const res = await fetch('/api/gemini/stream', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parts: [{ text: prompt }] }),
+  });
+  if (!res.ok) throw new Error(`Pitch stream failed: ${res.status}`);
+
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]' || payload === '[MOCK]') return;
+      if (!payload) continue;
+      try {
+        const { t, error } = JSON.parse(payload);
+        if (error) throw new Error(error);
+        if (t) onStream?.(t);
+      } catch (e) { /* skip malformed */ }
+    }
   }
 }

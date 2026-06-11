@@ -60,6 +60,7 @@ function buildLocalPlayer(meta, urls = {}) {
     headshot: urls.headshotUrl || '',
     clipUrls: urls.clipUrls ?? [],
     videos:   urls.videos   ?? [],
+    analysis: meta.analysis ?? null,
     _local: true,
   };
 }

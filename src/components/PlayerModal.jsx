@@ -1,7 +1,7 @@
 ﻿/**
  * PlayerModal.jsx - Full-Screen Tac-Dark Detail Modal Matrix
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { getPositionGroup, initials } from '../data/mockPlayers.js';
 import { THEME, getScoreColor } from './modal/theme.js';
 import RadarChart from './modal/RadarChart.jsx';
@@ -9,6 +9,7 @@ import VideoHUD   from './modal/VideoHUD.jsx';
 import MetricRow  from './modal/MetricRow.jsx';
 import Panel      from './modal/Panel.jsx';
 import useBreakpoint from '../hooks/useBreakpoint.js';
+import { generateTransferPitch } from '../services/geminiService.js';
 
 // ── Inline sub-components extracted to src/components/modal/ ──────────────
 // THEME, getScoreColor → modal/theme.js
@@ -21,8 +22,22 @@ import useBreakpoint from '../hooks/useBreakpoint.js';
 export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, onSaveToggle }) {
   const [tab, setTab] = useState('overview');
   const [open, setOpen] = useState(false);
+  const [pitchText,    setPitchText]    = useState('');
+  const [pitchLoading, setPitchLoading] = useState(false);
   const bodyRef = useRef(null);
   const { isMobile } = useBreakpoint();
+
+  const handleGeneratePitch = useCallback(async () => {
+    setPitchText('');
+    setPitchLoading(true);
+    try {
+      await generateTransferPitch(player, chunk => setPitchText(t => t + chunk));
+    } catch (err) {
+      setPitchText('⚠ Error: ' + err.message);
+    } finally {
+      setPitchLoading(false);
+    }
+  }, [player]);
 
   const group   = getPositionGroup(player.pos);
   const scores  = group.keys.map(k => player.metrics[k] ?? 0);
@@ -100,6 +115,23 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
               <span style={{ color: THEME.colors.textDark }}>•</span>
               <span style={{ color: THEME.colors.textDark }}>{player.club}</span>
             </div>
+
+            {/* ── Comparable Professionals Badges ── */}
+            {player.analysis?.comparablePros?.length > 0 && (
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar Profile:</span>
+                {player.analysis.comparablePros.slice(0, 3).map((pro, i) => (
+                  <span key={i} style={{
+                    fontSize: '0.70rem', padding: '3px 9px', borderRadius: 3,
+                    background: 'rgba(62,207,112,0.07)', border: '1px solid rgba(62,207,112,0.22)',
+                    color: THEME.colors.accentHigh, fontWeight: 600, whiteSpace: 'nowrap',
+                    fontFamily: 'Inter, sans-serif', letterSpacing: '0.01em',
+                  }}>
+                    {pro.name} <span style={{ opacity: 0.6 }}>(age {pro.ageWhen})</span> · <span style={{ fontFamily: 'monospace' }}>{pro.similarity}%</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Core Analytics Target Score Block */}
@@ -188,6 +220,40 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     </div>
                   ) : null)}
                 </Panel>
+
+                {/* ── AI Transfer Pitch Generator ── */}
+                <div style={{ border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
+                  <div style={{ padding: '12px 16px', background: THEME.colors.surfaceAlt, borderBottom: pitchText ? `1px solid ${THEME.colors.borderDim}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: '0.60rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 800 }}>Recruitment Intelligence</div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: THEME.colors.textMain, marginTop: 2 }}>Transfer Pitch Generator</div>
+                    </div>
+                    <button
+                      onClick={handleGeneratePitch}
+                      disabled={pitchLoading}
+                      style={{
+                        padding: '8px 16px', borderRadius: 6, cursor: pitchLoading ? 'wait' : 'pointer',
+                        background: pitchLoading ? 'rgba(62,207,112,0.04)' : 'rgba(62,207,112,0.10)',
+                        border: `1px solid ${pitchLoading ? 'rgba(62,207,112,0.15)' : 'rgba(62,207,112,0.35)'}`,
+                        color: THEME.colors.accentHigh, fontSize: '0.78rem', fontWeight: 700,
+                        display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
+                        transition: 'all 0.12s',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.85rem' }}>{pitchLoading ? '◌' : '⚡'}</span>
+                      {pitchLoading ? 'GENERATING...' : 'GENERATE RECRUITMENT MEMO'}
+                    </button>
+                  </div>
+                  {pitchText && (
+                    <div style={{ padding: '20px 20px', background: THEME.colors.bgCanvas, fontFamily: '"JetBrains Mono", "Courier New", monospace', fontSize: '0.78rem', color: THEME.colors.textMain, lineHeight: 1.8, whiteSpace: 'pre-wrap', borderTop: `1px solid ${THEME.colors.borderDim}` }}>
+                      <div style={{ fontSize: '0.58rem', letterSpacing: '0.14em', color: THEME.colors.accentHigh, fontWeight: 800, marginBottom: 12, textTransform: 'uppercase' }}>
+                        ● TRANSMISSION ACTIVE {pitchLoading ? '— STREAMING' : '— COMPLETE'}
+                      </div>
+                      {pitchText}
+                      {pitchLoading && <span style={{ display: 'inline-block', width: 8, height: 14, background: THEME.colors.accentHigh, marginLeft: 2, animation: 'none', verticalAlign: 'middle', opacity: 0.8 }}>▋</span>}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Right Radar Column Panel */}
