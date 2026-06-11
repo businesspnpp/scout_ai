@@ -113,13 +113,6 @@ const DEFAULT_PROMPTS = [
 export default function ScoutChat({ focusPlayer = null, localProfiles = [], blobUrls = {}, activeView = 'scouter' }) {
   const { isMobile } = useBreakpoint();
   const [open,      setOpen]      = useState(false);
-
-  // Close panel and hide button when not on scout view
-  useEffect(() => {
-    if (activeView !== 'scouter') setOpen(false);
-  }, [activeView]);
-
-  if (activeView !== 'scouter') return null;
   const [messages,  setMessages]  = useState([{
     role: 'ai',
     text: 'Scout AI Executive Core **online**.\n\nFull database access confirmed. I can run tactical assessments, cross-database player filters, head-to-head comparisons, and recruitment evaluations.\n\nWhat does the scout need?',
@@ -128,9 +121,14 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
   const [input,     setInput]     = useState('');
   const [streaming, setStreaming] = useState(false);
 
-  const bottomRef = useRef(null);
-  const inputRef  = useRef(null);
+  const bottomRef  = useRef(null);
+  const inputRef   = useRef(null);
   const msgListRef = useRef(null);
+
+  // Close panel when leaving scout view
+  useEffect(() => {
+    if (activeView !== 'scouter') setOpen(false);
+  }, [activeView]);
 
   useEffect(() => {
     if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -214,6 +212,9 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
         `Compare ${focusName} to the rest of the database`,
       ]
     : DEFAULT_PROMPTS;
+
+  // Hide entirely when not on scout view (all hooks already called above)
+  if (activeView !== 'scouter') return null;
 
   return (
     <>

@@ -147,64 +147,80 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        background: C.card,
-        border: `1px solid ${hov ? C.brdHi : C.border}`,
+        position: 'relative',
+        height: tall ? 300 : 220,
         borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
+        border: `1px solid ${hov ? C.brdHi : C.border}`,
+        background: '#08111e',
         transition: 'border-color 0.15s, transform 0.15s',
-        transform: hov ? 'translateY(-2px)' : 'none',
+        transform: hov ? 'translateY(-3px)' : 'none',
+        flexShrink: 0,
       }}
     >
-      <div style={{ height: tall ? 220 : 156, position: 'relative', overflow: 'hidden', background: '#080f1c' }}>
-        {player.headshot ? (
-          <img
-            src={player.headshot} alt={player.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
-            loading="lazy"
-          />
-        ) : (
-          <div style={{
-            width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'linear-gradient(135deg, #0a1926 0%, #0d2040 100%)',
-          }}>
-            <span style={{ fontSize: tall ? '2.8rem' : '2rem', fontWeight: 800, color: 'rgba(255,255,255,0.10)', fontFamily: 'syne, sans-serif', letterSpacing: '-0.05em' }}>
-              {player.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-            </span>
-          </div>
-        )}
+      {/* Full-bleed image */}
+      {player.headshot ? (
+        <img
+          src={player.headshot} alt={player.name}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+          loading="lazy"
+        />
+      ) : (
         <div style={{
-          position: 'absolute', top: 8, right: 8,
-          background: 'rgba(5,11,20,0.88)', backdropFilter: 'blur(6px)',
-          border: `1px solid rgba(255,255,255,0.06)`,
-          borderRadius: 8, padding: '3px 8px',
-          fontSize: '0.85rem', fontWeight: 800, color: scoreCol(player.overall), fontFamily: 'monospace',
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(160deg, #0e2040 0%, #0a1830 50%, #060e1c 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {player.overall}
+          <span style={{ fontSize: tall ? '3.5rem' : '2.5rem', fontWeight: 800, color: 'rgba(255,255,255,0.06)', fontFamily: 'syne, sans-serif', letterSpacing: '-0.04em' }}>
+            {player.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+          </span>
         </div>
-        <div style={{
-          position: 'absolute', bottom: 8, left: 8,
-          background: 'rgba(5,11,20,0.88)', backdropFilter: 'blur(6px)',
-          borderRadius: 6, padding: '2px 7px',
-          fontSize: '0.70rem', fontWeight: 700, color: posColor(player.pos),
-        }}>
-          {player.pos}
-        </div>
+      )}
+
+      {/* Dark gradient overlay from bottom */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(5,11,20,0.97) 0%, rgba(5,11,20,0.65) 42%, rgba(5,11,20,0.15) 72%, transparent 100%)',
+      }} />
+
+      {/* Score badge — top right */}
+      <div style={{
+        position: 'absolute', top: 10, right: 10,
+        background: 'rgba(5,11,20,0.82)', backdropFilter: 'blur(8px)',
+        border: `1px solid rgba(255,255,255,0.08)`,
+        borderRadius: 8, padding: '3px 8px',
+        fontSize: '0.88rem', fontWeight: 800, color: scoreCol(player.overall), fontFamily: 'monospace',
+        zIndex: 2,
+      }}>
+        {player.overall}
       </div>
-      <div style={{ padding: '10px 12px 12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
-          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: C.txt, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-            {player.name}
-          </div>
-          {onSaveToggle && (
-            <button
-              onClick={e => { e.stopPropagation(); onSaveToggle(player.id); }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 4px', flexShrink: 0, color: isSaved ? C.green : C.txtDim, fontSize: '1rem' }}
-            >
-              {isSaved ? '★' : '☆'}
-            </button>
-          )}
+
+      {/* Save button — top left */}
+      {onSaveToggle && (
+        <button
+          onClick={e => { e.stopPropagation(); onSaveToggle(player.id); }}
+          style={{
+            position: 'absolute', top: 8, left: 8, zIndex: 2,
+            background: 'rgba(5,11,20,0.70)', backdropFilter: 'blur(6px)',
+            border: `1px solid rgba(255,255,255,0.08)`,
+            borderRadius: 7, padding: '3px 7px',
+            color: isSaved ? C.green : 'rgba(255,255,255,0.45)',
+            cursor: 'pointer', fontSize: '0.85rem',
+          }}
+        >
+          {isSaved ? '★' : '☆'}
+        </button>
+      )}
+
+      {/* Text overlay — bottom */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 14px 14px', zIndex: 2 }}>
+        <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#f1f5f9', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 4 }}>
+          {player.name}
         </div>
-        <div style={{ fontSize: '0.74rem', color: C.txtMd, marginTop: 3 }}>
-          {player.pos} · {player.age} · {player.country}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: posColor(player.pos), background: 'rgba(5,11,20,0.6)', borderRadius: 4, padding: '1px 6px' }}>
+            {player.pos}
+          </span>
+          <span style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,0.55)' }}>{player.age} · {player.country}</span>
         </div>
       </div>
     </div>
@@ -555,7 +571,7 @@ export default function ScoutDashboard({
         width: 240, flexShrink: 0,
         borderRight: `1px solid ${C.border}`,
         display: 'flex', flexDirection: 'column',
-        background: C.bg,
+        background: C.bg, overflow: 'hidden',
         ...(isMobile ? {
           position: 'fixed', top: 56, left: 0, bottom: 0, zIndex: 210,
           transform: navOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -571,7 +587,7 @@ export default function ScoutDashboard({
             </div>
           </div>
         )}
-        <nav style={{ padding: isMobile ? '20px 12px' : '4px 12px', flex: 1 }}>
+        <nav style={{ padding: isMobile ? '16px 12px 0' : '4px 12px 0', flexShrink: 0 }}>
           {NAV_ITEMS.map(item => {
             const active = navSection === item.id;
             return (
@@ -600,10 +616,103 @@ export default function ScoutDashboard({
             );
           })}
         </nav>
-        <div style={{ padding: '0 14px 18px' }}>
-          <div style={{ background: '#0b1420', border: `1px solid ${C.border}`, borderRadius: 16, padding: '16px' }}>
-            <div style={{ color: C.green, fontWeight: 700, fontSize: '0.88rem', marginBottom: 8 }}>AI Scouting</div>
-            <p style={{ fontSize: '0.77rem', color: C.txtMd, margin: 0, lineHeight: 1.55 }}>
+
+        {/* ── INLINE FILTERS ───────────────────────────────────────────── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px 8px' }}>
+          <div style={{ fontSize: '0.62rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700, marginBottom: 10 }}>Filters</div>
+
+          {/* Search */}
+          <input
+            value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Name, country, club..."
+            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 10px', color: C.txt, outline: 'none', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif', boxSizing: 'border-box', marginBottom: 14 }}
+          />
+
+          {/* Positions */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: '0.62rem', color: C.txtDim, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 7 }}>Position</div>
+            {POS_GROUPS_LIST.map(grp => (
+              <div key={grp.label} style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: '0.65rem', color: C.txtDim, marginBottom: 5 }}>{grp.label}</div>
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                  {grp.positions.map(pos => (
+                    <button key={pos} onClick={() => togglePos(pos)} style={{
+                      padding: '2px 8px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+                      background: posFilter.has(pos) ? C.gnDim : 'transparent',
+                      border: `1px solid ${posFilter.has(pos) ? C.gnBdr : C.border}`,
+                      color: posFilter.has(pos) ? C.green : C.txtMd,
+                    }}>{pos}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Region */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: '0.62rem', color: C.txtDim, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 7 }}>Region</div>
+            <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 10px', color: C.txt, outline: 'none', fontSize: '0.80rem', cursor: 'pointer', boxSizing: 'border-box' }}>
+              <option value="">All Regions</option>
+              {regions.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          {/* Age slider */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: '0.62rem', color: C.txtDim, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Max Age</span>
+              <span style={{ fontSize: '0.75rem', color: C.txtMd, fontFamily: 'monospace' }}>{ageMax}</span>
+            </div>
+            <input type="range" min={16} max={30} value={ageMax} onChange={e => setAgeMax(Number(e.target.value))} style={{ width: '100%', accentColor: C.green }} />
+          </div>
+
+          {/* Score slider */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: '0.62rem', color: C.txtDim, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Min Score</span>
+              <span style={{ fontSize: '0.75rem', color: C.txtMd, fontFamily: 'monospace' }}>{scoreMin}</span>
+            </div>
+            <input type="range" min={0} max={95} step={5} value={scoreMin} onChange={e => setScoreMin(Number(e.target.value))} style={{ width: '100%', accentColor: C.green }} />
+          </div>
+
+          {/* Sort */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: '0.62rem', color: C.txtDim, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 7 }}>Sort By</div>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 10px', color: C.txt, outline: 'none', fontSize: '0.80rem', cursor: 'pointer', boxSizing: 'border-box' }}>
+              <option value="overall">Top Score</option>
+              <option value="aiMatch">AI Fit</option>
+              <option value="age">Youngest</option>
+              <option value="name">A–Z</option>
+            </select>
+          </div>
+
+          {/* Shortlist only toggle */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', marginBottom: 12 }}>
+            <div
+              onClick={() => setSavedOnly(x => !x)}
+              style={{
+                width: 32, height: 18, borderRadius: 10, flexShrink: 0,
+                background: savedOnly ? C.green : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${savedOnly ? C.gnBdr : C.border}`,
+                position: 'relative', cursor: 'pointer', transition: 'background 0.14s',
+              }}
+            >
+              <div style={{ position: 'absolute', top: 2, left: savedOnly ? 16 : 2, width: 12, height: 12, borderRadius: '50%', background: '#fff', transition: 'left 0.14s' }} />
+            </div>
+            <span style={{ fontSize: '0.80rem', color: C.txtMd }}>Shortlist only</span>
+          </label>
+
+          {hasActiveFilters && (
+            <button onClick={clearFilters} style={{ width: '100%', padding: '7px', borderRadius: 8, background: 'transparent', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+              Clear all filters
+            </button>
+          )}
+        </div>
+
+        <div style={{ padding: '12px 14px 16px', flexShrink: 0 }}>
+          <div style={{ background: '#0b1420', border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px' }}>
+            <div style={{ color: C.green, fontWeight: 700, fontSize: '0.85rem', marginBottom: 6 }}>AI Scouting</div>
+            <p style={{ fontSize: '0.74rem', color: C.txtMd, margin: 0, lineHeight: 1.5 }}>
               Advanced AI analysis to find the next generation of football stars.
             </p>
           </div>
