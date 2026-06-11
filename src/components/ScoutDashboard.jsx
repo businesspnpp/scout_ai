@@ -503,6 +503,8 @@ export default function ScoutDashboard({
   const [sidebarFiltersOpen, setSidebarFiltersOpen] = useState(true);
   const [fullAnalysisFor, setFullAnalysisFor] = useState(null);
   const [navOpen,         setNavOpen]         = useState(false);
+  const [insightsOpen,    setInsightsOpen]    = useState(true);
+  const [myScoutingOpen,  setMyScoutingOpen]  = useState(true);
 
   const allPlayers = useMemo(() => {
     const locals = localProfiles.map(m => buildLocalPlayer(m, blobUrls[m.id] ?? {}));
@@ -564,11 +566,59 @@ export default function ScoutDashboard({
   const filterHandlers = { setSearch, togglePos, setRegionFilter, setAgeMax, setScoreMin, setSortBy, setSavedOnly, clearFilters };
   const filterState    = { search, posFilter, regionFilter, ageMax, scoreMin, sortBy, savedOnly };
 
-  const NAV_ITEMS = [
-    { id: 'discover',  label: 'Discover',  icon: 'D' },
-    { id: 'shortlist', label: 'Shortlist', icon: 'S' },
-    { id: 'compare',   label: 'Compare',   icon: 'C' },
-    { id: 'reports',   label: 'Reports',   icon: 'R' },
+  const NAV_MAIN = [
+    {
+      id: 'discover', label: 'Discover',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3"/><path d="M8 3.5v1.5M8 11v1.5M3.5 8H5M11 8h1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><path d="M6.5 6.5l3 3M9.5 6.5L6.5 9.5" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round"/><circle cx="8" cy="8" r="1.1" fill="currentColor"/></svg>,
+    },
+    {
+      id: 'search', label: 'Search',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.35"/><line x1="9.5" y1="9.5" x2="13.5" y2="13.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+    },
+    {
+      id: 'shortlist', label: 'Shortlist',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><path d="M8 13C8 13 2 9 2 5.5A3 3 0 0 1 8 3.8 3 3 0 0 1 14 5.5C14 9 8 13 8 13Z" stroke="currentColor" strokeWidth="1.3" fill="none"/></svg>,
+    },
+    {
+      id: 'compare', label: 'Compare',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><line x1="2" y1="5" x2="14" y2="5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/><circle cx="9.5" cy="5" r="1.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><line x1="2" y1="11" x2="14" y2="11" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/><circle cx="5.5" cy="11" r="1.8" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>,
+    },
+    {
+      id: 'watchlist', label: 'Watchlist',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><circle cx="3" cy="4" r="1.1" fill="currentColor"/><line x1="6" y1="4" x2="13.5" y2="4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/><circle cx="3" cy="8" r="1.1" fill="currentColor"/><line x1="6" y1="8" x2="13.5" y2="8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/><circle cx="3" cy="12" r="1.1" fill="currentColor"/><line x1="6" y1="12" x2="11" y2="12" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/></svg>,
+    },
+    {
+      id: 'reports', label: 'Reports',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><rect x="2.5" y="1.5" width="11" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><polyline points="4.5,11 6.5,8 8.5,9.5 11.5,5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    },
+  ];
+  const NAV_INSIGHTS = [
+    {
+      id: 'trending', label: 'Trending',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><rect x="1.5" y="8.5" width="3" height="5.5" rx="0.6" stroke="currentColor" strokeWidth="1.2"/><rect x="6.5" y="5.5" width="3" height="8.5" rx="0.6" stroke="currentColor" strokeWidth="1.2"/><rect x="11.5" y="2.5" width="3" height="11.5" rx="0.6" stroke="currentColor" strokeWidth="1.2"/></svg>,
+    },
+    {
+      id: 'topPerformers', label: 'Top Performers',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><path d="M8 2.5l1.6 3.3 3.6.5-2.6 2.5.6 3.6L8 10.8l-3.2 1.6.6-3.6L2.8 6.3l3.6-.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    },
+    {
+      id: 'newUploads', label: 'New Uploads',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3"/><line x1="8" y1="5.2" x2="8" y2="10.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><line x1="5.2" y1="8" x2="10.8" y2="8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+    },
+  ];
+  const NAV_MY_SCOUTING = [
+    {
+      id: 'myNotes', label: 'My Notes',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><rect x="2.5" y="1.5" width="11" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><line x1="4.5" y1="5.5" x2="11.5" y2="5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="8" x2="11.5" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><polyline points="4.5,11.5 6,13 9,9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    },
+    {
+      id: 'playersSeen', label: 'Players Seen',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><rect x="2.5" y="1.5" width="11" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><line x1="4.5" y1="5.5" x2="11.5" y2="5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="8" x2="11.5" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="10.5" x2="9" y2="10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>,
+    },
+    {
+      id: 'recentlyViewed', label: 'Recently Viewed',
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3"/><line x1="8" y1="5" x2="8" y2="8.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><line x1="8" y1="8.5" x2="10.5" y2="10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+    },
   ];
 
   return (
@@ -593,14 +643,13 @@ export default function ScoutDashboard({
         }),
       }}>
         {!isMobile && (
-          <div style={{ padding: '22px 22px 14px' }}>
-            <div style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'syne, sans-serif', letterSpacing: '-0.03em' }}>
-              Scout <span style={{ color: C.green }}>AI</span>
-            </div>
+          <div style={{ padding: '20px 16px 10px' }}>
+            <span style={{ fontSize: '0.58rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700 }}>Scout AI</span>
           </div>
         )}
-        <nav style={{ padding: isMobile ? '16px 12px 0' : '4px 12px 0', flexShrink: 0 }}>
-          {NAV_ITEMS.map(item => {
+        <nav style={{ padding: isMobile ? '16px 0 0' : '4px 0 0', flexShrink: 0 }}>
+          {/* ── Main nav items ───────────────────────────────────── */}
+          {NAV_MAIN.map(item => {
             const active = navSection === item.id;
             return (
               <button
@@ -608,25 +657,137 @@ export default function ScoutDashboard({
                 onClick={() => { setNavSection(item.id); if (isMobile) setNavOpen(false); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  width: '100%', padding: '11px 14px', borderRadius: 12, marginBottom: 4,
-                  background: active ? C.gnDim : 'transparent',
-                  border: `1px solid ${active ? C.gnBdr : 'transparent'}`,
-                  color: active ? C.green : C.txtMd,
-                  cursor: 'pointer', fontSize: '0.92rem', fontWeight: active ? 600 : 400,
-                  textAlign: 'left', transition: 'all 0.12s',
+                  width: '100%', padding: '9px 14px 9px 13px',
+                  borderLeft: `3px solid ${active ? '#3ecf70' : 'transparent'}`,
+                  borderRight: 'none', borderTop: 'none', borderBottom: 'none',
+                  background: active
+                    ? 'linear-gradient(90deg, rgba(62,207,112,0.06) 0%, rgba(13,15,20,0) 100%)'
+                    : 'transparent',
+                  borderRadius: '0px 6px 6px 0px',
+                  color: active ? '#ffffff' : C.txtDim,
+                  cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
+                  textAlign: 'left', transition: 'color 0.12s, background 0.12s, border-color 0.12s',
+                  outline: 'none', marginBottom: 1,
                 }}
-                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
               >
-                {item.label}
+                {item.icon}
+                <span>{item.label}</span>
                 {item.id === 'shortlist' && savedIds.length > 0 && (
-                  <span style={{ marginLeft: 'auto', fontSize: '0.72rem', background: C.gnDim, border: `1px solid ${C.gnBdr}`, borderRadius: 999, padding: '1px 7px', color: C.green }}>
+                  <span style={{ marginLeft: 'auto', fontSize: '0.70rem', background: C.gnDim, border: `1px solid ${C.gnBdr}`, borderRadius: 999, padding: '1px 7px', color: C.green }}>
                     {savedIds.length}
                   </span>
                 )}
               </button>
             );
           })}
+
+          {/* ── Insights section ──────────────────────────────────── */}
+          <div style={{ height: 1, background: C.border, margin: '10px 14px 2px' }} />
+          <button
+            onClick={() => setInsightsOpen(x => !x)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '8px 14px 8px 16px', background: 'transparent',
+              border: 'none', cursor: 'pointer', marginTop: 2,
+            }}
+          >
+            <span style={{ fontSize: '0.58rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700 }}>Insights</span>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, transition: 'transform 0.35s cubic-bezier(0.16,1,0.3,1)', transform: insightsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <path d="M1.5 3.5l3.5 3.5 3.5-3.5" stroke={C.txtDim} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <div style={{
+            overflow: 'hidden',
+            maxHeight: insightsOpen ? '400px' : '0px',
+            opacity: insightsOpen ? 1 : 0,
+            transition: insightsOpen
+              ? 'max-height 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease 0.05s'
+              : 'max-height 0.35s cubic-bezier(0.4,0,1,1), opacity 0.2s ease',
+          }}>
+            {NAV_INSIGHTS.map(item => {
+              const active = navSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { setNavSection(item.id); if (isMobile) setNavOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    width: '100%', padding: '9px 14px 9px 13px',
+                    borderLeft: `3px solid ${active ? '#3ecf70' : 'transparent'}`,
+                    borderRight: 'none', borderTop: 'none', borderBottom: 'none',
+                    background: active
+                      ? 'linear-gradient(90deg, rgba(62,207,112,0.06) 0%, rgba(13,15,20,0) 100%)'
+                      : 'transparent',
+                    borderRadius: '0px 6px 6px 0px',
+                    color: active ? '#ffffff' : C.txtDim,
+                    cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
+                    textAlign: 'left', transition: 'color 0.12s, background 0.12s, border-color 0.12s',
+                    outline: 'none', marginBottom: 1,
+                  }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── My Scouting section ───────────────────────────────── */}
+          <div style={{ height: 1, background: C.border, margin: '10px 14px 2px' }} />
+          <button
+            onClick={() => setMyScoutingOpen(x => !x)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', padding: '8px 14px 8px 16px', background: 'transparent',
+              border: 'none', cursor: 'pointer', marginTop: 2,
+            }}
+          >
+            <span style={{ fontSize: '0.58rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700 }}>My Scouting</span>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, transition: 'transform 0.35s cubic-bezier(0.16,1,0.3,1)', transform: myScoutingOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <path d="M1.5 3.5l3.5 3.5 3.5-3.5" stroke={C.txtDim} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <div style={{
+            overflow: 'hidden',
+            maxHeight: myScoutingOpen ? '400px' : '0px',
+            opacity: myScoutingOpen ? 1 : 0,
+            transition: myScoutingOpen
+              ? 'max-height 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease 0.05s'
+              : 'max-height 0.35s cubic-bezier(0.4,0,1,1), opacity 0.2s ease',
+          }}>
+            {NAV_MY_SCOUTING.map(item => {
+              const active = navSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { setNavSection(item.id); if (isMobile) setNavOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    width: '100%', padding: '9px 14px 9px 13px',
+                    borderLeft: `3px solid ${active ? '#3ecf70' : 'transparent'}`,
+                    borderRight: 'none', borderTop: 'none', borderBottom: 'none',
+                    background: active
+                      ? 'linear-gradient(90deg, rgba(62,207,112,0.06) 0%, rgba(13,15,20,0) 100%)'
+                      : 'transparent',
+                    borderRadius: '0px 6px 6px 0px',
+                    color: active ? '#ffffff' : C.txtDim,
+                    cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
+                    textAlign: 'left', transition: 'color 0.12s, background 0.12s, border-color 0.12s',
+                    outline: 'none', marginBottom: 1,
+                  }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
         {/* ── INLINE FILTERS ───────────────────────────────────────────── */}
