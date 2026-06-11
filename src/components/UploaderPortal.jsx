@@ -24,6 +24,7 @@ export default function UploaderPortal({
   const [metricClips,      setMetricClips]      = useState([]);
   const [error,            setError]            = useState('');
   const [syncStatus,       setSyncStatus]       = useState('idle');
+  const [headshotWarn,     setHeadshotWarn]     = useState('');
   const [uploadInfo,       setUploadInfo]       = useState(null);   // { startMs, totalMB } when uploading
   const [uploadPct,        setUploadPct]        = useState(0);
   const [shotstackStatus,  setShotstackStatus]  = useState(null); // null|'submitting'|'rendering'|'done'|'failed'
@@ -42,8 +43,20 @@ export default function UploaderPortal({
     if (!file) return;
     const err = validateHeadshotFile(file);
     if (err) { setError(err); return; }
+    setHeadshotWarn('');
+    const url = URL.createObjectURL(file);
     setHeadshot(file);
-    setHeadshotPreview(URL.createObjectURL(file));
+    setHeadshotPreview(url);
+    // Check resolution — Gemini needs a clear, visible face
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth < 200 || img.naturalHeight < 200) {
+        setHeadshotWarn(`Low resolution (${img.naturalWidth}×${img.naturalHeight}px). Use a clearer photo for better AI tracking accuracy.`);
+      } else if (img.naturalWidth < 400 || img.naturalHeight < 400) {
+        setHeadshotWarn('Photo quality is acceptable but a higher resolution image will improve player identification.');
+      }
+    };
+    img.src = url;
   };
 
   const addVideoFile = e => {
@@ -110,7 +123,7 @@ export default function UploaderPortal({
   const clearEdit = () => {
     setEditingId(null);
     setForm({ name: '', age: '', region: '', position: 'ST' });
-    setHeadshot(null); setHeadshotPreview(null);
+    setHeadshot(null); setHeadshotPreview(null); setHeadshotWarn('');
     setVideoFiles([]); setVideoUrl('');
     setResult(null); setError(''); setStreamOutput('');
     setMetricClips([]); setCuttingProgress(null); setPhase('idle');
@@ -368,9 +381,18 @@ export default function UploaderPortal({
             <div onClick={() => headshotRef.current?.click()} style={{ width: 74, height: 74, borderRadius: 3, background: '#0d1117', border: headshotPreview ? '1px solid rgba(0,200,83,0.30)' : '1px solid #28384d', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               {headshotPreview ? <img src={headshotPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#28384d', fontSize: '1.4rem' }}>+</span>}
             </div>
-            <button className="btn-ghost" onClick={() => headshotRef.current?.click()}>
-              {headshotPreview ? 'Replace Photo' : 'Upload Photo'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button className="btn-ghost" onClick={() => headshotRef.current?.click()}>
+                {headshotPreview ? 'Replace Photo' : 'Upload Photo'}
+              </button>
+              <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>Clear, front-facing photo · min 200×200px</div>
+              {headshotWarn && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 2, padding: '6px 10px', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 4, maxWidth: 340 }}>
+                  <span style={{ color: '#c9a84c', fontSize: '0.75rem', flexShrink: 0, marginTop: 1 }}>⚠</span>
+                  <span style={{ fontSize: '0.72rem', color: '#c9a84c', lineHeight: 1.4 }}>{headshotWarn}</span>
+                </div>
+              )}
+            </div>
             <input ref={headshotRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleHeadshot} />
           </div>
         </div>
@@ -409,7 +431,7 @@ export default function UploaderPortal({
                 onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#28384d'; const f = e.dataTransfer.files?.[0]; if (!f) return; const err = validateVideoFile(f); if (err) { setError(err); return; } setVideoFiles(prev => [...prev, f]); }}
               >
                 <div style={{ color: '#4a5568', fontSize: '0.84rem', marginBottom: 3 }}>{videoFiles.length > 0 ? '+ Add another clip' : 'Drop video or click to browse'}</div>
-                <div style={{ color: '#28384d', fontSize: '0.72rem' }}>MP4, MOV, AVI — auto-cut by AI timestamps after analysis</div>
+                <div style={{ color: '#28384d', fontSize: '0.72rem' }}>MP4, MOV, AVI · Recommended under 45 MB for best speed — larger files are auto-compressed</div>
               </div>
               <input ref={videoRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={addVideoFile} />
             </>
