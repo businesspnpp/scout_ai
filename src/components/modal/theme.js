@@ -2,13 +2,13 @@
 
 export const THEME = {
   colors: {
-    bgOverlay:    'rgba(7, 8, 10, 0.88)',
-    bgCanvas:     '#0b0c10',
-    surfaceCard:  '#111217',
-    surfaceHover: '#17181f',
-    surfaceAlt:   '#07080a',
-    borderDim:    '#1f2026',
-    borderMid:    '#2e303d',
+    bgOverlay:    'rgba(7, 7, 8, 0.88)',
+    bgCanvas:     '#0d0d0f',
+    surfaceCard:  '#141416',
+    surfaceHover: '#1a1a1d',
+    surfaceAlt:   '#0a0a0c',
+    borderDim:    '#1e1e21',
+    borderMid:    '#2a2a2d',
     borderActive: '#3ecf70',
     accentHigh:   '#3ecf70',
     accentMid:    '#d4a850',

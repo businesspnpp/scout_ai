@@ -9,8 +9,8 @@ export default function Navigation({ view, setView, savedCount, cachedCount = 0 
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
       height: 56,
-      background: '#1d1f27',
-      borderBottom: '1px solid #2e3040',
+      background: '#0d0d0f',
+      borderBottom: '1px solid #222225',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: isMobile ? '0 14px' : '0 24px',
     }}>
@@ -35,7 +35,7 @@ export default function Navigation({ view, setView, savedCount, cachedCount = 0 
       {/* Role toggle */}
       <div style={{
         display: 'flex', alignItems: 'center',
-        background: '#17181e', border: '1px solid #2e3040', borderRadius: 8, padding: 3,
+        background: '#1a1a1c', border: '1px solid #252527', borderRadius: 8, padding: 3,
       }}>
         <RoleTab label={isMobile ? 'Upload' : 'Uploader Portal'}    sub={isMobile ? null : 'Coaches & Players'} icon="↑" active={view === 'uploader'} onClick={() => setView('uploader')} compact={isMobile} />
         <RoleTab label={isMobile ? 'Scout'  : 'Scout Intelligence'} sub={isMobile ? null : 'Discover Talent'}   icon="◈" active={view === 'scouter'}  onClick={() => setView('scouter')}  compact={isMobile} />
@@ -64,7 +64,7 @@ function RoleTab({ label, sub, icon, active, onClick, compact = false }) {
     <button onClick={onClick} style={{
       padding: compact ? '7px 12px' : '7px 16px', borderRadius: 3,
       border: `1px solid ${active ? '#3a3f54' : 'transparent'}`,
-      background: active ? '#23252f' : 'transparent',
+      background: active ? '#1e1e21' : 'transparent',
       color: active ? '#f0f1f3' : '#50535f',
       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: compact ? 5 : 8,
       transition: 'all 0.12s',

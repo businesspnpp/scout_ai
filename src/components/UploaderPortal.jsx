@@ -1,4 +1,4 @@
-Ôªøimport { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { analyzePlayer } from '../services/geminiService.js';
 import { processHighlightsInstant, processHighlightsShotstack } from '../services/clipService.js';
 import { validateHeadshotFile, validateVideoFile, validatePlayerForm } from '../services/validate.js';
@@ -49,11 +49,11 @@ export default function UploaderPortal({
     const url = URL.createObjectURL(file);
     setHeadshot(file);
     setHeadshotPreview(url);
-    // Check resolution ‚Äî Gemini needs a clear, visible face
+    // Check resolution ó Gemini needs a clear, visible face
     const img = new Image();
     img.onload = () => {
       if (img.naturalWidth < 200 || img.naturalHeight < 200) {
-        setHeadshotWarn(`Low resolution (${img.naturalWidth}√ó${img.naturalHeight}px). Use a clearer photo for better AI tracking accuracy.`);
+        setHeadshotWarn(`Low resolution (${img.naturalWidth}◊${img.naturalHeight}px). Use a clearer photo for better AI tracking accuracy.`);
       } else if (img.naturalWidth < 400 || img.naturalHeight < 400) {
         setHeadshotWarn('Photo quality is acceptable but a higher resolution image will improve player identification.');
       }
@@ -171,7 +171,7 @@ export default function UploaderPortal({
 
       setResult(analysisResult);
 
-      // ‚îÄ‚îÄ Phase 2: Instant clips via media fragments (no FFmpeg/WASM needed) ‚îÄ‚îÄ
+      // -- Phase 2: Instant clips via media fragments (no FFmpeg/WASM needed) --
       let cuts = [];
       if (videoMode === 'file' && videoFiles.length > 0 && analysisResult.highlights?.length > 0) {
         cuts = processHighlightsInstant(videoFiles, analysisResult.highlights);
@@ -203,7 +203,7 @@ export default function UploaderPortal({
             const status = typeof prog === 'string' ? prog : prog?.status;
             setSyncStatus(status);
 
-            // When Supabase has the video public URL ‚Üí kick off Shotstack cloud renders
+            // When Supabase has the video public URL ? kick off Shotstack cloud renders
             const vidUrl = typeof prog === 'object' ? prog.videoPublicUrl : null;
             if (status === 'done' && vidUrl && savedHighlights.length > 0) {
               setShotstackStatus('submitting');
@@ -320,18 +320,18 @@ export default function UploaderPortal({
                       <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isEditing ? '#3ecf70' : '#f0f1f3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.name || 'Unnamed'}</div>
                       <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>
                         {isMobile ? (meta.position || '') : (
-                          <>{clipCount > 0 && <span style={{ color: '#3ecf70', marginRight: 6 }}>‚úÇ {clipCount} clips</span>}{meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}</>
+                          <>{clipCount > 0 && <span style={{ color: '#3ecf70', marginRight: 6 }}>? {clipCount} clips</span>}{meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}</>
                         )}
                       </div>
                     </div>
-                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || '‚Äî'}</div>}
-                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '‚Äî'}</div>}
-                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '‚Äî'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || 'ó'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || 'ó'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || 'ó'}</div>}
                     <div style={{ display: 'flex', gap: 5, justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
                       <button onClick={e => { e.stopPropagation(); isEditing ? clearEdit() : loadProfile(meta); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 5, border: isEditing ? '1px solid rgba(62,207,112,0.30)' : '1px solid #3a3f54', background: '#1d1f27', color: isEditing ? '#3ecf70' : '#8c909f', cursor: 'pointer' }}>
                         {isEditing ? 'Cancel' : 'Edit'}
                       </button>
-                      {!isMobile && <button onClick={e => { e.stopPropagation(); if (editingId === meta.id) clearEdit(); onRemoveProfile?.(meta.id); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 2, border: '1px solid #28384d', background: '#0d1117', color: '#c94f4f', cursor: 'pointer' }}>Del</button>}
+                      {!isMobile && <button onClick={e => { e.stopPropagation(); if (editingId === meta.id) clearEdit(); onRemoveProfile?.(meta.id); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 2, border: '1px solid #222225', background: '#0d0d0f', color: '#c94f4f', cursor: 'pointer' }}>Del</button>}
                     </div>
                   </div>
                 );
@@ -345,7 +345,7 @@ export default function UploaderPortal({
           {editingId ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <span style={{ fontSize: '0.66rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#00c853' }}>Editing Profile</span>
-              <button onClick={clearEdit} style={{ fontSize: '0.70rem', padding: '2px 8px', borderRadius: 2, border: '1px solid #28384d', background: '#0d1117', color: '#4a5568', cursor: 'pointer' }}>+ New Profile</button>
+              <button onClick={clearEdit} style={{ fontSize: '0.70rem', padding: '2px 8px', borderRadius: 2, border: '1px solid #222225', background: '#0d0d0f', color: '#4a5568', cursor: 'pointer' }}>+ New Profile</button>
             </div>
           ) : (
             <div style={{ fontSize: '0.66rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4a5568', marginBottom: 6 }}>BeOrchid Africa 2026</div>
@@ -356,7 +356,7 @@ export default function UploaderPortal({
         </div>
 
         {/* -- Player Details -- */}
-        <div style={{ background: '#131920', border: '1px solid #1e2735', borderRadius: 4, padding: '18px 22px', marginBottom: 12 }}>
+        <div style={{ background: '#131920', border: '1px solid #1e1e21', borderRadius: 4, padding: '18px 22px', marginBottom: 12 }}>
           <Label>Player Details</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 12, marginTop: 12 }}>
             <Field label="Full Name *">
@@ -377,21 +377,21 @@ export default function UploaderPortal({
         </div>
 
         {/* -- Reference Photo -- */}
-        <div style={{ background: '#131920', border: '1px solid #1e2735', borderRadius: 4, padding: '18px 22px', marginBottom: 12 }}>
+        <div style={{ background: '#131920', border: '1px solid #1e1e21', borderRadius: 4, padding: '18px 22px', marginBottom: 12 }}>
           <Label>Reference Photo</Label>
           <p style={{ fontSize: '0.78rem', color: '#4a5568', marginTop: 4, marginBottom: 12 }}>Sent to Gemini to identify and track this player in footage</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <div onClick={() => headshotRef.current?.click()} style={{ width: 74, height: 74, borderRadius: 3, background: '#0d1117', border: headshotPreview ? '1px solid rgba(0,200,83,0.30)' : '1px solid #28384d', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {headshotPreview ? <img src={headshotPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#28384d', fontSize: '1.4rem' }}>+</span>}
+            <div onClick={() => headshotRef.current?.click()} style={{ width: 74, height: 74, borderRadius: 3, background: '#0d0d0f', border: headshotPreview ? '1px solid rgba(0,200,83,0.30)' : '1px solid #222225', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {headshotPreview ? <img src={headshotPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#222225', fontSize: '1.4rem' }}>+</span>}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <button className="btn-ghost" onClick={() => headshotRef.current?.click()}>
                 {headshotPreview ? 'Replace Photo' : 'Upload Photo'}
               </button>
-              <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>Clear, front-facing photo ¬∑ min 200√ó200px</div>
+              <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>Clear, front-facing photo ∑ min 200◊200px</div>
               {headshotWarn && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 2, padding: '6px 10px', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 4, maxWidth: 340 }}>
-                  <span style={{ color: '#c9a84c', fontSize: '0.75rem', flexShrink: 0, marginTop: 1 }}>‚ö†</span>
+                  <span style={{ color: '#c9a84c', fontSize: '0.75rem', flexShrink: 0, marginTop: 1 }}>?</span>
                   <span style={{ fontSize: '0.72rem', color: '#c9a84c', lineHeight: 1.4 }}>{headshotWarn}</span>
                 </div>
               )}
@@ -401,12 +401,12 @@ export default function UploaderPortal({
         </div>
 
         {/* -- Match Footage -- */}
-        <div style={{ background: '#131920', border: '1px solid #1e2735', borderRadius: 4, padding: '18px 22px', marginBottom: 12 }}>
+        <div style={{ background: '#131920', border: '1px solid #1e1e21', borderRadius: 4, padding: '18px 22px', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <Label>Match Footage</Label>
             <div style={{ display: 'flex', gap: 6 }}>
               {['file', 'url'].map(m => (
-                <button key={m} onClick={() => setVideoMode(m)} style={{ padding: '4px 10px', borderRadius: 2, border: videoMode === m ? '1px solid rgba(0,200,83,0.30)' : '1px solid #1e2735', background: videoMode === m ? 'rgba(0,200,83,0.06)' : 'transparent', color: videoMode === m ? '#dde3ec' : '#4a5568', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer' }}>
+                <button key={m} onClick={() => setVideoMode(m)} style={{ padding: '4px 10px', borderRadius: 2, border: videoMode === m ? '1px solid rgba(0,200,83,0.30)' : '1px solid #1e1e21', background: videoMode === m ? 'rgba(0,200,83,0.06)' : 'transparent', color: videoMode === m ? '#dde3ec' : '#4a5568', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer' }}>
                   {m === 'file' ? 'File Upload' : 'Video URL'}
                 </button>
               ))}
@@ -417,24 +417,24 @@ export default function UploaderPortal({
               {videoFiles.length > 0 && (
                 <div style={{ marginBottom: 10 }}>
                   {videoFiles.map((f, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: '#0d1117', border: '1px solid #1e2735', borderRadius: 2, marginBottom: 5 }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', background: '#0d0d0f', border: '1px solid #1e1e21', borderRadius: 2, marginBottom: 5 }}>
                       <span style={{ fontSize: '0.66rem', color: '#4a5568', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>Clip {i + 1}</span>
                       <span style={{ flex: 1, fontSize: '0.82rem', color: '#dde3ec', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
                       <span style={{ fontSize: '0.74rem', color: '#4a5568', flexShrink: 0 }}>{(f.size/1024/1024).toFixed(1)} MB</span>
-                      <button onClick={() => removeVideoFile(i)} style={{ fontSize: '0.70rem', padding: '1px 6px', borderRadius: 2, border: '1px solid #28384d', background: 'transparent', color: '#c94f4f', cursor: 'pointer', flexShrink: 0 }}>?</button>
+                      <button onClick={() => removeVideoFile(i)} style={{ fontSize: '0.70rem', padding: '1px 6px', borderRadius: 2, border: '1px solid #222225', background: 'transparent', color: '#c94f4f', cursor: 'pointer', flexShrink: 0 }}>?</button>
                     </div>
                   ))}
                 </div>
               )}
               <div
                 onClick={() => videoRef.current?.click()}
-                style={{ border: '1px dashed #28384d', borderRadius: 3, padding: '20px', textAlign: 'center', cursor: 'pointer', background: '#0d1117' }}
+                style={{ border: '1px dashed #222225', borderRadius: 3, padding: '20px', textAlign: 'center', cursor: 'pointer', background: '#0d0d0f' }}
                 onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#334257'; }}
-                onDragLeave={e => { e.currentTarget.style.borderColor = '#28384d'; }}
-                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#28384d'; const f = e.dataTransfer.files?.[0]; if (!f) return; const err = validateVideoFile(f); if (err) { setError(err); return; } setVideoFiles(prev => [...prev, f]); }}
+                onDragLeave={e => { e.currentTarget.style.borderColor = '#222225'; }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#222225'; const f = e.dataTransfer.files?.[0]; if (!f) return; const err = validateVideoFile(f); if (err) { setError(err); return; } setVideoFiles(prev => [...prev, f]); }}
               >
                 <div style={{ color: '#4a5568', fontSize: '0.84rem', marginBottom: 3 }}>{videoFiles.length > 0 ? '+ Add another clip' : 'Drop video or click to browse'}</div>
-                <div style={{ color: '#28384d', fontSize: '0.72rem' }}>MP4, MOV, AVI ¬∑ Recommended under 45 MB for best speed ‚Äî larger files are auto-compressed</div>
+                <div style={{ color: '#222225', fontSize: '0.72rem' }}>MP4, MOV, AVI ∑ Recommended under 45 MB for best speed ó larger files are auto-compressed</div>
               </div>
               <input ref={videoRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={addVideoFile} />
             </>
@@ -454,7 +454,7 @@ export default function UploaderPortal({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {editingId && (
               <button className="btn-primary" onClick={handleSaveChanges} disabled={syncStatus === 'saving'} style={{ width: '100%', fontSize: '0.92rem', padding: '12px 20px', background: 'transparent', border: '1px solid rgba(62,207,112,0.4)', color: '#3ecf70' }}>
-                {syncStatus === 'saving' ? 'Saving...' : syncStatus === 'done' ? 'Saved ‚úì' : 'Save Changes'}
+                {syncStatus === 'saving' ? 'Saving...' : syncStatus === 'done' ? 'Saved ?' : 'Save Changes'}
               </button>
             )}
             <button className="btn-primary" onClick={handleAnalyze} disabled={!form.name.trim()} style={{ width: '100%', fontSize: '0.92rem', padding: '12px 20px' }}>
@@ -475,7 +475,7 @@ export default function UploaderPortal({
 
         {/* -- Cutting Progress -- */}
         {cutting && (
-          <div style={{ marginTop: 12, background: '#131920', border: '1px solid #1e2735', borderRadius: 4, padding: '16px 20px' }}>
+          <div style={{ marginTop: 12, background: '#131920', border: '1px solid #1e1e21', borderRadius: 4, padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#c9a84c', animation: 'pulse 1.2s ease-in-out infinite' }} />
               <span style={{ fontSize: '0.70rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c9a84c' }}>
@@ -489,7 +489,7 @@ export default function UploaderPortal({
                     <span style={{ color: '#dde3ec', textTransform: 'capitalize' }}>{cuttingProgress.metric}</span>
                     <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#7e8fa3' }}>{cuttingProgress.start} - {cuttingProgress.end}</span>
                   </div>
-                  <div style={{ height: 3, background: '#0d1117', borderRadius: 2 }}>
+                  <div style={{ height: 3, background: '#0d0d0f', borderRadius: 2 }}>
                     <div style={{ height: '100%', borderRadius: 2, background: '#c9a84c', width: `${(cuttingProgress.current / cuttingProgress.total) * 100}%`, transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
@@ -505,13 +505,13 @@ export default function UploaderPortal({
             <div style={{ background: '#0d1a14', border: '1px solid rgba(0,200,83,0.20)', borderRadius: 3, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
                 <div className="font-syne" style={{ fontWeight: 700, fontSize: '0.98rem', color: '#dde3ec' }}>
-                  {editingId ? 'Profile Updated' : 'Analysis Complete'} ¬∑ {result.player?.name ?? form.name}
+                  {editingId ? 'Profile Updated' : 'Analysis Complete'} ∑ {result.player?.name ?? form.name}
                   {result._analysisCount > 1 && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#c9a84c' }}>({result._analysisCount} sessions avg)</span>}
                 </div>
                 <div style={{ marginTop: 3, fontSize: '0.80rem', color: '#4a5568' }}>
                   Score <strong style={{ color: '#00c853' }}>{result.overallScore}</strong>
-                  &nbsp;¬∑&nbsp; Confidence <strong style={{ color: '#00c853' }}>{result.aiMatchConfidence}%</strong>
-            {metricClips.length > 0 && <span style={{ marginLeft: 8, color: '#c9a84c' }}>‚úÇ {metricClips.length} clips</span>}
+                  &nbsp;∑&nbsp; Confidence <strong style={{ color: '#00c853' }}>{result.aiMatchConfidence}%</strong>
+            {metricClips.length > 0 && <span style={{ marginLeft: 8, color: '#c9a84c' }}>? {metricClips.length} clips</span>}
                   {shotstackStatus && <ShotstackBadge status={shotstackStatus} done={shotstackDone} total={shotstackTotal} />}
                   {result._isMock && <span style={{ marginLeft: 8, color: '#c9a84c', fontSize: '0.70rem' }}>demo mode</span>}
                 </div>
@@ -522,28 +522,28 @@ export default function UploaderPortal({
             {/* Metric scores */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
               {Object.entries(result.metrics ?? {}).map(([key, val]) => (
-                <div key={key} style={{ padding: '5px 10px', borderRadius: 2, border: '1px solid #1e2735', background: '#131920', fontSize: '0.78rem', display: 'flex', gap: 7, alignItems: 'center' }}>
+                <div key={key} style={{ padding: '5px 10px', borderRadius: 2, border: '1px solid #1e1e21', background: '#131920', fontSize: '0.78rem', display: 'flex', gap: 7, alignItems: 'center' }}>
                   <span style={{ color: '#4a5568', textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                   <strong style={{ color: val >= 85 ? '#00c853' : val >= 75 ? '#c9a84c' : '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{val}</strong>
                 </div>
               ))}
             </div>
 
-            {/* Metric Clips ‚Äî inline video players */}
+            {/* Metric Clips ó inline video players */}
             {metricClips.length > 0 && (
-              <div style={{ background: '#131920', border: '1px solid #1e2735', borderRadius: 3, padding: '14px 16px', marginBottom: 14 }}>
+              <div style={{ background: '#131920', border: '1px solid #1e1e21', borderRadius: 3, padding: '14px 16px', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <Label>Metric Clips ‚Äî Auto-cut &amp; Saved to Profile</Label>
+                  <Label>Metric Clips ó Auto-cut &amp; Saved to Profile</Label>
                   <span style={{ fontSize: '0.68rem', color: metricClips[0]?.source === 'shotstack' ? '#c9a84c' : '#00c853' }}>
-                    {metricClips[0]?.source === 'shotstack' ? '‚òÅ Shotstack CDN' : '‚ö° FFmpeg local'} ¬∑ {metricClips.length} clips
+                    {metricClips[0]?.source === 'shotstack' ? '? Shotstack CDN' : '? FFmpeg local'} ∑ {metricClips.length} clips
                   </span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
                   {metricClips.map((clip, i) => (
-                    <div key={i} style={{ border: '1px solid #1e2735', borderRadius: 3, overflow: 'hidden', background: '#0d1117' }}>
-                      <div style={{ padding: '8px 10px', borderBottom: '1px solid #1e2735', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div key={i} style={{ border: '1px solid #1e1e21', borderRadius: 3, overflow: 'hidden', background: '#0d0d0f' }}>
+                      <div style={{ padding: '8px 10px', borderBottom: '1px solid #1e1e21', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.72rem', padding: '1px 6px', borderRadius: 2, background: 'rgba(0,200,83,0.08)', border: '1px solid rgba(0,200,83,0.18)', color: '#00c853', textTransform: 'capitalize' }}>{clip.metric}</span>
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: '#7e8fa3' }}>{clip.start} ‚Äì {clip.end}</span>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: '#7e8fa3' }}>{clip.start} ñ {clip.end}</span>
                       </div>
                       <div className="tracker-pulse" style={{ position: 'relative', background: '#000', overflow: 'hidden' }}>
                         <video src={clip.url} controls preload="auto" style={{ width: '100%', display: 'block', background: '#000', maxHeight: 200 }} />
@@ -574,13 +574,13 @@ export default function UploaderPortal({
 
             {/* Timestamp References - hidden from end users, data still used for clip cutting
             {result.highlights?.length > 0 && metricClips.length === 0 && (
-              <div style={{ background: '#131920', border: '1px solid #1e2735', borderRadius: 3, padding: '14px 16px', marginBottom: 14 }}>
+              <div style={{ background: '#131920', border: '1px solid #1e1e21', borderRadius: 3, padding: '14px 16px', marginBottom: 14 }}>
                 <Label>Timestamp References</Label>
                 {result.highlights.map((h, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '8px 0', borderBottom: i < result.highlights.length - 1 ? '1px solid #1e2735' : 'none' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '8px 0', borderBottom: i < result.highlights.length - 1 ? '1px solid #1e1e21' : 'none' }}>
                     <div style={{ flexShrink: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.76rem' }}>
                       <span style={{ color: '#00c853' }}>{h.timestampStart}</span>
-                      <span style={{ color: '#28384d', margin: '0 4px' }}>?</span>
+                      <span style={{ color: '#222225', margin: '0 4px' }}>?</span>
                       <span style={{ color: '#c9a84c' }}>{h.timestampEnd}</span>
                     </div>
                     <div style={{ flex: 1 }}>

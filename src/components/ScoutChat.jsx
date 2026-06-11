@@ -358,7 +358,7 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
               disabled={streaming}
               style={{
                 flex: 1, resize: 'none', overflow: 'hidden',
-                background: '#0e1014', border: '1px solid #232529', borderRadius: 5,
+                background: '#0d0d0f', border: '1px solid #232325', borderRadius: 5,
                 padding: '8px 11px', fontSize: '0.82rem', color: '#d4d8e0',
                 outline: 'none', lineHeight: 1.5, fontFamily: 'inherit',
                 transition: 'border-color 0.15s',
