@@ -721,33 +721,6 @@ export default function ScoutDashboard({
 
       {/* MAIN CONTENT */}
       <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        {/* Sticky search bar */}
-        <div style={{ padding: isMobile ? '12px 14px' : '18px 24px', position: 'sticky', top: 0, zIndex: 50, background: C.bg }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {isMobile && (
-              <button
-                onClick={() => setNavOpen(x => !x)}
-                style={{ width: 46, height: 46, flexShrink: 0, borderRadius: 12, background: '#131315', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                =
-              </button>
-            )}
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search players, positions or skills..."
-              style={{ flex: 1, height: 46, borderRadius: 12, background: '#131315', border: `1px solid ${C.border}`, padding: '0 18px', color: C.txt, outline: 'none', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif' }}
-            />
-            <button
-              onClick={() => setFiltersOpen(true)}
-              title="Filters"
-              style={{ width: 46, height: 46, flexShrink: 0, borderRadius: 12, background: hasActiveFilters ? C.gnDim : '#131315', border: `1px solid ${hasActiveFilters ? C.gnBdr : C.border}`, color: hasActiveFilters ? C.green : C.txtMd, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              F
-            </button>
-          </div>
-        </div>
-
         <div style={{ padding: isMobile ? '18px 14px 80px' : '24px 24px 60px', flex: 1 }}>
           {!showGrid ? (
             <>
