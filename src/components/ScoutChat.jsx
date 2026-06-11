@@ -5,6 +5,7 @@
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { mockPlayers } from '../data/mockPlayers.js';
+import useBreakpoint from '../hooks/useBreakpoint.js';
 
 // ── Build a lean roster snapshot for the system prompt ───────────────────────
 function buildRoster(localProfiles, blobUrls) {
@@ -110,6 +111,7 @@ const DEFAULT_PROMPTS = [
 
 // ── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 export default function ScoutChat({ focusPlayer = null, localProfiles = [], blobUrls = {} }) {
+  const { isMobile } = useBreakpoint();
   const [open,      setOpen]      = useState(false);
   const [messages,  setMessages]  = useState([{
     role: 'ai',
@@ -213,8 +215,9 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
         onClick={() => setOpen(o => !o)}
         title={open ? 'Close Scout AI' : 'Scout AI — Ask anything about the roster'}
         style={{
-          position: 'fixed', bottom: 28,
-          right: open ? 406 : 28,
+          position: 'fixed',
+          bottom: isMobile ? 16 : 28,
+          right: open ? (isMobile ? 16 : 406) : (isMobile ? 16 : 28),
           zIndex: 400,
           width: 48, height: 48,
           borderRadius: 10,
@@ -250,10 +253,12 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
 
       {/* ── Side panel ── */}
       <div style={{
-        position: 'fixed', top: 56, right: 0, bottom: 0,
-        width: 380,
+        position: 'fixed',
+        top: 56, right: 0, bottom: 0,
+        width: isMobile ? '100vw' : 380,
         background: '#111316',
-        borderLeft: '1px solid #232529',
+        borderLeft: isMobile ? 'none' : '1px solid #232529',
+        borderTop: isMobile ? '1px solid #232529' : 'none',
         display: 'flex', flexDirection: 'column',
         zIndex: 299,
         transform: open ? 'translateX(0)' : 'translateX(100%)',

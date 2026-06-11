@@ -5,6 +5,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { mockPlayers, getPositionGroup } from '../data/mockPlayers.js';
 import PlayerCard from './PlayerCard.jsx';
 import PlayerModal from './PlayerModal.jsx';
+import useBreakpoint from '../hooks/useBreakpoint.js';
 
 // ── TAC-DARK DESIGN SYSTEM (CHARCOAL & PITCH BLACK) ─────────────────────────
 const THEME = {
@@ -84,6 +85,7 @@ export default function ScoutDashboard({
   localProfiles = [], blobUrls = {},
   onPlayerFocus,
 }) {
+  const { isMobile, isTablet } = useBreakpoint();
   const [search,       setSearch]       = useState('');
   const [posFilter,    setPosFilter]    = useState(new Set());
   const [regionFilter, setRegionFilter] = useState('');
@@ -145,7 +147,15 @@ export default function ScoutDashboard({
   return (
     <div style={{ background: THEME.colors.bgCanvas, color: THEME.colors.textMain, minHeight: '100vh', display: 'flex' }}>
 
-      {/* ── SEARCH & FILTER CONTROL PANEL ─────────────────────────────────── */}
+      {/* Mobile sidebar backdrop */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 150 }}
+        />
+      )}
+
+      {/* ── SEARCH & FILTER CONTROL PANEL ───────────────────────────────────── */}
       <aside
         style={{
           width: sidebarOpen ? 280 : 0,
@@ -154,11 +164,22 @@ export default function ScoutDashboard({
           transition: 'width 0.2s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
           borderRight: `1px solid ${THEME.colors.borderDim}`,
           background: THEME.colors.surfaceCard,
-          position: 'sticky', top: 0,
-          height: '100vh',
-          overflowY: 'auto',
-          flexShrink: 0,
-          zIndex: 10,
+          ...(isMobile ? {
+            position: 'fixed',
+            top: 56, left: 0,
+            height: 'calc(100vh - 56px)',
+            zIndex: 160,
+            width: sidebarOpen ? '85vw' : 0,
+            minWidth: sidebarOpen ? '85vw' : 0,
+            maxWidth: 300,
+            overflowY: 'auto',
+          } : {
+            position: 'sticky', top: 0,
+            height: '100vh',
+            overflowY: 'auto',
+            flexShrink: 0,
+            zIndex: 10,
+          }),
         }}
         className="custom-scroll"
       >
@@ -260,47 +281,49 @@ export default function ScoutDashboard({
       </aside>
 
       {/* ── MAIN WORKSPACE DASHBOARD CONTENT ──────────────────────────────── */}
-      <main style={{ flex: 1, minWidth: 0, padding: '24px 24px 60px', display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, minWidth: 0, padding: isMobile ? '16px 14px 80px' : '24px 24px 60px', display: 'flex', flexDirection: 'column' }}>
         
         {/* Workspace Toolbar Context */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', marginBottom: 24 }}>
-          <div>
+        <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: isMobile ? 16 : 24 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <button 
               onClick={() => setSidebarOpen(x => !x)} 
               style={{ 
-                marginBottom: 14, padding: '6px 12px', background: THEME.colors.surfaceCard, 
+                marginBottom: 10, padding: '6px 12px', background: THEME.colors.surfaceCard, 
                 border: `1px solid ${THEME.colors.borderDim}`, color: THEME.colors.textMuted, 
                 borderRadius: THEME.radius.element, fontSize: '0.78rem', cursor: 'pointer', fontWeight: 500 
               }}
             >
-              {sidebarOpen ? 'Collapse Side Panel' : 'Expand Side Panel'}
+              {sidebarOpen ? (isMobile ? '× Filters' : 'Collapse Side Panel') : (isMobile ? '≣ Filters' : 'Expand Side Panel')}
             </button>
-            <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 700 }}>Scout Pipeline Portal</div>
-            <h1 className="font-syne" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: 4, color: THEME.colors.textMain }}>
-              Intel Matrix: <span style={{ color: THEME.colors.accentHigh }}>African</span> Talent
+            {!isMobile && <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 700 }}>Scout Pipeline Portal</div>}
+            <h1 className="font-syne" style={{ fontSize: isMobile ? '1.3rem' : 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: isMobile ? 0 : 4, color: THEME.colors.textMain }}>
+              {isMobile ? <><span style={{ color: THEME.colors.accentHigh }}>African</span> Talent</> : <>Intel Matrix: <span style={{ color: THEME.colors.accentHigh }}>African</span> Talent</>}
             </h1>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <select 
               className="input-base" 
               value={sortBy} 
               onChange={e => setSortBy(e.target.value)} 
-              style={inputStyleBlock({ width: 'auto', minWidth: 160, fontSize: '0.82rem', cursor: 'pointer' })}
+              style={inputStyleBlock({ width: 'auto', minWidth: isMobile ? 130 : 160, fontSize: '0.82rem', cursor: 'pointer' })}
             >
-              <option value="overall" style={{ background: THEME.colors.surfaceCard }}>Sort: Performance Rank</option>
-              <option value="aiMatch" style={{ background: THEME.colors.surfaceCard }}>Sort: AI Vector Fit</option>
-              <option value="age" style={{ background: THEME.colors.surfaceCard }}>Sort: Ascending Age</option>
-              <option value="name" style={{ background: THEME.colors.surfaceCard }}>Sort: Identifier A-Z</option>
+              <option value="overall" style={{ background: THEME.colors.surfaceCard }}>Top Score</option>
+              <option value="aiMatch" style={{ background: THEME.colors.surfaceCard }}>AI Fit</option>
+              <option value="age" style={{ background: THEME.colors.surfaceCard }}>Youngest</option>
+              <option value="name" style={{ background: THEME.colors.surfaceCard }}>A–Z</option>
             </select>
-            <span style={{ fontSize: '0.82rem', color: THEME.colors.textDark, fontFamily: 'Inter, sans-serif' }}>
-              Presenting <strong style={{ color: THEME.colors.textMain }}>{filtered.length}</strong> of {allPlayers.length} Nodes
-            </span>
+            {!isMobile && (
+              <span style={{ fontSize: '0.82rem', color: THEME.colors.textDark }}>
+                <strong style={{ color: THEME.colors.textMain }}>{filtered.length}</strong> of {allPlayers.length}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Analytic Macro Counters Segment */}
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12, marginBottom: isMobile ? 16 : 24 }}>
           {[
             { label: 'Active Ingested Profiles', value: allPlayers.length },
             { label: 'Monitored Regions',        value: new Set(allPlayers.map(p => p.country)).size },
@@ -328,7 +351,7 @@ export default function ScoutDashboard({
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: 14, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? '100%' : '310px'}, 1fr))`, gap: isMobile ? 10 : 14, alignItems: 'start' }}>
             {filtered.map((p, i) => (
               <PlayerCard 
                 key={p.id} 

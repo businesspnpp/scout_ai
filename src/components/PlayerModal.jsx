@@ -8,6 +8,7 @@ import RadarChart from './modal/RadarChart.jsx';
 import VideoHUD   from './modal/VideoHUD.jsx';
 import MetricRow  from './modal/MetricRow.jsx';
 import Panel      from './modal/Panel.jsx';
+import useBreakpoint from '../hooks/useBreakpoint.js';
 
 // ── Inline sub-components extracted to src/components/modal/ ──────────────
 // THEME, getScoreColor → modal/theme.js
@@ -21,6 +22,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
   const [tab, setTab] = useState('overview');
   const [open, setOpen] = useState(false);
   const bodyRef = useRef(null);
+  const { isMobile } = useBreakpoint();
 
   const group   = getPositionGroup(player.pos);
   const scores  = group.keys.map(k => player.metrics[k] ?? 0);
@@ -74,7 +76,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
         <div style={{ width: 36, height: 3, borderRadius: 2, background: THEME.colors.borderMid, margin: '12px auto 0', flexShrink: 0 }} />
 
         {/* ── CORE HEADER IDENTITY BAR ────────────────────────────────────── */}
-        <div style={{ padding: '16px 24px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceCard, display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+        <div style={{ padding: isMobile ? '12px 14px' : '16px 24px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceCard, display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 16, flexShrink: 0 }}>
           
           {/* Hardware Anchor Headshot Frame */}
           <div style={{ width: 52, height: 52, borderRadius: THEME.radius.element, background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
@@ -101,10 +103,10 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
           </div>
 
           {/* Core Analytics Target Score Block */}
-          <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 16 }}>
-            <div className="font-syne" style={{ fontWeight: 800, fontSize: '2.5rem', lineHeight: 1, color: oColor, letterSpacing: '-0.03em' }}>{overall}</div>
-            <div style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>Overall Rating</div>
-            <div style={{ fontSize: '0.70rem', color: THEME.colors.textMuted, marginTop: 1, fontFamily: 'monospace' }}>{player.aiMatch}% match</div>
+          <div style={{ textAlign: 'right', flexShrink: 0, marginRight: isMobile ? 0 : 16 }}>
+            <div className="font-syne" style={{ fontWeight: 800, fontSize: isMobile ? '1.8rem' : '2.5rem', lineHeight: 1, color: oColor, letterSpacing: '-0.03em' }}>{overall}</div>
+            {!isMobile && <div style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>Overall Rating</div>}
+            <div style={{ fontSize: '0.70rem', color: THEME.colors.textMuted, marginTop: 1, fontFamily: 'monospace' }}>{player.aiMatch}%</div>
           </div>
 
           {/* Pipeline Processing Triggers */}
@@ -128,17 +130,18 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
         </div>
 
         {/* ── PARALLEL NAVIGATION TAB ROW ─────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 6, padding: '10px 24px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 4, padding: isMobile ? '8px 14px' : '10px 24px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, flexShrink: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
           {TABS.map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               style={{
-                padding: '6px 14px', borderRadius: THEME.radius.pill, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                padding: isMobile ? '5px 10px' : '6px 14px', borderRadius: THEME.radius.pill, fontSize: isMobile ? '0.72rem' : '0.78rem', fontWeight: 600, cursor: 'pointer',
                 background: tab === t ? THEME.colors.surfaceCard : 'transparent',
                 border: `1px solid ${tab === t ? THEME.colors.borderMid : 'transparent'}`,
                 color: tab === t ? THEME.colors.textMain : THEME.colors.textDark,
-                textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'all 0.12s', outline: 'none'
+                textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'all 0.12s', outline: 'none',
+                whiteSpace: 'nowrap', flexShrink: 0,
               }}
             >
               {t}
@@ -147,11 +150,11 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
         </div>
 
         {/* ── CENTRAL DATA STORAGE BAY ────────────────────────────────────── */}
-        <div ref={bodyRef} className="custom-scroll" style={{ flex: 1, overflowY: 'auto', padding: '24px', background: THEME.colors.bgCanvas }}>
+        <div ref={bodyRef} className="custom-scroll" style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '14px' : '24px', background: THEME.colors.bgCanvas }}>
 
           {/* MAP MODE: PROFILE OVERVIEW */}
           {tab === 'overview' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20, alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: isMobile ? 14 : 20, alignItems: 'start' }}>
               
               {/* Left Column Stack */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

@@ -6,6 +6,7 @@ import PortalTelemetry    from './uploader/PortalTelemetry.jsx';
 import AnalysisStatusCard from './uploader/AnalysisStatusCard.jsx';
 import { SyncBadge, ShotstackBadge } from './uploader/StatusBadges.jsx';
 import { Label, Field, InfoCard }    from './uploader/FormAtoms.jsx';
+import useBreakpoint from '../hooks/useBreakpoint.js';
 
 export default function UploaderPortal({
   onAnalysisComplete, onSaveProfile, onGoToScout,
@@ -31,6 +32,7 @@ export default function UploaderPortal({
   const [shotstackDone,    setShotstackDone]    = useState(0);   // count of clips done
   const [shotstackTotal,   setShotstackTotal]   = useState(0);
   const savedProfileIdRef  = useRef(null);  const [editingId,        setEditingId]        = useState(null);
+  const { isMobile } = useBreakpoint();
 
   const headshotRef  = useRef(null);
   const videoRef     = useRef(null);
@@ -281,8 +283,8 @@ export default function UploaderPortal({
   const cutting   = phase === 'cutting';
 
   return (
-    <div style={{ minHeight: '100vh', paddingTop: 80, paddingBottom: 60, background: 'transparent' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 20px' }}>
+    <div style={{ minHeight: '100vh', paddingTop: 72, paddingBottom: 60, background: 'transparent' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '0 12px' : '0 20px' }}>
 
         {/* -- Saved Profiles Table -- */}
         {localProfiles.length > 0 && (
@@ -295,8 +297,8 @@ export default function UploaderPortal({
               <span style={{ fontSize: '0.76rem', color: '#4a5568' }}>{localProfiles.length} profile{localProfiles.length !== 1 ? 's' : ''}</span>
             </div>
             <div style={{ border: '1px solid #2e3040', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 72px 56px 140px 88px', padding: '7px 14px', background: '#1d1f27', borderBottom: '1px solid #2e3040' }}>
-                {['', 'Player', 'Pos', 'Age', 'Region', ''].map((h, i) => (
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '32px 1fr 68px' : '36px 1fr 72px 56px 140px 88px', padding: '7px 12px', background: '#1d1f27', borderBottom: '1px solid #2e3040' }}>
+                {(isMobile ? ['', 'Player', ''] : ['', 'Player', 'Pos', 'Age', 'Region', '']).map((h, i) => (
                   <div key={i} style={{ fontSize: '0.64rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: '#4a5568' }}>{h}</div>
                 ))}
               </div>
@@ -306,7 +308,7 @@ export default function UploaderPortal({
                 const clipCount = meta.metricClips?.length ?? 0;
                 return (
                   <div key={meta.id}
-                    style={{ display: 'grid', gridTemplateColumns: '36px 1fr 72px 56px 140px 88px', padding: '9px 14px', alignItems: 'center', borderBottom: i < localProfiles.length - 1 ? '1px solid #2e3040' : 'none', background: isEditing ? 'rgba(62,207,112,0.04)' : '#23252f', cursor: 'pointer', transition: 'background 0.10s' }}
+                    style={{ display: 'grid', gridTemplateColumns: isMobile ? '32px 1fr 68px' : '36px 1fr 72px 56px 140px 88px', padding: isMobile ? '9px 12px' : '9px 14px', alignItems: 'center', borderBottom: i < localProfiles.length - 1 ? '1px solid #2e3040' : 'none', background: isEditing ? 'rgba(62,207,112,0.04)' : '#23252f', cursor: 'pointer', transition: 'background 0.10s' }}
                     onMouseEnter={e => !isEditing && (e.currentTarget.style.background = '#2a2d38')}
                     onMouseLeave={e => !isEditing && (e.currentTarget.style.background = '#23252f')}
                     onClick={() => isEditing ? clearEdit() : loadProfile(meta)}
@@ -314,21 +316,22 @@ export default function UploaderPortal({
                     <div style={{ width: 26, height: 26, borderRadius: 6, background: '#2a2d38', border: '1px solid #3a3f54', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.58rem', color: '#50535f' }}>
                       {urls.headshotUrl ? <img src={urls.headshotUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : (meta.name?.slice(0, 2).toUpperCase() || '--')}
                     </div>
-                    <div>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isEditing ? '#3ecf70' : '#f0f1f3' }}>{meta.name || 'Unnamed'}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isEditing ? '#3ecf70' : '#f0f1f3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.name || 'Unnamed'}</div>
                       <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>
-                        {clipCount > 0 && <span style={{ color: '#3ecf70', marginRight: 6 }}>? {clipCount} clips</span>}
-                        {meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}
+                        {isMobile ? (meta.position || '') : (
+                          <>{clipCount > 0 && <span style={{ color: '#3ecf70', marginRight: 6 }}>✂ {clipCount} clips</span>}{meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}</>
+                        )}
                       </div>
                     </div>
-                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || '—'}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '—'}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '—'}</div>
-                    <div style={{ display: 'flex', gap: 5 }}>
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || '—'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '—'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '—'}</div>}
+                    <div style={{ display: 'flex', gap: 5, justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
                       <button onClick={e => { e.stopPropagation(); isEditing ? clearEdit() : loadProfile(meta); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 5, border: isEditing ? '1px solid rgba(62,207,112,0.30)' : '1px solid #3a3f54', background: '#1d1f27', color: isEditing ? '#3ecf70' : '#8c909f', cursor: 'pointer' }}>
                         {isEditing ? 'Cancel' : 'Edit'}
                       </button>
-                      <button onClick={e => { e.stopPropagation(); if (editingId === meta.id) clearEdit(); onRemoveProfile?.(meta.id); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 2, border: '1px solid #28384d', background: '#0d1117', color: '#c94f4f', cursor: 'pointer' }}>Del</button>
+                      {!isMobile && <button onClick={e => { e.stopPropagation(); if (editingId === meta.id) clearEdit(); onRemoveProfile?.(meta.id); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 2, border: '1px solid #28384d', background: '#0d1117', color: '#c94f4f', cursor: 'pointer' }}>Del</button>}
                     </div>
                   </div>
                 );
@@ -535,7 +538,7 @@ export default function UploaderPortal({
                     {metricClips[0]?.source === 'shotstack' ? '☁ Shotstack CDN' : '⚡ FFmpeg local'} · {metricClips.length} clips
                   </span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
                   {metricClips.map((clip, i) => (
                     <div key={i} style={{ border: '1px solid #1e2735', borderRadius: 3, overflow: 'hidden', background: '#0d1117' }}>
                       <div style={{ padding: '8px 10px', borderBottom: '1px solid #1e2735', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
