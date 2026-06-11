@@ -42,11 +42,15 @@ const POS_GROUPS = [
 ];
 
 function buildLocalPlayer(meta, urls = {}) {
-  const pos   = meta.position ?? 'ST';
-  const group = getPositionGroup(pos);
+  const pos    = meta.position ?? 'ST';
   const rawMet = meta.analysis?.metrics ?? {};
-  const metrics = {};
-  group.keys.forEach(k => { metrics[k] = rawMet[k] ?? 70; });
+  const metrics = Object.keys(rawMet).length > 0 ? rawMet : (() => {
+    // fallback to group keys if no real metrics
+    const group = getPositionGroup(pos);
+    const m = {};
+    group.keys.forEach(k => { m[k] = 70; });
+    return m;
+  })();
   const videoUrl = urls.videoUrl ?? meta.videoUrl ?? '';
 
   const clipsByMetric = {};
@@ -67,7 +71,7 @@ function buildLocalPlayer(meta, urls = {}) {
     tags: ['uploaded', ...(meta.analysis?.developmentAreas?.slice(0, 2) ?? [])],
     reels: {
       highlight: videoUrl,
-      ...Object.fromEntries(group.keys.map(k => [k, clipsByMetric[k] || videoUrl])),
+      ...Object.fromEntries(Object.keys(metrics).map(k => [k, clipsByMetric[k] || videoUrl])),
     },
     headshot: urls.headshotUrl || '',
     clipUrls: urls.clipUrls ?? [],
@@ -408,7 +412,29 @@ function rangeStyleBlock() {
 }
 
 function buildInjectedPlayer(result) {
-  const pos = result.player?.position ?? 'ST';
+  const pos   = result.player?.position ?? 'ST';
+  const group = getPositionGroup(pos);
+
+  // normalize Gemini's metric strings to our exact group keys (case/space insensitive)
+  const normalize = raw => {
+    if (!raw) return raw;
+    const clean = raw.toLowerCase().replace(/[\s_-]/g, '');
+    return group.keys.find(k => k.toLowerCase() === clean)
+      ?? group.keys.find(k => clean.includes(k.toLowerCase()) || k.toLowerCase().includes(clean))
+      ?? raw;
+  };
+
+  const clipUrls = (result._clips ?? []).map(c => ({
+    metric:      normalize(c.metric),
+    url:         c.url,
+    start:       c.start,
+    end:         c.end,
+    description: c.description ?? '',
+  }));
+
+  const clipsByMetric = {};
+  clipUrls.forEach(c => { if (c.metric && c.url) clipsByMetric[c.metric] = c.url; });
+
   return {
     id: 999, slug: 'analyzed-player',
     name: result.player?.name ?? 'Analyzed Player',
@@ -421,6 +447,7 @@ function buildInjectedPlayer(result) {
     metrics: result.metrics ?? {},
     bio: result.scoutNotes ?? 'Freshly analyzed player.',
     tags: result.developmentAreas?.slice(0, 3) ?? ['new'],
-    reels: { highlight: '' }, headshot: '', _injected: true,
+    reels: { highlight: clipUrls[0]?.url ?? '', ...clipsByMetric },
+    headshot: '', clipUrls, _injected: true,
   };
 }

@@ -41,8 +41,8 @@ export default function App() {
   }
 
   // called when Gemini finishes the analysis
-  const handleAnalysisComplete = useCallback(result => {
-    setNewProfile(result);
+  const handleAnalysisComplete = useCallback((result, clips = []) => {
+    setNewProfile({ ...result, _clips: clips });
     showToast('Analysis complete ✓');
   }, []);
 

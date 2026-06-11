@@ -2,6 +2,37 @@
 import { analyzePlayer } from '../services/geminiService.js';
 import { processHighlightsInstant, processHighlightsShotstack } from '../services/clipService.js';
 
+// live telemetry readout used in the clip HUD
+function PortalTelemetry({ metric }) {
+  const [tel, setTel] = useState({ fps: '24.0', x: '0512', y: '0288', ms: '12.4', lock: 97 });
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTel({
+        fps:  (23.0 + Math.random() * 7).toFixed(1),
+        x:    String(Math.floor(480 + Math.random() * 560)).padStart(4, '0'),
+        y:    String(Math.floor(200 + Math.random() * 480)).padStart(4, '0'),
+        ms:   (6.2 + Math.random() * 9.8).toFixed(1),
+        lock: Math.floor(93 + Math.random() * 7),
+      });
+    }, 140);
+    return () => clearInterval(id);
+  }, []);
+  const G = 'rgba(170,175,190,0.60)';
+  return (
+    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, pointerEvents: 'none',
+      background: 'rgba(7,8,10,0.72)', borderTop: '1px solid rgba(255,255,255,0.07)',
+      padding: '3px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {[['FPS', tel.fps], ['X', tel.x], ['Y', tel.y], ['PROC', `${tel.ms}ms`], ['LOCK', `${tel.lock}%`]].map(([l, v]) => (
+        <span key={l} style={{ fontSize: '0.54rem', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+          <span style={{ color: 'rgba(160,165,180,0.50)' }}>{l} </span>
+          <span style={{ color: 'rgba(220,225,235,0.75)' }}>{v}</span>
+        </span>
+      ))}
+      {metric && <span style={{ fontSize: '0.50rem', fontFamily: 'monospace', color: 'rgba(170,175,190,0.30)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{metric}</span>}
+    </div>
+  );
+}
+
 const SYNC_CFG = {
   idle:      { color: '#4a5568', label: '' },
   saving:    { color: '#c9a84c', label: 'Saving...' },
@@ -265,12 +296,14 @@ export default function UploaderPortal({
             }
           },
         }).then(meta => {
-          // Remove old profile only after new one is saved (preserves IDB blobs during copy)
-          if (editingId) onRemoveProfile?.(editingId);
+          // Remove old profile only if this is a genuine re-analysis of the same player
+          const editingProfile = editingId ? localProfiles.find(p => p.id === editingId) : null;
+          const isReallyEditing = editingProfile && editingProfile.name?.trim() === form.name?.trim();
+          if (isReallyEditing) onRemoveProfile?.(editingId);
           if (meta?.id) savedProfileIdRef.current = meta.id;
         }).catch(() => setSyncStatus('error'));
       }
-      onAnalysisComplete?.(analysisResult);
+      onAnalysisComplete?.(analysisResult, cuts);
     } catch (err) {
       setError('Analysis failed. Please try again.');
       setPhase('idle');
@@ -565,9 +598,28 @@ export default function UploaderPortal({
                     <div key={i} style={{ border: '1px solid #1e2735', borderRadius: 3, overflow: 'hidden', background: '#0d1117' }}>
                       <div style={{ padding: '8px 10px', borderBottom: '1px solid #1e2735', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.72rem', padding: '1px 6px', borderRadius: 2, background: 'rgba(0,200,83,0.08)', border: '1px solid rgba(0,200,83,0.18)', color: '#00c853', textTransform: 'capitalize' }}>{clip.metric}</span>
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: '#7e8fa3' }}>{clip.start} ? {clip.end}</span>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: '#7e8fa3' }}>{clip.start} – {clip.end}</span>
                       </div>
-                      <video src={clip.url} controls style={{ width: '100%', display: 'block', background: '#000', maxHeight: 200 }} />
+                      <div className="tracker-pulse" style={{ position: 'relative', background: '#000', overflow: 'hidden' }}>
+                        <video src={clip.url} controls preload="auto" style={{ width: '100%', display: 'block', background: '#000', maxHeight: 200 }} />
+                        {/* scanline */}
+                        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(62,207,112,0.016) 2px, rgba(62,207,112,0.016) 3px)' }} />
+                        {/* corners */}
+                        {[['top','left'],['top','right'],['bottom','left'],['bottom','right']].map(([v,h]) => (
+                          <div key={v+h} style={{ position: 'absolute', width: 10, height: 10, pointerEvents: 'none',
+                            [v]: v === 'bottom' ? 26 : 6, [h]: 6,
+                            [`border${v.charAt(0).toUpperCase()+v.slice(1)}`]: '1px solid rgba(180,185,200,0.30)',
+                            [`border${h.charAt(0).toUpperCase()+h.slice(1)}`]: '1px solid rgba(180,185,200,0.30)',
+                          }} />
+                        ))}
+                        {/* badge */}
+                        <div style={{ position: 'absolute', top: 7, left: 18, pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(7,8,10,0.72)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, padding: '2px 6px' }}>
+                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(175,180,195,0.70)', display: 'inline-block', animation: 'termBlink 1.8s step-end infinite' }} />
+                          <span style={{ fontSize: '0.50rem', fontWeight: 600, letterSpacing: '0.09em', color: 'rgba(175,180,195,0.70)', fontFamily: 'monospace' }}>ANALYTICS STREAM: ACTIVE</span>
+                        </div>
+                        {/* telemetry bar */}
+                        <PortalTelemetry metric={clip.metric} />
+                      </div>
                       {clip.description && <div style={{ padding: '6px 10px', fontSize: '0.76rem', color: '#4a5568', lineHeight: 1.4 }}>{clip.description}</div>}
                     </div>
                   ))}

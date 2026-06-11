@@ -284,27 +284,39 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
           )}
 
           {/* MAP MODE: SLIDER METRICS ENGINE */}
-          {tab === 'metrics' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 860, margin: '0 auto' }}>
-              {group.keys.map((key, i) => {
-                const val  = player.metrics[key] ?? 0;
-                const reel = player.reels?.[key] ?? player.reels?.highlight ?? null;
-                return <MetricRow key={key} label={group.labels[i]} value={val} reel={reel} onPlay={() => reel && onOpenLightbox(reel, group.labels[i])} />;
-              })}
-            </div>
-          )}
+          {tab === 'metrics' && (() => {
+            // union of metric keys from scores + clip metric names so nothing is dropped
+            const clipMetrics = (player.clipUrls ?? []).map(c => c.metric).filter(Boolean);
+            const allKeys = [...new Set([...Object.keys(player.metrics), ...clipMetrics])];
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 860, margin: '0 auto' }}>
+                {allKeys.map(key => {
+                  const val   = player.metrics[key] ?? 0;
+                  const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                  const reel  = player.reels?.[key] ?? null;
+                  const normKey = key.toLowerCase().replace(/[\s_-]/g, '');
+                  const clips = player.clipUrls?.filter(c =>
+                    c.metric?.toLowerCase().replace(/[\s_-]/g, '') === normKey
+                  ) ?? [];
+                  return <MetricRow key={key} label={label} value={val} reel={reel} clips={clips} onPlay={() => reel && onOpenLightbox(reel, label)} />;
+                })}
+              </div>
+            );
+          })()}
 
           {/* MAP MODE: MASTER REELS */}
           {tab === 'highlights' && (
             <div style={{ maxWidth: 860, margin: '0 auto' }}>
               <div style={{ background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
                 {player.reels?.highlight ? (
-                  <video
-                    src={player.reels.highlight}
-                    controls
-                    autoPlay
-                    style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }}
-                  />
+                  <VideoHUD>
+                    <video
+                      src={player.reels.highlight}
+                      controls
+                      autoPlay
+                      style={{ width: '100%', display: 'block', background: '#000', maxHeight: 460 }}
+                    />
+                  </VideoHUD>
                 ) : (
                   <div style={{ aspectRatio: '16/9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: THEME.colors.textDark }}>
                     <span style={{ fontSize: '2.5rem' }}>⊙</span>
@@ -313,20 +325,20 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 )}
               </div>
 
-              {/* Fragmented Evidence Node Array */}
-              {group.keys.some(k => player.reels?.[k] && player.reels[k] !== player.reels.highlight) && (
+              {/* Per-metric evidence clips */}
+              {Object.keys(player.reels || {}).some(k => k !== 'highlight' && player.reels[k] && player.reels[k] !== player.reels?.highlight) && (
                 <div style={{ marginTop: 24 }}>
                   <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 800, marginBottom: 12 }}>
-                    Isolatable Metric Capture Archives
+                    Evidence Clips
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-                    {group.keys.map((k, i) => {
-                      const reel = player.reels?.[k];
-                      if (!reel || reel === player.reels?.highlight) return null;
+                    {Object.entries(player.reels || {}).map(([k, reel]) => {
+                      if (k === 'highlight' || !reel || reel === player.reels?.highlight) return null;
+                      const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
                       return (
                         <div
                           key={k}
-                          onClick={() => onOpenLightbox(reel, group.labels[i])}
+                          onClick={() => onOpenLightbox(reel, label)}
                           style={{ borderRadius: 6, overflow: 'hidden', border: `1px solid ${THEME.colors.borderDim}`, background: '#000', cursor: 'pointer', aspectRatio: '16/9', position: 'relative', transition: 'border-color 0.12s' }}
                           onMouseEnter={e => e.currentTarget.style.borderColor = THEME.colors.borderActive}
                           onMouseLeave={e => e.currentTarget.style.borderColor = THEME.colors.borderDim}
@@ -336,7 +348,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                             <div style={{ width: 30, height: 30, borderRadius: '50%', background: THEME.colors.accentHigh, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
                               <span style={{ fontSize: '0.75rem', color: THEME.colors.bgCanvas, marginLeft: 2 }}>▶</span>
                             </div>
-                            <span style={{ fontSize: '0.72rem', color: THEME.colors.textMain, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{group.labels[i]}</span>
+                            <span style={{ fontSize: '0.72rem', color: THEME.colors.textMain, fontWeight: 600, textTransform: 'capitalize', letterSpacing: '0.04em' }}>{label}</span>
                           </div>
                         </div>
                       );
@@ -362,7 +374,9 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                           T: [{clip.start} - {clip.end}]
                         </span>
                       </div>
-                      <video src={clip.url} controls style={{ width: '100%', display: 'block', background: '#000', maxHeight: 240 }} />
+                      <VideoHUD metric={clip.metric}>
+                        <video src={clip.url} controls preload="auto" style={{ width: '100%', display: 'block', background: '#000', maxHeight: 240 }} />
+                      </VideoHUD>
                       {clip.description && (
                         <div style={{ padding: '12px 14px', fontSize: '0.78rem', color: THEME.colors.textMuted, lineHeight: 1.45, background: THEME.colors.surfaceAlt, borderTop: `1px solid ${THEME.colors.borderDim}` }}>
                           {clip.description}
@@ -386,6 +400,90 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
   );
 }
 
+// HUD overlay — wraps any <video> with tactical telemetry chrome
+function TelField({ label, value }) {
+  return (
+    <span style={{ fontSize: '0.55rem', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+      <span style={{ color: 'rgba(160,165,180,0.50)' }}>{label} </span>
+      <span style={{ color: 'rgba(220,225,235,0.75)' }}>{value}</span>
+    </span>
+  );
+}
+
+function VideoHUD({ children, metric = null }) {
+  const [tel, setTel] = useState({ fps: '24.0', x: '0512', y: '0288', ms: '12.4', lock: 97 });
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTel({
+        fps:  (23.0 + Math.random() * 7).toFixed(1),
+        x:    String(Math.floor(480 + Math.random() * 560)).padStart(4, '0'),
+        y:    String(Math.floor(200 + Math.random() * 480)).padStart(4, '0'),
+        ms:   (6.2 + Math.random() * 9.8).toFixed(1),
+        lock: Math.floor(93 + Math.random() * 7),
+      });
+    }, 140);
+    return () => clearInterval(id);
+  }, []);
+
+  const G  = 'rgba(180,185,200,0.70)';  // muted gray
+  const GA = 'rgba(180,185,200,0.35)';  // dim gray accent
+  const BG = 'rgba(7,8,10,0.72)';
+  const br = { position: 'absolute', width: 12, height: 12, pointerEvents: 'none' };
+
+  return (
+    <div style={{ position: 'relative', background: '#000', overflow: 'hidden' }}>
+      {children}
+
+      {/* scanline veil */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 4px)' }} />
+
+      {/* corner brackets */}
+      <div style={{ ...br, top: 7, left: 7,    borderTop:    `1px solid ${GA}`, borderLeft:  `1px solid ${GA}` }} />
+      <div style={{ ...br, top: 7, right: 7,   borderTop:    `1px solid ${GA}`, borderRight: `1px solid ${GA}` }} />
+      <div style={{ ...br, bottom: 28, left: 7,  borderBottom: `1px solid ${GA}`, borderLeft:  `1px solid ${GA}` }} />
+      <div style={{ ...br, bottom: 28, right: 7, borderBottom: `1px solid ${GA}`, borderRight: `1px solid ${GA}` }} />
+
+      {/* ● ANALYTICS STREAM: ACTIVE */}
+      <div style={{ position: 'absolute', top: 8, left: 20, pointerEvents: 'none',
+        display: 'flex', alignItems: 'center', gap: 4,
+        background: BG, border: `1px solid rgba(255,255,255,0.08)`,
+        borderRadius: 2, padding: '2px 7px' }}>
+        <span style={{ width: 4, height: 4, borderRadius: '50%', background: G, display: 'inline-block',
+          animation: 'termBlink 1.8s step-end infinite' }} />
+        <span style={{ fontSize: '0.52rem', fontWeight: 600, letterSpacing: '0.09em', color: G, fontFamily: 'monospace' }}>
+          ANALYTICS STREAM: ACTIVE
+        </span>
+      </div>
+
+      {/* LOCK % top-right */}
+      <div style={{ position: 'absolute', top: 8, right: 20, pointerEvents: 'none',
+        background: BG, border: `1px solid rgba(255,255,255,0.08)`,
+        borderRadius: 2, padding: '2px 7px' }}>
+        <span style={{ fontSize: '0.52rem', fontWeight: 600, letterSpacing: '0.07em', color: G, fontFamily: 'monospace' }}>
+          LOCK {tel.lock}%
+        </span>
+      </div>
+
+      {/* telemetry bar */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, pointerEvents: 'none',
+        background: BG, borderTop: `1px solid rgba(255,255,255,0.07)`,
+        padding: '3px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <TelField label="FPS"  value={tel.fps} />
+        <TelField label="X"    value={tel.x} />
+        <TelField label="Y"    value={tel.y} />
+        <TelField label="PROC" value={`${tel.ms}ms`} />
+        {metric && (
+          <span style={{ fontSize: '0.50rem', fontFamily: 'monospace', color: 'rgba(180,185,200,0.30)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+            {metric.toUpperCase()}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── INTERNAL ATOM PANEL SUBSTRUCTURE ────────────────────────────────────────
 function Panel({ label, children, style = {} }) {
   return (
@@ -397,20 +495,28 @@ function Panel({ label, children, style = {} }) {
 }
 
 // ── PARAMETRIC EXPANDABLE METRIC ROW ELEMENT ────────────────────────────────
-function MetricRow({ label, value, reel, onPlay }) {
+function MetricRow({ label, value, reel, clips = [], onPlay }) {
   const [open, setOpen] = useState(false);
   const col = getScoreColor(value);
-  
+  const hasContent = clips.length > 0 || reel;
+
   return (
     <div style={{ background: THEME.colors.surfaceCard, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.element, overflow: 'hidden' }}>
       <div
-        onClick={() => setOpen(x => !x)}
-        style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 18px', cursor: 'pointer', transition: 'background 0.12s' }}
-        onMouseEnter={e => e.currentTarget.style.background = THEME.colors.surfaceHover}
+        onClick={() => hasContent && setOpen(x => !x)}
+        style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 18px', cursor: hasContent ? 'pointer' : 'default', transition: 'background 0.12s' }}
+        onMouseEnter={e => { if (hasContent) e.currentTarget.style.background = THEME.colors.surfaceHover; }}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, color: THEME.colors.textMain, fontSize: '0.88rem' }}>{label}</div>
+          <div style={{ fontWeight: 700, color: THEME.colors.textMain, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {label}
+            {clips.length > 0 && (
+              <span style={{ fontSize: '0.60rem', fontWeight: 700, letterSpacing: '0.06em', color: THEME.colors.accentHigh, background: 'rgba(62,207,112,0.07)', border: `1px solid rgba(62,207,112,0.25)`, borderRadius: 3, padding: '1px 5px', textTransform: 'uppercase' }}>
+                {clips.length} clip{clips.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
           <div style={{ marginTop: 8, height: 4, background: THEME.colors.surfaceAlt, borderRadius: 2, overflow: 'hidden' }}>
             <div style={{ width: `${value}%`, height: '100%', background: col, borderRadius: 2, transition: 'width 0.4s cubic-bezier(0.1, 1, 0.1, 1)' }} />
           </div>
@@ -418,22 +524,39 @@ function MetricRow({ label, value, reel, onPlay }) {
         <div className="font-syne" style={{ fontWeight: 800, fontSize: '1.5rem', color: col, letterSpacing: '-0.02em', flexShrink: 0 }}>
           {value}
         </div>
-        <span style={{ color: THEME.colors.textDark, fontSize: '0.75rem', transition: 'transform 0.16s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
-          ▼
-        </span>
+        {hasContent && (
+          <span style={{ color: THEME.colors.textDark, fontSize: '0.75rem', transition: 'transform 0.16s', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>▼</span>
+        )}
       </div>
-      
+
       {open && (
-        <div style={{ borderTop: `1px solid ${THEME.colors.borderDim}`, padding: '12px 18px', background: THEME.colors.surfaceAlt }}>
-          {reel ? (
+        <div style={{ borderTop: `1px solid ${THEME.colors.borderDim}`, padding: '14px 18px', background: THEME.colors.surfaceAlt }}>
+          {clips.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+              {clips.map((clip, i) => (
+                <div key={i} style={{ border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.element, overflow: 'hidden', background: THEME.colors.surfaceCard }}>
+                  <div style={{ padding: '6px 10px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.bgCanvas, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.60rem', fontWeight: 700, letterSpacing: '0.06em', color: THEME.colors.accentHigh, textTransform: 'uppercase' }}>{clip.metric}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: THEME.colors.textDark }}>{clip.start} – {clip.end}</span>
+                  </div>
+                  <VideoHUD metric={clip.metric}>
+                    <video src={clip.url} controls preload="auto" style={{ width: '100%', display: 'block', background: '#000', maxHeight: 200 }} />
+                  </VideoHUD>
+                  {clip.description && (
+                    <div style={{ padding: '8px 10px', fontSize: '0.76rem', color: THEME.colors.textMuted, lineHeight: 1.45 }}>{clip.description}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : reel ? (
             <button
               onClick={onPlay}
               style={{ display: 'flex', alignItems: 'center', gap: 8, background: THEME.colors.surfaceCard, border: `1px solid ${THEME.colors.borderMid}`, borderRadius: 4, padding: '6px 12px', cursor: 'pointer', color: THEME.colors.textMain, fontSize: '0.78rem', fontWeight: 600 }}
             >
-              <span style={{ color: THEME.colors.accentHigh }}>▶</span> View Metrics Evidence
+              <span style={{ color: THEME.colors.accentHigh }}>▶</span> View Evidence
             </button>
           ) : (
-            <span style={{ fontSize: '0.78rem', color: THEME.colors.textDark }}>No automated telemetry clipping link detected.</span>
+            <span style={{ fontSize: '0.78rem', color: THEME.colors.textDark }}>No evidence clip for this metric.</span>
           )}
         </div>
       )}
