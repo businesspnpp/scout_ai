@@ -355,9 +355,9 @@ export default function UploaderPortal({
                         {meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}
                       </div>
                     </div>
-                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || '�'}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '�'}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '�'}</div>
+                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || '—'}</div>
+                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '—'}</div>
+                    <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '—'}</div>
                     <div style={{ display: 'flex', gap: 5 }}>
                       <button onClick={e => { e.stopPropagation(); isEditing ? clearEdit() : loadProfile(meta); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 5, border: isEditing ? '1px solid rgba(62,207,112,0.30)' : '1px solid #3a3f54', background: '#1d1f27', color: isEditing ? '#3ecf70' : '#8c909f', cursor: 'pointer' }}>
                         {isEditing ? 'Cancel' : 'Edit'}
@@ -456,7 +456,7 @@ export default function UploaderPortal({
                 onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#28384d'; const f = e.dataTransfer.files?.[0]; if (f?.type.startsWith('video/')) setVideoFiles(prev => [...prev, f]); }}
               >
                 <div style={{ color: '#4a5568', fontSize: '0.84rem', marginBottom: 3 }}>{videoFiles.length > 0 ? '+ Add another clip' : 'Drop video or click to browse'}</div>
-                <div style={{ color: '#28384d', fontSize: '0.72rem' }}>MP4, MOV, AVI � auto-cut by AI timestamps after analysis</div>
+                <div style={{ color: '#28384d', fontSize: '0.72rem' }}>MP4, MOV, AVI — auto-cut by AI timestamps after analysis</div>
               </div>
               <input ref={videoRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={addVideoFile} />
             </>
@@ -527,12 +527,12 @@ export default function UploaderPortal({
             <div style={{ background: '#0d1a14', border: '1px solid rgba(0,200,83,0.20)', borderRadius: 3, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
                 <div className="font-syne" style={{ fontWeight: 700, fontSize: '0.98rem', color: '#dde3ec' }}>
-                  {editingId ? 'Profile Updated' : 'Analysis Complete'} � {result.player?.name ?? form.name}
+                  {editingId ? 'Profile Updated' : 'Analysis Complete'} · {result.player?.name ?? form.name}
                   {result._analysisCount > 1 && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#c9a84c' }}>({result._analysisCount} sessions avg)</span>}
                 </div>
                 <div style={{ marginTop: 3, fontSize: '0.80rem', color: '#4a5568' }}>
                   Score <strong style={{ color: '#00c853' }}>{result.overallScore}</strong>
-                  &nbsp;�&nbsp; Confidence <strong style={{ color: '#00c853' }}>{result.aiMatchConfidence}%</strong>
+                  &nbsp;·&nbsp; Confidence <strong style={{ color: '#00c853' }}>{result.aiMatchConfidence}%</strong>
             {metricClips.length > 0 && <span style={{ marginLeft: 8, color: '#c9a84c' }}>✂ {metricClips.length} clips</span>}
                   {shotstackStatus && <ShotstackBadge status={shotstackStatus} done={shotstackDone} total={shotstackTotal} />}
                   {result._isMock && <span style={{ marginLeft: 8, color: '#c9a84c', fontSize: '0.70rem' }}>demo mode</span>}
@@ -551,11 +551,11 @@ export default function UploaderPortal({
               ))}
             </div>
 
-            {/* Metric Clips � inline video players */}
+            {/* Metric Clips — inline video players */}
             {metricClips.length > 0 && (
               <div style={{ background: '#131920', border: '1px solid #1e2735', borderRadius: 3, padding: '14px 16px', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <Label>Metric Clips � Auto-cut &amp; Saved to Profile</Label>
+                  <Label>Metric Clips — Auto-cut &amp; Saved to Profile</Label>
                   <span style={{ fontSize: '0.68rem', color: metricClips[0]?.source === 'shotstack' ? '#c9a84c' : '#00c853' }}>
                     {metricClips[0]?.source === 'shotstack' ? '☁ Shotstack CDN' : '⚡ FFmpeg local'} · {metricClips.length} clips
                   </span>
@@ -630,7 +630,7 @@ function InfoCard({ label, value, accent }) {
   return (
     <div style={{ background: '#131920', border: accent ? '1px solid rgba(0,200,83,0.20)' : '1px solid #1e2735', borderRadius: 3, padding: '12px 14px' }}>
       <div style={{ fontSize: '0.64rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: '#4a5568', marginBottom: 5 }}>{label}</div>
-      <div style={{ fontSize: '0.86rem', color: accent ? '#00c853' : '#dde3ec', lineHeight: 1.5 }}>{value ?? '�'}</div>
+      <div style={{ fontSize: '0.86rem', color: accent ? '#00c853' : '#dde3ec', lineHeight: 1.5 }}>{value ?? '—'}</div>
     </div>
   );
 }

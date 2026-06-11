@@ -6,6 +6,33 @@ import { mockPlayers, getPositionGroup } from '../data/mockPlayers.js';
 import PlayerCard from './PlayerCard.jsx';
 import PlayerModal from './PlayerModal.jsx';
 
+// ── TAC-DARK DESIGN SYSTEM (CHARCOAL & PITCH BLACK) ─────────────────────────
+const THEME = {
+  colors: {
+    bgCanvas: '#0b0c10',      // Deep pitch black application frame
+    surfaceCard: '#111217',   // Slate charcoal structural tiles
+    surfaceHover: '#17181f',  // Hover elevations
+    surfaceAlt: '#07080a',    // Technical data deep inset fields
+    borderDim: '#1f2026',     // Thin frame dividers
+    borderMid: '#2e303d',     // Structural element lines
+    borderActive: '#3ecf70',  // High-visibility green accent
+    
+    // Performance Accent Framework
+    accentHigh: '#3ecf70',    // Electric Pitch Green
+    accentMid: '#d4a850',     // Technical Data Amber
+    
+    // Strict Monochrome Typography
+    textMain: '#f0f1f3',      // Off-white main output
+    textMuted: '#8c909f',     // Muted steel descriptions
+    textDark: '#4e515f'       // Subdued terminal contextual text
+  },
+  radius: {
+    card: '10px',
+    element: '4px',
+    pill: '2px'
+  }
+};
+
 const POS_GROUPS = [
   { label: 'Attackers',   positions: ['ST', 'CAM'] },
   { label: 'Wingers',     positions: ['RW', 'LW'] },
@@ -22,7 +49,6 @@ function buildLocalPlayer(meta, urls = {}) {
   group.keys.forEach(k => { metrics[k] = rawMet[k] ?? 70; });
   const videoUrl = urls.videoUrl ?? meta.videoUrl ?? '';
 
-  // map each metric key to its specific clip URL if we have one
   const clipsByMetric = {};
   (urls.clipUrls ?? []).forEach(c => { if (c.metric && c.url) clipsByMetric[c.metric] = c.url; });
 
@@ -60,7 +86,7 @@ export default function ScoutDashboard({
   const [scoreMin,     setScoreMin]     = useState(0);
   const [sortBy,       setSortBy]       = useState('overall');
   const [savedOnly,    setSavedOnly]    = useState(false);
-  const [sidebarOpen,    setSidebarOpen]    = useState(true);
+  const [sidebarOpen,  setSidebarOpen]  = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const allPlayers = useMemo(() => {
@@ -112,147 +138,208 @@ export default function ScoutDashboard({
   const hasActiveFilters = search || posFilter.size || regionFilter || ageMax < 30 || scoreMin > 0 || savedOnly;
 
   return (
-    <div style={{ paddingTop: 64, minHeight: '100vh', display: 'flex' }}>
+    <div style={{ background: THEME.colors.bgCanvas, color: THEME.colors.textMain, minHeight: '100vh', display: 'flex' }}>
 
-      {/* sidebar */}
+      {/* ── SEARCH & FILTER CONTROL PANEL ─────────────────────────────────── */}
       <aside
         style={{
-          width: sidebarOpen ? 260 : 0,
-          minWidth: sidebarOpen ? 260 : 0,
+          width: sidebarOpen ? 280 : 0,
+          minWidth: sidebarOpen ? 280 : 0,
           overflowX: 'hidden',
-          transition: 'width 0.22s ease, min-width 0.22s ease',
-          borderRight: '1px solid #2e3040',
-          background: '#1d1f27',
-          position: 'sticky', top: 64,
-          height: 'calc(100vh - 64px)',
+          transition: 'width 0.2s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+          borderRight: `1px solid ${THEME.colors.borderDim}`,
+          background: THEME.colors.surfaceCard,
+          position: 'sticky', top: 0,
+          height: '100vh',
           overflowY: 'auto',
           flexShrink: 0,
           zIndex: 10,
         }}
         className="custom-scroll"
       >
-        <div style={{ padding: '20px 16px', minWidth: 228 }}>
-          <div style={{ fontSize: '0.68rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#50535f', marginBottom: 18 }}>Filters</div>
+        <div style={{ padding: '24px 20px', minWidth: 240 }}>
+          <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 800, marginBottom: 20 }}>
+            Operational Filters
+          </div>
 
-          <FilterGroup label="Search">
+          <FilterGroup label="Query Engine">
             <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#50535f', fontSize: '0.90rem', pointerEvents: 'none' }}>&#8981;</span>
-              <input className="input-base" value={search} onChange={e => setSearch(e.target.value)} placeholder="Name, country, club" style={{ paddingLeft: 30 }} />
+              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: THEME.colors.textDark, fontSize: '0.85rem', pointerEvents: 'none' }}>
+                &#8981;
+              </span>
+              <input 
+                className="input-base" 
+                value={search} 
+                onChange={e => setSearch(e.target.value)} 
+                placeholder="Name, country, club..." 
+                style={inputStyleBlock({ paddingLeft: 34 })} 
+              />
             </div>
           </FilterGroup>
 
-          <FilterGroup label="Position">
+          <FilterGroup label="Tactical Positions">
             {POS_GROUPS.map(grp => (
-              <div key={grp.label} style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: '0.68rem', color: '#50535f', marginBottom: 5 }}>{grp.label}</div>
-                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                  {grp.positions.map(pos => <PosPill key={pos} pos={pos} active={posFilter.has(pos)} onClick={() => togglePos(pos)} />)}
+              <div key={grp.label} style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: '0.65rem', color: THEME.colors.textMuted, marginBottom: 6, fontWeight: 500 }}>{grp.label}</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {grp.positions.map(pos => (
+                    <PosPill key={pos} pos={pos} active={posFilter.has(pos)} onClick={() => togglePos(pos)} />
+                  ))}
                 </div>
               </div>
             ))}
           </FilterGroup>
 
-          <FilterGroup label="Region">
-            <select className="input-base" value={regionFilter} onChange={e => setRegionFilter(e.target.value)} style={{ fontSize: '0.84rem' }}>
-              <option value="">All Regions</option>
-              {regions.map(r => <option key={r} value={r}>{r}</option>)}
+          <FilterGroup label="Geographic Region">
+            <select 
+              className="input-base" 
+              value={regionFilter} 
+              onChange={e => setRegionFilter(e.target.value)} 
+              style={inputStyleBlock({ fontSize: '0.82rem', appearance: 'none', cursor: 'pointer' })}
+            >
+              <option value="" style={{ background: THEME.colors.surfaceCard }}>All Regions</option>
+              {regions.map(r => (
+                <option key={r} value={r} style={{ background: THEME.colors.surfaceCard }}>{r}</option>
+              ))}
             </select>
           </FilterGroup>
 
-          <FilterGroup label={`Max Age ${ageMax}`}>
-            <input type="range" min={16} max={30} value={ageMax} onChange={e => setAgeMax(Number(e.target.value))} style={{ width: '100%', accentColor: '#3ecf70' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#50535f', marginTop: 4 }}><span>16</span><span>30</span></div>
+          <FilterGroup label={`Age Threshold: Under ${ageMax}`}>
+            <input type="range" min={16} max={30} value={ageMax} onChange={e => setAgeMax(Number(e.target.value))} style={rangeStyleBlock()} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: THEME.colors.textDark, marginTop: 6, fontFamily: 'monospace' }}>
+              <span>16 YRS</span><span>30 YRS</span>
+            </div>
           </FilterGroup>
 
-          <FilterGroup label={`Min Score ${scoreMin}`}>
-            <input type="range" min={0} max={95} step={5} value={scoreMin} onChange={e => setScoreMin(Number(e.target.value))} style={{ width: '100%', accentColor: '#3ecf70' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#50535f', marginTop: 4 }}><span>0</span><span>95</span></div>
+          <FilterGroup label={`Minimum Assessment Score: ${scoreMin}`}>
+            <input type="range" min={0} max={95} step={5} value={scoreMin} onChange={e => setScoreMin(Number(e.target.value))} style={rangeStyleBlock()} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: THEME.colors.textDark, marginTop: 6, fontFamily: 'monospace' }}>
+              <span>00</span><span>95</span>
+            </div>
           </FilterGroup>
 
           <FilterGroup label="">
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: '0.84rem', color: '#8c909f' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', fontSize: '0.82rem', color: THEME.colors.textMuted, userSelect: 'none' }}>
               <div
                 onClick={() => setSavedOnly(x => !x)}
                 style={{
-                  width: 36, height: 20, borderRadius: 3,
-                  background: savedOnly ? '#3ecf70' : '#2e3040',
-                  border: savedOnly ? '1px solid rgba(62,207,112,0.30)' : '1px solid #3a3f54',
+                  width: 34, height: 18, borderRadius: 10,
+                  background: savedOnly ? THEME.colors.accentHigh : THEME.colors.surfaceAlt,
+                  border: `1px solid ${savedOnly ? 'rgba(62,207,112,0.3)' : THEME.colors.borderMid}`,
                   position: 'relative', cursor: 'pointer',
-                  transition: 'background 0.16s ease', flexShrink: 0,
+                  transition: 'background 0.14s ease', flexShrink: 0,
                 }}
               >
-                <div style={{ position: 'absolute', top: 2, left: savedOnly ? 18 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.16s ease' }} />
+                <div style={{ position: 'absolute', top: 2, left: savedOnly ? 18 : 2, width: 12, height: 12, borderRadius: '50%', background: '#fff', transition: 'left 0.14s ease' }} />
               </div>
-              Shortlisted only
+              Pipeline Shortlist Only
             </label>
           </FilterGroup>
 
           {hasActiveFilters && (
-            <button className="btn-ghost" onClick={clearFilters} style={{ width: '100%', marginTop: 8, fontSize: '0.80rem' }}>Clear All Filters</button>
+            <button 
+              onClick={clearFilters} 
+              style={{ 
+                width: '100%', marginTop: 12, padding: '8px', 
+                background: 'transparent', border: `1px solid ${THEME.colors.borderMid}`, 
+                color: THEME.colors.textMain, borderRadius: THEME.radius.element, 
+                fontSize: '0.78rem', cursor: 'pointer', fontWeight: 600, transition: 'all 0.12s' 
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = THEME.colors.textMuted}
+              onMouseLeave={e => e.currentTarget.style.borderColor = THEME.colors.borderMid}
+            >
+              Reset Core Engine Filters
+            </button>
           )}
         </div>
       </aside>
 
-      {/* main */}
-      <main style={{ flex: 1, minWidth: 0, padding: '20px 20px 60px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
+      {/* ── MAIN WORKSPACE DASHBOARD CONTENT ──────────────────────────────── */}
+      <main style={{ flex: 1, minWidth: 0, padding: '24px 24px 60px', display: 'flex', flexDirection: 'column' }}>
+        
+        {/* Workspace Toolbar Context */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', marginBottom: 24 }}>
           <div>
-            <button className="btn-ghost" onClick={() => setSidebarOpen(x => !x)} style={{ marginBottom: 12, padding: '7px 12px', fontSize: '0.80rem' }}>
-              {sidebarOpen ? 'Hide Filters' : 'Show Filters'}
+            <button 
+              onClick={() => setSidebarOpen(x => !x)} 
+              style={{ 
+                marginBottom: 14, padding: '6px 12px', background: THEME.colors.surfaceCard, 
+                border: `1px solid ${THEME.colors.borderDim}`, color: THEME.colors.textMuted, 
+                borderRadius: THEME.radius.element, fontSize: '0.78rem', cursor: 'pointer', fontWeight: 500 
+              }}
+            >
+              {sidebarOpen ? 'Collapse Side Panel' : 'Expand Side Panel'}
             </button>
-            <div style={{ fontSize: '0.70rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#50535f' }}>BeOrchid Africa 2026</div>
-            <h1 className="font-syne" style={{ fontSize: 'clamp(1.4rem,3vw,2.0rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: 4 }}>
-              Discover <span style={{ color: '#3ecf70' }}>African</span> Talent
+            <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 700 }}>Scout Pipeline Portal</div>
+            <h1 className="font-syne" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: 4, color: THEME.colors.textMain }}>
+              Intel Matrix: <span style={{ color: THEME.colors.accentHigh }}>African</span> Talent
             </h1>
           </div>
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <select className="input-base" value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: 'auto', minWidth: 160, fontSize: '0.84rem' }}>
-              <option value="overall">Sort: Overall</option>
-              <option value="aiMatch">Sort: AI Match</option>
-              <option value="age">Sort: Youngest</option>
-              <option value="name">Sort: Name A-Z</option>
+            <select 
+              className="input-base" 
+              value={sortBy} 
+              onChange={e => setSortBy(e.target.value)} 
+              style={inputStyleBlock({ width: 'auto', minWidth: 160, fontSize: '0.82rem', cursor: 'pointer' })}
+            >
+              <option value="overall" style={{ background: THEME.colors.surfaceCard }}>Sort: Performance Rank</option>
+              <option value="aiMatch" style={{ background: THEME.colors.surfaceCard }}>Sort: AI Vector Fit</option>
+              <option value="age" style={{ background: THEME.colors.surfaceCard }}>Sort: Ascending Age</option>
+              <option value="name" style={{ background: THEME.colors.surfaceCard }}>Sort: Identifier A-Z</option>
             </select>
-            <span style={{ fontSize: '0.85rem', color: '#50535f' }}>
-              Showing <strong style={{ color: '#f0f1f3' }}>{filtered.length}</strong> of {allPlayers.length}
+            <span style={{ fontSize: '0.82rem', color: THEME.colors.textDark, fontFamily: 'Inter, sans-serif' }}>
+              Presenting <strong style={{ color: THEME.colors.textMain }}>{filtered.length}</strong> of {allPlayers.length} Nodes
             </span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
+        {/* Analytic Macro Counters Segment */}
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
           {[
-            { label: 'Active Profiles', value: allPlayers.length },
-            { label: 'Countries',       value: new Set(allPlayers.map(p => p.country)).size },
-            { label: 'Avg Score',       value: (allPlayers.reduce((s,p)=>s+p.overall,0)/allPlayers.length).toFixed(1) },
-            { label: 'Positions',       value: new Set(allPlayers.map(p => p.pos)).size },
+            { label: 'Active Ingested Profiles', value: allPlayers.length },
+            { label: 'Monitored Regions',        value: new Set(allPlayers.map(p => p.country)).size },
+            { label: 'Aggregated Performance Avg', value: (allPlayers.reduce((s,p)=>s+p.overall,0)/allPlayers.length).toFixed(1) },
+            { label: 'Isolatable Positions',     value: new Set(allPlayers.map(p => p.pos)).size },
           ].map(s => (
-            <div key={s.label} style={{ background: '#23252f', border: '1px solid #2e3040', borderRadius: 8, padding: '10px 14px' }}>
-              <div className="font-syne" style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.01em' }}>{s.value}</div>
-              <div style={{ fontSize: '0.70rem', color: '#50535f', letterSpacing: '0.10em', textTransform: 'uppercase', marginTop: 4 }}>{s.label}</div>
+            <div key={s.label} style={{ background: THEME.colors.surfaceCard, border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, padding: '12px 16px', flex: '1 1 200px' }}>
+              <div className="font-syne" style={{ fontWeight: 800, fontSize: '1.4rem', color: THEME.colors.textMain, letterSpacing: '-0.01em' }}>{s.value}</div>
+              <div style={{ fontSize: '0.62rem', color: THEME.colors.textDark, letterSpacing: '0.10em', textTransform: 'uppercase', fontWeight: 700, marginTop: 4 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: '0.70rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#50535f' }}>Scout Database</div>
-        </div>
-
+        {/* ── PLAYER DATABASE DISPLAY MATRIX ───────────────────────────────── */}
         {filtered.length === 0 ? (
-          <div style={{ border: '1px dashed #3a3f54', borderRadius: 10, padding: '52px 20px', textAlign: 'center', background: '#23252f' }}>
-            <div style={{ fontSize: '1.6rem', marginBottom: 10, opacity: 0.3 }}>&#9673;</div>
-            <div className="font-syne" style={{ fontWeight: 800, color: '#f0f1f3', marginBottom: 6 }}>No players match your filters</div>
-            <div style={{ color: '#50535f', marginBottom: 16 }}>Try broadening the search criteria.</div>
-            <button className="btn-ghost" onClick={clearFilters}>Clear Filters</button>
+          <div style={{ border: `1px dashed ${THEME.colors.borderMid}`, borderRadius: THEME.radius.card, padding: '64px 20px', textAlign: 'center', background: THEME.colors.surfaceCard, margin: 'auto 0' }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12, color: THEME.colors.textDark }}>⊙</div>
+            <div className="font-syne" style={{ fontWeight: 700, fontSize: '1.1rem', color: THEME.colors.textMain, marginBottom: 6 }}>Zero Pipeline Hits Registered</div>
+            <div style={{ color: THEME.colors.textMuted, fontSize: '0.85rem', marginBottom: 18 }}>Adjust criteria nodes to display matching entries.</div>
+            <button 
+              style={{ padding: '8px 16px', background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, color: THEME.colors.textMain, borderRadius: THEME.radius.element, fontSize: '0.80rem', cursor: 'pointer' }}
+              onClick={clearFilters}
+            >
+              Flush Filters
+            </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 14, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: 14, alignItems: 'start' }}>
             {filtered.map((p, i) => (
-              <PlayerCard key={p.id} player={p} onOpenLightbox={onOpenLightbox} onSaveToggle={onSaveToggle} isSaved={savedIds.includes(p.id)} animDelay={Math.min(i * 0.04, 0.4)} onClick={() => setSelectedPlayer(p)} />
+              <PlayerCard 
+                key={p.id} 
+                player={p} 
+                onOpenLightbox={onOpenLightbox} 
+                onSaveToggle={onSaveToggle} 
+                isSaved={savedIds.includes(p.id)} 
+                animDelay={Math.min(i * 0.03, 0.3)} 
+                onClick={() => setSelectedPlayer(p)} 
+              />
             ))}
           </div>
         )}
       </main>
 
+      {/* Profile Lightbox Context Overlay */}
       {selectedPlayer && (
         <PlayerModal
           player={selectedPlayer}
@@ -266,10 +353,11 @@ export default function ScoutDashboard({
   );
 }
 
+// ── INTERNAL ATOM COMPONENTS & STRUCTURAL MIXINS ───────────────────────────
 function FilterGroup({ label, children }) {
   return (
-    <div style={{ marginBottom: 18 }}>
-      {label && <div style={{ fontSize: '0.70rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: '#50535f', marginBottom: 8 }}>{label}</div>}
+    <div style={{ marginBottom: 20 }}>
+      {label && <div style={{ fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: THEME.colors.textMuted, fontWeight: 700, marginBottom: 8 }}>{label}</div>}
       {children}
     </div>
   );
@@ -280,14 +368,43 @@ function PosPill({ pos, active, onClick }) {
     <button
       onClick={onClick}
       style={{
-        padding: '4px 10px', borderRadius: 3, fontSize: '0.76rem', fontWeight: 600,
-        border: active ? '1px solid rgba(62,207,112,0.30)' : '1px solid #2e3040',
-        background: active ? 'rgba(62,207,112,0.07)' : '#1d1f27',
-        color: active ? '#f0f1f3' : '#8c909f',
-        cursor: 'pointer', transition: 'all 0.12s ease',
+        padding: '3px 8px', borderRadius: THEME.radius.pill, fontSize: '0.74rem', fontWeight: 600,
+        border: `1px solid ${active ? THEME.colors.borderActive : THEME.colors.borderDim}`,
+        background: active ? 'rgba(62,207,112,0.06)' : THEME.colors.surfaceAlt,
+        color: active ? THEME.colors.textMain : THEME.colors.textMuted,
+        cursor: 'pointer', transition: 'all 0.12s ease', outline: 'none'
       }}
-    >{pos}</button>
+    >
+      {pos}
+    </button>
   );
+}
+
+function inputStyleBlock(overrides = {}) {
+  return {
+    width: '100%',
+    background: THEME.colors.surfaceAlt,
+    border: `1px solid ${THEME.colors.borderDim}`,
+    borderRadius: THEME.radius.element,
+    padding: '8px 12px',
+    color: THEME.colors.textMain,
+    outline: 'none',
+    fontSize: '0.85rem',
+    fontFamily: 'Inter, sans-serif',
+    transition: 'border-color 0.12s ease',
+    ...overrides
+  };
+}
+
+function rangeStyleBlock() {
+  return {
+    width: '100%',
+    accentColor: THEME.colors.accentHigh,
+    background: THEME.colors.surfaceAlt,
+    height: '4px',
+    borderRadius: '2px',
+    cursor: 'pointer'
+  };
 }
 
 function buildInjectedPlayer(result) {
