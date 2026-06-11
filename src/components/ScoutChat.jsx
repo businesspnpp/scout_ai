@@ -208,31 +208,44 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
 
   return (
     <>
-      {/* ── Toggle button — clean rectangular tab, no glow ── */}
+      {/* ── Toggle button ── */}
       <button
         onClick={() => setOpen(o => !o)}
-        title={open ? 'Close' : 'Scout AI'}
+        title={open ? 'Close Scout AI' : 'Scout AI — Ask anything about the roster'}
         style={{
-          position: 'fixed', bottom: 24,
-          right: open ? 406 : 24,
+          position: 'fixed', bottom: 28,
+          right: open ? 406 : 28,
           zIndex: 400,
-          padding: '7px 13px',
-          borderRadius: 4,
-          background: '#1c1e25',
-          border: '1px solid #2e3038',
-          color: '#9ba3af',
-          fontSize: '0.76rem', fontWeight: 500, letterSpacing: '0.01em',
+          width: 48, height: 48,
+          borderRadius: 10,
+          background: open ? '#161820' : '#161c22',
+          border: `1px solid ${open ? '#2e3038' : '#2e4038'}`,
+          color: open ? '#4a5161' : '#7a9e8a',
           cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 7,
-          transition: 'right 0.24s cubic-bezier(0.4,0,0.2,1), border-color 0.15s, color 0.15s',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
+          transition: 'right 0.24s cubic-bezier(0.4,0,0.2,1), border-color 0.15s, color 0.15s, background 0.15s',
+          boxShadow: open ? 'none' : '0 2px 8px rgba(0,0,0,0.4)',
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#3d4148'; e.currentTarget.style.color = '#c4cdd8'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#2e3038'; e.currentTarget.style.color = '#9ba3af'; }}
+        onMouseEnter={e => { if (!open) { e.currentTarget.style.borderColor = '#3d6050'; e.currentTarget.style.color = '#a0c8b0'; e.currentTarget.style.background = '#1a2220'; } }}
+        onMouseLeave={e => { if (!open) { e.currentTarget.style.borderColor = '#2e4038'; e.currentTarget.style.color = '#7a9e8a'; e.currentTarget.style.background = '#161c22'; } }}
       >
-        {open
-          ? <>✕ <span style={{ color: '#4a5161' }}>Close</span></>
-          : <><span style={{ fontSize: '0.68rem', opacity: 0.5 }}>&#9632;</span> Scout AI</>
-        }
+        {open ? (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+        ) : (
+          <>
+            {/* Chat bubble with sparkle */}
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+              <path d="M4 3h14a1.5 1.5 0 011.5 1.5v9A1.5 1.5 0 0118 15H9.5L5 19.5V4.5A1.5 1.5 0 014 3z"
+                stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="rgba(120,180,150,0.06)"/>
+              {/* sparkle */}
+              <path d="M11 7.5 L11.55 9.45 L13.5 10 L11.55 10.55 L11 12.5 L10.45 10.55 L8.5 10 L10.45 9.45 Z"
+                fill="currentColor" opacity="0.75"/>
+            </svg>
+            <span style={{ fontSize: '0.52rem', letterSpacing: '0.06em', fontWeight: 600, opacity: 0.7, lineHeight: 1 }}>AI</span>
+          </>
+        )}
       </button>
 
       {/* ── Side panel ── */}
