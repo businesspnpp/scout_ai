@@ -179,7 +179,7 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
       {/* Dark gradient — bottom third only */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(5,11,20,0.96) 0%, rgba(5,11,20,0.88) 18%, rgba(5,11,20,0.45) 36%, rgba(5,11,20,0.08) 52%, transparent 65%)',
+        background: 'linear-gradient(to top, #020609 0%, rgba(2,6,9,0.98) 16%, rgba(3,8,14,0.85) 30%, rgba(4,10,18,0.45) 48%, rgba(4,10,18,0.08) 62%, transparent 72%)',
       }} />
 
       {/* Score badge — top right */}
