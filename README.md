@@ -1,5 +1,6 @@
 ﻿# Scout AI
 Live URL: https://scout-ai-eta.vercel.app/
+Demo Video URL: https://youtu.be/leuBvyUu7wE
 
 
 Scout AI is a football talent discovery platform built for Africa. It gives grassroots players a way to get seen, and gives scouts a smarter way to find them.
