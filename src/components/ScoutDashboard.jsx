@@ -82,6 +82,7 @@ function buildLocalPlayer(meta, urls = {}) {
 export default function ScoutDashboard({
   onOpenLightbox, savedIds, onSaveToggle, newProfile,
   localProfiles = [], blobUrls = {},
+  onPlayerFocus,
 }) {
   const [search,       setSearch]       = useState('');
   const [posFilter,    setPosFilter]    = useState(new Set());
@@ -336,7 +337,7 @@ export default function ScoutDashboard({
                 onSaveToggle={onSaveToggle} 
                 isSaved={savedIds.includes(p.id)} 
                 animDelay={Math.min(i * 0.03, 0.3)} 
-                onClick={() => setSelectedPlayer(p)} 
+                onClick={() => { setSelectedPlayer(p); onPlayerFocus?.(p); }} 
               />
             ))}
           </div>
@@ -347,7 +348,7 @@ export default function ScoutDashboard({
       {selectedPlayer && (
         <PlayerModal
           player={selectedPlayer}
-          onClose={() => setSelectedPlayer(null)}
+          onClose={() => { setSelectedPlayer(null); onPlayerFocus?.(null); }}
           onOpenLightbox={onOpenLightbox}
           isSaved={savedIds.includes(selectedPlayer.id)}
           onSaveToggle={onSaveToggle}

@@ -4,6 +4,7 @@ import Navigation      from './components/Navigation.jsx';
 import UploaderPortal  from './components/UploaderPortal.jsx';
 import ScoutDashboard  from './components/ScoutDashboard.jsx';
 import VideoLightbox   from './components/VideoLightbox.jsx';
+import ScoutChat       from './components/ScoutChat.jsx';
 import { useLocalProfiles } from './hooks/useLocalProfiles.js';
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
   const [savedIds,     setSavedIds]     = useState([]);
   const [newProfile,   setNewProfile]   = useState(null);
   const [toast,        setToast]        = useState({ visible: false, msg: '' });
+  const [focusPlayer,  setFocusPlayer]  = useState(null);
 
   // local profile storage
   const { profiles: localProfiles, blobUrls, addProfile, removeProfile, updateProfileClips } = useLocalProfiles();
@@ -93,6 +95,7 @@ export default function App() {
           newProfile={newProfile}
           localProfiles={localProfiles}
           blobUrls={blobUrls}
+          onPlayerFocus={setFocusPlayer}
         />
       )}
 
@@ -104,6 +107,13 @@ export default function App() {
           onClose={closeLightbox}
         />
       )}
+
+      {/* ── Scout AI Global Chat ── */}
+      <ScoutChat
+        focusPlayer={focusPlayer}
+        localProfiles={localProfiles}
+        blobUrls={blobUrls}
+      />
 
       {/* Toast */}
       <div style={{
