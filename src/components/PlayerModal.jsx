@@ -285,12 +285,18 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
 
           {/* MAP MODE: SLIDER METRICS ENGINE */}
           {tab === 'metrics' && (() => {
-            // union of metric keys from scores + clip metric names so nothing is dropped
             const clipMetrics = (player.clipUrls ?? []).map(c => c.metric).filter(Boolean);
             const allKeys = [...new Set([...Object.keys(player.metrics), ...clipMetrics])];
+            // hide rows that have no score AND no clips — they're Gemini noise
+            const rows = allKeys.filter(key => {
+              const hasScore = (player.metrics[key] ?? 0) > 0;
+              const normKey  = key.toLowerCase().replace(/[\s_-]/g, '');
+              const hasClip  = clipMetrics.some(m => m.toLowerCase().replace(/[\s_-]/g, '') === normKey);
+              return hasScore || hasClip;
+            });
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 860, margin: '0 auto' }}>
-                {allKeys.map(key => {
+                {rows.map(key => {
                   const val   = player.metrics[key] ?? 0;
                   const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
                   const reel  = player.reels?.[key] ?? null;

@@ -77,16 +77,22 @@ Return ONLY a valid JSON object (no markdown, no explanation):
   "aiMatchConfidence": number (0-100),
   "analysisDate": ISO string,
   "metrics": {
-    "finishing|pace|dribbling|positioning|workrate|heading": number,
-    "passing|pressResistance|crossing|aerial|tackling": number
-    /* Include exactly 6 keys appropriate for the position */
+    Score ALL attributes relevant to the position. Use camelCase keys. Include as many as needed.
+    Common keys by position:
+    - Striker/CAM: finishing, pace, dribbling, positioning, workrate, heading, ballControl, shooting
+    - Winger: pace, dribbling, crossing, finishing, positioning, workrate, agility, vision
+    - Midfielder: passing, pressResistance, positioning, workrate, dribbling, pace, vision, ballControl
+    - Defender: positioning, aerial, tackling, passing, pace, workrate, heading, strength
+    - GK: reflexes, positioning, distribution, aerial, command, sweeping
   },
   "highlights": [
+    Extract one highlight clip per scored metric where visible evidence exists in the footage.
+    CRITICAL: each "metric" value MUST be one of the exact camelCase keys you used in the metrics object above.
     {
       "timestampStart": "MM:SS",
       "timestampEnd": "MM:SS",
-      "clipIndex": number (1-based, which video clip this moment is from),
-      "metric": string,
+      "clipIndex": number (1-based),
+      "metric": string (MUST exactly match one of the keys in metrics above),
       "description": string,
       "clipLabel": "Clip X - MM:SS-MM:SS"
     }
