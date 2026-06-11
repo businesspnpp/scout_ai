@@ -499,7 +499,8 @@ export default function ScoutDashboard({
   const [savedOnly,    setSavedOnly]    = useState(false);
   const [navSection,      setNavSection]      = useState('discover');
   const [selectedPlayer,  setSelectedPlayer]  = useState(null);
-  const [filtersOpen,     setFiltersOpen]     = useState(false);
+  const [filtersOpen,       setFiltersOpen]       = useState(false);
+  const [sidebarFiltersOpen, setSidebarFiltersOpen] = useState(true);
   const [fullAnalysisFor, setFullAnalysisFor] = useState(null);
   const [navOpen,         setNavOpen]         = useState(false);
 
@@ -630,8 +631,21 @@ export default function ScoutDashboard({
 
         {/* ── INLINE FILTERS ───────────────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px 8px' }}>
-          <div style={{ fontSize: '0.62rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700, marginBottom: 12 }}>Filters</div>
+          <button
+            onClick={() => setSidebarFiltersOpen(x => !x)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', background: 'transparent', border: 'none', cursor: 'pointer',
+              padding: '0 0 12px 0',
+            }}
+          >
+            <span style={{ fontSize: '0.62rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700 }}>Filters</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transition: 'transform 0.18s', transform: sidebarFiltersOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <path d="M2 4l4 4 4-4" stroke={C.txtDim} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
 
+          {sidebarFiltersOpen && <>
           {/* Search */}
           <input
             value={search} onChange={e => setSearch(e.target.value)}
@@ -718,6 +732,7 @@ export default function ScoutDashboard({
               Clear all filters
             </button>
           )}
+          </>}
         </div>
 
 
