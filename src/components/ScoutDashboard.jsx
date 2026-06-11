@@ -630,8 +630,21 @@ export default function ScoutDashboard({
 
         {/* ── INLINE FILTERS ───────────────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px 8px' }}>
-          <div style={{ fontSize: '0.62rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700, marginBottom: 10 }}>Filters</div>
+          <button
+            onClick={() => setFiltersOpen(x => !x)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', background: 'transparent', border: 'none', cursor: 'pointer',
+              padding: 0, marginBottom: filtersOpen ? 12 : 0,
+            }}
+          >
+            <span style={{ fontSize: '0.62rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: C.txtDim, fontWeight: 700 }}>Filters</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transition: 'transform 0.18s', transform: filtersOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <path d="M2 4l4 4 4-4" stroke={C.txtDim} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
 
+          {filtersOpen && <>
           {/* Search */}
           <input
             value={search} onChange={e => setSearch(e.target.value)}
@@ -718,16 +731,10 @@ export default function ScoutDashboard({
               Clear all filters
             </button>
           )}
+          </>}
         </div>
 
-        <div style={{ padding: '12px 14px 16px', flexShrink: 0 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px' }}>
-            <div style={{ color: C.green, fontWeight: 700, fontSize: '0.85rem', marginBottom: 6 }}>AI Scouting</div>
-            <p style={{ fontSize: '0.74rem', color: C.txtMd, margin: 0, lineHeight: 1.5 }}>
-              Advanced AI analysis to find the next generation of football stars.
-            </p>
-          </div>
-        </div>
+
       </aside>
 
       {/* MAIN CONTENT */}
