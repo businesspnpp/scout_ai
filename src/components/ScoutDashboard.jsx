@@ -9,8 +9,8 @@ import useBreakpoint from '../hooks/useBreakpoint.js';
 
 // ── COLOUR TOKENS ──────────────────────────────────────────────────────────────
 const C = {
-  bg:     '#050b14',
-  card:   '#0b1420',
+  bg:     '#0b0b0d',
+  card:   '#131315',
   border: 'rgba(255,255,255,0.07)',
   brdHi:  'rgba(255,255,255,0.14)',
   green:  '#4ade80',
@@ -121,7 +121,7 @@ function MiniRadar({ scores, labels, size = 180 }) {
       <polygon points={polyPts} fill="rgba(74,222,128,0.06)" stroke="#4ade80" strokeWidth="1.2" strokeLinejoin="round" />
       {scores.map((v, i) => {
         const p = pt(i, v);
-        return <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#4ade80" stroke="#0b1420" strokeWidth="1" />;
+        return <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#4ade80" stroke="#131315" strokeWidth="1" />;
       })}
       {labels.map((lbl, i) => {
         const a = ((i * 360) / n - 90) * (Math.PI / 180);
@@ -151,7 +151,7 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
         height: tall ? 300 : 220,
         borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
         border: `1px solid ${hov ? C.brdHi : C.border}`,
-        background: '#08111e',
+        background: '#0e0e10',
         transition: 'border-color 0.15s, transform 0.15s',
         transform: hov ? 'translateY(-3px)' : 'none',
         flexShrink: 0,
@@ -167,7 +167,7 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
       ) : (
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(160deg, #0e2040 0%, #0a1830 50%, #060e1c 100%)',
+          background: 'linear-gradient(160deg, #1a1a1e 0%, #131315 50%, #0d0d0f 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <span style={{ fontSize: tall ? '3.5rem' : '2.5rem', fontWeight: 800, color: 'rgba(255,255,255,0.06)', fontFamily: 'syne, sans-serif', letterSpacing: '-0.04em' }}>
@@ -179,7 +179,7 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true }) {
       {/* Dark gradient — bottom third only */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, #020609 0%, rgba(2,6,9,0.98) 16%, rgba(3,8,14,0.85) 30%, rgba(4,10,18,0.45) 48%, rgba(4,10,18,0.08) 62%, transparent 72%)',
+        background: 'linear-gradient(to top, #060607 0%, rgba(6,6,8,0.98) 16%, rgba(8,8,10,0.85) 30%, rgba(10,10,13,0.45) 48%, rgba(10,10,13,0.08) 62%, transparent 72%)',
       }} />
 
       {/* Score badge — top right */}
@@ -362,7 +362,7 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
           </div>
         </div>
         {/* Video */}
-        <div style={{ marginTop: 16, borderRadius: 14, overflow: 'hidden', background: '#070f1a', border: `1px solid ${C.border}` }}>
+        <div style={{ marginTop: 16, borderRadius: 14, overflow: 'hidden', background: '#0e0e10', border: `1px solid ${C.border}` }}>
           {videoUrl ? (
             <video src={videoUrl} controls preload="metadata" style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }} />
           ) : (
@@ -394,7 +394,7 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
         {tab === 'overview' && (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <div style={{ background: '#0b1420', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
+              <div style={{ background: '#131315', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.85rem', color: C.txt, marginBottom: 12 }}>Player Info</div>
                 <div style={{ fontSize: '0.82rem', color: C.txtMd, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div>Height: <span style={{ color: C.txt }}>{player.height ?? '-'}</span></div>
@@ -403,7 +403,7 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
                   <div>Region: <span style={{ color: C.txt }}>{player.country}</span></div>
                 </div>
               </div>
-              <div style={{ background: '#0b1420', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
+              <div style={{ background: '#131315', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.85rem', color: C.green, marginBottom: 8 }}>AI Scout Report</div>
                 <p style={{ fontSize: '0.79rem', color: C.txtMd, lineHeight: 1.55, margin: 0 }}>
                   {(player.bio?.slice(0, 140) ?? 'No AI analysis available.')}{(player.bio?.length ?? 0) > 140 ? '...' : ''}
@@ -411,14 +411,14 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ background: '#0b1420', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
+              <div style={{ background: '#131315', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
                 <div style={{ fontSize: '3rem', fontWeight: 800, color: C.green, lineHeight: 1, fontFamily: 'monospace' }}>{player.overall}</div>
                 <div style={{ color: C.txtMd, fontSize: '0.78rem', marginTop: 4 }}>Overall Score</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: scoreCol(player.aiMatch), lineHeight: 1, fontFamily: 'monospace', marginTop: 10 }}>{player.aiMatch}</div>
                 <div style={{ color: C.txtDim, fontSize: '0.70rem', marginTop: 2 }}>AI Match %</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <button onClick={() => onSaveToggle?.(player.id)} style={{ padding: '12px', borderRadius: 12, background: C.green, border: 'none', color: '#050b14', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>
+                <button onClick={() => onSaveToggle?.(player.id)} style={{ padding: '12px', borderRadius: 12, background: C.green, border: 'none', color: '#0d0d0f', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>
                   {isSaved ? 'In Shortlist' : 'Add to Shortlist'}
                 </button>
                 {onFullAnalysis && (
@@ -710,7 +710,7 @@ export default function ScoutDashboard({
         </div>
 
         <div style={{ padding: '12px 14px 16px', flexShrink: 0 }}>
-          <div style={{ background: '#0b1420', border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px' }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px' }}>
             <div style={{ color: C.green, fontWeight: 700, fontSize: '0.85rem', marginBottom: 6 }}>AI Scouting</div>
             <p style={{ fontSize: '0.74rem', color: C.txtMd, margin: 0, lineHeight: 1.5 }}>
               Advanced AI analysis to find the next generation of football stars.
@@ -727,7 +727,7 @@ export default function ScoutDashboard({
             {isMobile && (
               <button
                 onClick={() => setNavOpen(x => !x)}
-                style={{ width: 46, height: 46, flexShrink: 0, borderRadius: 12, background: '#0b1420', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: 46, height: 46, flexShrink: 0, borderRadius: 12, background: '#131315', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 =
               </button>
@@ -736,12 +736,12 @@ export default function ScoutDashboard({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search players, positions or skills..."
-              style={{ flex: 1, height: 46, borderRadius: 12, background: '#0b1420', border: `1px solid ${C.border}`, padding: '0 18px', color: C.txt, outline: 'none', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif' }}
+              style={{ flex: 1, height: 46, borderRadius: 12, background: '#131315', border: `1px solid ${C.border}`, padding: '0 18px', color: C.txt, outline: 'none', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif' }}
             />
             <button
               onClick={() => setFiltersOpen(true)}
               title="Filters"
-              style={{ width: 46, height: 46, flexShrink: 0, borderRadius: 12, background: hasActiveFilters ? C.gnDim : '#0b1420', border: `1px solid ${hasActiveFilters ? C.gnBdr : C.border}`, color: hasActiveFilters ? C.green : C.txtMd, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 46, height: 46, flexShrink: 0, borderRadius: 12, background: hasActiveFilters ? C.gnDim : '#131315', border: `1px solid ${hasActiveFilters ? C.gnBdr : C.border}`, color: hasActiveFilters ? C.green : C.txtMd, cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               F
             </button>
@@ -752,13 +752,10 @@ export default function ScoutDashboard({
           {!showGrid ? (
             <>
               {/* Hero Banner */}
-              <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 220 : 280, marginBottom: 32, background: '#060d18', border: `1px solid ${C.border}` }}>
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #050b14 0%, rgba(5,11,20,0.8) 50%, rgba(5,11,20,0) 100%)', zIndex: 1 }} />
+              <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 220 : 280, marginBottom: 32, background: '#111113', border: `1px solid ${C.border}` }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #0b0b0d 0%, rgba(11,11,13,0.85) 50%, rgba(11,11,13,0) 100%)', zIndex: 1 }} />
                 <div style={{ position: 'absolute', right: 0, top: 0, width: '60%', height: '100%', overflow: 'hidden' }}>
-                  {/* HERO IMAGE SLOT: replace this div with <img src="/path/to/hero.jpg" style={{width:'100%',height:'100%',objectFit:'cover'}} /> */}
-                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #081825 0%, #0d2645 60%, #091a30 100%)' }}>
-                    <div style={{ width: '100%', height: '100%', backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px), repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px)' }} />
-                  </div>
+                  <img src="/assets/banner.png" alt="Scout AI hero" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
                 </div>
                 <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '28px 22px' : '42px 40px', maxWidth: 500 }}>
                   <div style={{ fontSize: isMobile ? '1.7rem' : '2.8rem', fontWeight: 800, lineHeight: 1.15, fontFamily: 'syne, sans-serif' }}>
@@ -769,7 +766,7 @@ export default function ScoutDashboard({
                   </p>
                   <button
                     onClick={() => setSortBy('overall')}
-                    style={{ marginTop: 18, padding: '10px 22px', background: C.green, border: 'none', borderRadius: 10, color: '#050b14', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 }}
+                    style={{ marginTop: 18, padding: '10px 22px', background: C.green, border: 'none', borderRadius: 10, color: '#0d0d0f', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 }}
                   >
                     Explore Players
                   </button>
@@ -809,7 +806,7 @@ export default function ScoutDashboard({
                   {TRENDING.map(t => (
                     <button
                       key={t} onClick={() => setSearch(t)}
-                      style={{ padding: '9px 18px', borderRadius: 999, background: '#0b1420', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.12s' }}
+                      style={{ padding: '9px 18px', borderRadius: 999, background: '#131315', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.12s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = C.brdHi; e.currentTarget.style.color = C.txt; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.txtMd; }}
                     >
@@ -835,7 +832,7 @@ export default function ScoutDashboard({
                       Clear filters
                     </button>
                   )}
-                  <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: '7px 12px', borderRadius: 9, background: '#0b1420', border: `1px solid ${C.border}`, color: C.txt, cursor: 'pointer', fontSize: '0.82rem', outline: 'none' }}>
+                  <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: '7px 12px', borderRadius: 9, background: '#131315', border: `1px solid ${C.border}`, color: C.txt, cursor: 'pointer', fontSize: '0.82rem', outline: 'none' }}>
                     <option value="overall">Top Score</option>
                     <option value="aiMatch">AI Fit</option>
                     <option value="age">Youngest</option>
@@ -847,7 +844,7 @@ export default function ScoutDashboard({
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: C.txtDim }}>
                   <div style={{ fontSize: '2rem', marginBottom: 12 }}>O</div>
                   <div style={{ fontWeight: 600, color: C.txtMd, marginBottom: 8 }}>No players found</div>
-                  <button onClick={clearFilters} style={{ padding: '8px 18px', borderRadius: 10, background: '#0b1420', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.84rem', marginTop: 6 }}>
+                  <button onClick={clearFilters} style={{ padding: '8px 18px', borderRadius: 10, background: '#131315', border: `1px solid ${C.border}`, color: C.txtMd, cursor: 'pointer', fontSize: '0.84rem', marginTop: 6 }}>
                     Clear filters
                   </button>
                 </div>
