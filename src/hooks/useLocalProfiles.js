@@ -69,14 +69,33 @@ export function useLocalProfiles() {
       if (isSupabaseEnabled) {
         const rows = await fetchProfiles();
         if (!cancelled && rows.length > 0) {
-          const metas = rows.map(rowToLocalMeta);
-          const urls  = {};
+          // Keep clip metadata from localStorage so it doesn't get wiped by Supabase hydration
+          const localMetas = loadMeta();
+          const localById  = Object.fromEntries(localMetas.map(m => [m.id, m]));
+
+          const metas = rows.map(row => ({
+            ...rowToLocalMeta(row),
+            metricClips: localById[row.id]?.metricClips ?? [],
+          }));
+
+          const urls = {};
           rows.forEach(row => {
             const entry = {};
             if (row.headshot_url) entry.headshotUrl = row.headshot_url;
             if (row.video_url)    entry.videoUrl    = row.video_url;
+            // Rebuild instant clip URLs using the Supabase video URL
+            const savedClips = localById[row.id]?.metricClips ?? [];
+            if (row.video_url && savedClips.length > 0) {
+              entry.clipUrls = savedClips.map(c => {
+                if (c.source === 'instant') {
+                  return { ...c, url: `${row.video_url}#t=${c.startSec ?? 0},${c.endSec ?? 0}` };
+                }
+                return c; // Shotstack CDN or blob key - handled elsewhere
+              }).filter(c => c.url);
+            }
             if (Object.keys(entry).length) urls[row.id] = entry;
           });
+
           urlsRef.current = urls;
           setProfilesRaw(metas);
           saveMeta(metas);

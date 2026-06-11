@@ -88,6 +88,8 @@ export function processHighlightsInstant(videoFiles, highlights) {
       clipIndex: h.clipIndex ?? 1,
       start,
       end,
+      startSec,
+      endSec,
       description: h.description ?? '',
       url: `${baseUrl}#t=${startSec},${endSec}`,
       source: 'instant',
