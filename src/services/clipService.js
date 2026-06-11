@@ -148,12 +148,9 @@ export async function compressVideoForUpload(file, onProgress) {
   return new File([blob], compressedName, { type: 'video/mp4' });
 }
 
-// -- Shotstack cloud API (primary) ---------------------------------------------
-const SS_KEY     = () => import.meta.env.VITE_SHOTSTACK_API_KEY;
-const SS_RENDER  = () => import.meta.env.VITE_SHOTSTACK_URL || 'https://api.shotstack.io/edit/stage/render';
-const SS_POLL    = () => SS_RENDER().replace(/\/render$/, '');
-const SS_SERVE   = () => SS_RENDER().replace('/edit/', '/serve/').replace('/render', '');
-// SS_SERVE => https://api.shotstack.io/serve/stage
+// -- Shotstack cloud API — routed through /api/shotstack/* (server.js) --------
+// API key lives server-side only; never exposed to the browser bundle.
+const SS_API = '/api/shotstack';
 
 /**
  * Submit a single render job to Shotstack.
@@ -163,15 +160,12 @@ const SS_SERVE   = () => SS_RENDER().replace('/edit/', '/serve/').replace('/rend
  * @returns {string} renderId
  */
 export async function submitShotstackRender(videoPublicUrl, start, end) {
-  const apiKey = SS_KEY();
-  if (!apiKey) throw new Error('VITE_SHOTSTACK_API_KEY not set');
-
   const startSec = parseToSeconds(start);
   const length   = Math.max(0.5, parseToSeconds(end) - startSec);
 
-  const res = await fetch(SS_RENDER(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+  const res = await fetch(`${SS_API}/render`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       timeline: {
         tracks: [{
@@ -201,30 +195,26 @@ export async function submitShotstackRender(videoPublicUrl, start, end) {
  * @returns {string} CDN URL of the rendered clip
  */
 export async function pollShotstackRender(renderId, onStatus) {
-  const apiKey  = SS_KEY();
-  const pollUrl = `${SS_POLL()}/render/${renderId}`;
-  const MAX = 50; // 50 × 4s = 200s max (renders typically take 60-90s)
+  const MAX = 50; // 50 × 4s = 200s max
 
   for (let i = 0; i < MAX; i++) {
     await new Promise(r => setTimeout(r, 4000));
-    const res = await fetch(pollUrl, { headers: { 'x-api-key': apiKey } });
+    const res = await fetch(`${SS_API}/poll/${renderId}`);
     if (!res.ok) throw new Error(`Shotstack poll failed: ${res.status}`);
     const data   = await res.json();
     const status = data.response?.status;
     onStatus?.(status);
     if (status === 'done') {
-      // Try Serve API for permanent CDN URL (cdn.shotstack.io)
+      // Try Serve API for permanent CDN URL
       try {
-        const serveRes = await fetch(`${SS_SERVE()}/assets/render/${renderId}`, {
-          headers: { 'x-api-key': apiKey },
-        });
+        const serveRes = await fetch(`${SS_API}/serve/${renderId}`);
         if (serveRes.ok) {
           const serveData = await serveRes.json();
           const asset = serveData.data?.find(a => a.attributes?.status === 'ready');
           if (asset?.attributes?.url) return asset.attributes.url;
         }
       } catch {/* fall through to temp URL */}
-      return data.response.url; // temporary S3 URL fallback
+      return data.response.url;
     }
     if (status === 'failed') throw new Error('Shotstack render failed');
   }
@@ -240,8 +230,6 @@ export async function pollShotstackRender(renderId, onStatus) {
  * @returns {Array<{metric, start, end, url, source:'shotstack', ...}>}
  */
 export async function processHighlightsShotstack(videoPublicUrls, highlights, onProgress) {
-  if (!SS_KEY()) throw new Error('No Shotstack API key');
-
   // 1. Submit all render jobs concurrently
   onProgress?.({ phase: 'submitting', total: highlights.length });
   const jobs = [];

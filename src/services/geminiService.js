@@ -1,14 +1,11 @@
 ﻿// geminiService.js
-// handles all the Gemini API calls, streaming, and fallback mock data
+// All Gemini API calls are routed through /api/gemini/* (server.js).
+// API keys live only on the server — they are never included in the browser bundle.
 
-import { GoogleGenAI } from '@google/genai';
 import { compressVideoForUpload } from './clipService.js';
 
-// try both keys in case one hits quota
-const API_KEYS = [
-  import.meta.env.VITE_GEMINI_API_KEY,
-  import.meta.env.VITE_GEMINI_API_KEY2,
-].filter(Boolean);
+// Kept only for the mock-fallback path (no API key configured on the server).
+const _API_KEY_REMOVED = true; // VITE_GEMINI_API_KEY env vars are intentionally unused client-side
 
 const API_KEY = API_KEYS[0]; // kept for mock-detection check below
 
@@ -105,34 +102,7 @@ Return ONLY a valid JSON object (no markdown, no explanation):
 }`.trim();
 }
 
-// file upload helpers
-async function uploadVideoFile(genai, file, onStream) {
-  // Tick a dot every 4s so the UI doesn't look frozen during large uploads
-  const heartbeat = setInterval(() => onStream?.(' .'), 4000);
-  try {
-    const uploaded = await genai.files.upload({
-      file,
-      config: { mimeType: file.type || 'video/mp4' },
-    });
-    return uploaded;
-  } finally {
-    clearInterval(heartbeat);
-  }
-}
-
-async function waitForFileActive(genai, fileUri, onStream, maxWaitMs = 300_000) {
-  const pollInterval = 3000;
-  const deadline = Date.now() + maxWaitMs;
-  while (Date.now() < deadline) {
-    const name = fileUri.split('/').pop();
-    const info = await genai.files.get({ name });
-    if (info.state === 'ACTIVE') return;
-    if (info.state === 'FAILED') throw new Error('Gemini file processing failed');
-    onStream?.(' .');
-    await new Promise(r => setTimeout(r, pollInterval));
-  }
-  throw new Error('Timed out waiting for file to become active');
-}
+// uploadVideoFile and waitForFileActive have been moved to server.js (proxy).
 
 async function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -143,10 +113,7 @@ async function fileToBase64(file) {
   });
 }
 
-// -- Main � streaming analysis -------------------------------------------------
-/**
- * main export - runs the full analysis pipeline
- */
+// ── Main export ───────────────────────────────────────────────────────────────
 export async function analyzePlayer(
   playerDetails,
   videoFiles  = [],
@@ -154,147 +121,135 @@ export async function analyzePlayer(
   headshotFile = null,
   onStream    = null,
 ) {
-  if (!API_KEY) {
-    // Simulate streaming with mock
-    return new Promise(resolve => {
-      const mock = buildMockResponse(playerDetails);
-      const txt  = JSON.stringify(mock, null, 2);
-      let i = 0;
-      const tick = () => {
-        if (i < txt.length) {
-          onStream?.(txt.slice(i, i + 8));
-          i += 8;
-          setTimeout(tick, 18);
-        } else {
-          resolve(mock);
-        }
-      };
-      tick();
-    });
+  try {
+    return await runAnalysis(playerDetails, videoFiles, headshotFile, onStream);
+  } catch (err) {
+    console.warn('[geminiService] falling back to mock:', err.message);
+    return buildMockResponse(playerDetails);
   }
-
-  // Try each available API key - useful when keys are from different accounts
-  let lastErr;
-  for (let keyIdx = 0; keyIdx < API_KEYS.length; keyIdx++) {
-    const key = API_KEYS[keyIdx];
-    if (keyIdx > 0) onStream?.(`\n[Switching to backup API key...]`);
-    try {
-      return await runAnalysis(key, playerDetails, videoFiles, headshotFile, onStream);
-    } catch (err) {
-      const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED');
-      const is503 = err?.status === 503 || err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE');
-      if ((is429 || is503) && keyIdx < API_KEYS.length - 1) {
-        onStream?.(`\n[Key ${keyIdx + 1} quota exhausted - trying next key...]`);
-        lastErr = err;
-        continue;
-      }
-      lastErr = err;
-      break;
-    }
-  }
-  console.warn('[geminiService] error:', lastErr?.message);
-  return buildMockResponse(playerDetails);
 }
 
-async function runAnalysis(apiKey, playerDetails, videoFiles, headshotFile, onStream) {
-    const genai = new GoogleGenAI({ apiKey });
-    const parts = [];
+// ── Proxy-based analysis pipeline ─────────────────────────────────────────
+async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
+  const parts = [];
 
-    // 1. Reference photo - sent first so Gemini knows who to track
-    if (headshotFile) {
-      const b64 = await fileToBase64(headshotFile);
-      parts.push({ inlineData: { mimeType: headshotFile.type || 'image/jpeg', data: b64 } });
-      parts.push({ text: `This is the reference photo of the player to analyze. Use it to identify and track this specific individual in the footage. Analyze ONLY this player.\n\n${buildPrompt(playerDetails, videoFiles.length)}` });
-    } else {
-      parts.push({ text: buildPrompt(playerDetails, videoFiles.length) });
-    }
+  // 1. Reference photo
+  if (headshotFile) {
+    const b64 = await fileToBase64(headshotFile);
+    parts.push({ inlineData: { mimeType: headshotFile.type || 'image/jpeg', data: b64 } });
+    parts.push({ text: `This is the reference photo of the player to analyze. Use it to identify and track this specific individual in the footage. Analyze ONLY this player.\n\n${buildPrompt(playerDetails, videoFiles.length)}` });
+  } else {
+    parts.push({ text: buildPrompt(playerDetails, videoFiles.length) });
+  }
 
-    // 2. Compress large files then upload
-    const COMPRESS_MB = 60;
-    const INLINE_MB   = 15; // files ≤ 15 MB go inline (no Files API, no upload endpoint)
-    for (let i = 0; i < videoFiles.length; i++) {
-      let file = videoFiles[i];
-      const sizeMB = file.size / 1_048_576;
+  // 2. Process video files
+  const COMPRESS_MB = 60;
+  const INLINE_MB   = 15;
+  for (let i = 0; i < videoFiles.length; i++) {
+    let file = videoFiles[i];
+    const sizeMB = file.size / 1_048_576;
 
-      if (sizeMB > COMPRESS_MB) {
-        onStream?.(`
-Optimising video...`);
-        try {
-          file = await compressVideoForUpload(file, msg => onStream?.(`\n  ${msg}`));
-          onStream?.(`
-Optimisation complete`);
-        } catch (e) {
-          onStream?.(`
-Continuing...`);
-        }
-      }
-
-      const finalMB = file.size / 1_048_576;
-      if (finalMB <= INLINE_MB) {
-        onStream?.(`
-Scanning footage...`);
-        const b64 = await fileToBase64(file);
-        parts.push({ text: `--- Video Clip ${i + 1}: ${videoFiles[i].name} ---` });
-        parts.push({ inlineData: { mimeType: file.type || 'video/mp4', data: b64 } });
-        onStream?.(`
-Running analysis...`);
-      } else {
-        onStream?.(`
-Uploading video...`);
-        const uploaded = await uploadVideoFile(genai, file, onStream);
-        onStream?.(`
-Running analysis...`);
-        await waitForFileActive(genai, uploaded.uri, onStream);
-        onStream?.(`
-Running analysis...`);
-        parts.push({ text: `--- Video Clip ${i + 1}: ${videoFiles[i].name} ---` });
-        parts.push({ fileData: { fileUri: uploaded.uri, mimeType: uploaded.mimeType } });
-      }
-    }
-
-    // 3. Stream the response - retry up to 4x on 503 overload
-    // NOTE: 503s fire during stream consumption, so the whole call+consume must be inside the retry loop
-    let accumulated = '';
-    for (let attempt = 1; attempt <= 4; attempt++) {
+    if (sizeMB > COMPRESS_MB) {
+      onStream?.('\nOptimising video...');
       try {
-        accumulated = '';
-        const stream = genai.models.generateContentStream({
-          model:    'gemini-2.5-flash',
-          contents: [{ role: 'user', parts }],
-          config:   { temperature: 0.3, maxOutputTokens: 8192 },
-        });
-        for await (const chunk of await stream) {
-          const token = chunk.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-          if (token) {
-            accumulated += token;
-            onStream?.(token);
-          }
-        }
-        break; // success - exit retry loop
+        file = await compressVideoForUpload(file, msg => onStream?.(`\n  ${msg}`));
+        onStream?.('\nOptimisation complete');
       } catch (e) {
-        const retryable = e?.status === 503 || String(e?.message).includes('503') || String(e?.message).includes('UNAVAILABLE');
-        if (retryable && attempt < 4) {
-          const wait = attempt * 8000;
-          onStream?.(`\nHigh demand - retrying in ${wait / 1000}s...`);
-          await new Promise(r => setTimeout(r, wait));
-        } else { throw e; }
+        onStream?.('\nContinuing...');
       }
     }
 
-    // Strip markdown fences, then extract the first complete JSON object
-    const stripped = accumulated.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
-    const start = stripped.indexOf('{');
-    const end   = stripped.lastIndexOf('}');
-    if (start === -1 || end === -1 || end <= start) {
-      console.warn('[geminiService] No JSON object found in response');
-      return buildMockResponse(playerDetails);
+    const finalMB = file.size / 1_048_576;
+    parts.push({ text: `--- Video Clip ${i + 1}: ${videoFiles[i].name} ---` });
+
+    if (finalMB <= INLINE_MB) {
+      // Small file: base64 inline (no Files API round-trip needed)
+      onStream?.('\nScanning footage...');
+      const b64 = await fileToBase64(file);
+      parts.push({ inlineData: { mimeType: file.type || 'video/mp4', data: b64 } });
+      onStream?.('\nRunning analysis...');
+    } else {
+      // Large file: upload to Gemini Files API via server proxy
+      onStream?.('\nUploading video...');
+      const { uri, mimeType } = await uploadViaProxy(file, onStream);
+      onStream?.('\nRunning analysis...');
+      parts.push({ fileData: { fileUri: uri, mimeType } });
     }
-    let parsed;
-    try {
-      parsed = JSON.parse(stripped.slice(start, end + 1));
-    } catch (e) {
-      console.warn('[geminiService] JSON parse error:', e.message);
-      return buildMockResponse(playerDetails);
+  }
+
+  // 3. Stream analysis from server via SSE
+  return await streamViaProxy(parts, playerDetails, onStream);
+}
+
+// Upload a large video through the server proxy to Gemini Files API.
+async function uploadViaProxy(file, onStream) {
+  const formData = new FormData();
+  formData.append('video', file);
+  const heartbeat = setInterval(() => onStream?.(' .'), 4000);
+  try {
+    const res = await fetch('/api/gemini/upload', { method: 'POST', body: formData });
+    if (!res.ok) {
+      const msg = await res.text().catch(() => String(res.status));
+      throw new Error(`Gemini upload failed (${res.status}): ${msg}`);
     }
+    return await res.json(); // { uri, mimeType }
+  } finally {
+    clearInterval(heartbeat);
+  }
+}
+
+// Open an SSE connection to the server and stream Gemini tokens back to the UI.
+async function streamViaProxy(parts, playerDetails, onStream) {
+  const res = await fetch('/api/gemini/stream', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ parts }),
+  });
+  if (!res.ok) throw new Error(`Gemini stream request failed: ${res.status}`);
+
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let accumulated = '';
+  let buffer      = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); // keep any incomplete line
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+
+      if (payload === '[DONE]') break;
+      if (payload === '[MOCK]') return buildMockResponse(playerDetails);
+      if (!payload)            continue;
+
+      try {
+        const { t, error } = JSON.parse(payload);
+        if (error) throw new Error(error);
+        if (t) { accumulated += t; onStream?.(t); }
+      } catch (e) {
+        // Skip malformed SSE lines
+      }
+    }
+  }
+
+  // Parse accumulated JSON response
+  const stripped = accumulated.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  const start    = stripped.indexOf('{');
+  const end      = stripped.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) {
+    console.warn('[geminiService] No JSON in response, using mock');
+    return buildMockResponse(playerDetails);
+  }
+  try {
+    const parsed = JSON.parse(stripped.slice(start, end + 1));
     return { ...parsed, _isMock: false };
+  } catch (e) {
+    console.warn('[geminiService] JSON parse error:', e.message);
+    return buildMockResponse(playerDetails);
+  }
 }

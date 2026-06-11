@@ -1,97 +1,11 @@
 ﻿import { useState, useRef, useCallback, useEffect } from 'react';
 import { analyzePlayer } from '../services/geminiService.js';
 import { processHighlightsInstant, processHighlightsShotstack } from '../services/clipService.js';
-
-// live telemetry readout used in the clip HUD
-function PortalTelemetry({ metric }) {
-  const [tel, setTel] = useState({ fps: '24.0', x: '0512', y: '0288', ms: '12.4', lock: 97 });
-  useEffect(() => {
-    const id = setInterval(() => {
-      setTel({
-        fps:  (23.0 + Math.random() * 7).toFixed(1),
-        x:    String(Math.floor(480 + Math.random() * 560)).padStart(4, '0'),
-        y:    String(Math.floor(200 + Math.random() * 480)).padStart(4, '0'),
-        ms:   (6.2 + Math.random() * 9.8).toFixed(1),
-        lock: Math.floor(93 + Math.random() * 7),
-      });
-    }, 140);
-    return () => clearInterval(id);
-  }, []);
-  const G = 'rgba(170,175,190,0.60)';
-  return (
-    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, pointerEvents: 'none',
-      background: 'rgba(7,8,10,0.72)', borderTop: '1px solid rgba(255,255,255,0.07)',
-      padding: '3px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      {[['FPS', tel.fps], ['X', tel.x], ['Y', tel.y], ['PROC', `${tel.ms}ms`], ['LOCK', `${tel.lock}%`]].map(([l, v]) => (
-        <span key={l} style={{ fontSize: '0.54rem', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
-          <span style={{ color: 'rgba(160,165,180,0.50)' }}>{l} </span>
-          <span style={{ color: 'rgba(220,225,235,0.75)' }}>{v}</span>
-        </span>
-      ))}
-      {metric && <span style={{ fontSize: '0.50rem', fontFamily: 'monospace', color: 'rgba(170,175,190,0.30)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{metric}</span>}
-    </div>
-  );
-}
-
-const SYNC_CFG = {
-  idle:      { color: '#4a5568', label: '' },
-  saving:    { color: '#c9a84c', label: 'Saving...' },
-  uploading: { color: '#c9a84c', label: 'Uploading...' },
-  done:      { color: '#3ecf70', label: 'Synced' },
-  error:     { color: '#c94f4f', label: 'Sync failed' },
-};
-
-function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo, uploadPct }) {
-  const s = streamOutput || '';
-  let stepIndex = 0;
-  if (s.includes('Uploading video'))  stepIndex = 0;
-  else if (s.includes('Scanning') || s.includes('Optimis')) stepIndex = 1;
-  else if (s.includes('Running analysis') || s.includes('{')) stepIndex = 2;
-  const hasUpload = s.includes('Uploading video');
-  const isRetrying = s.includes('retrying');
-  const isDone = !analyzing && s.length > 5;
-  const allSteps = [
-    { key: 'upload',  label: 'Uploading footage', icon: '↑' },
-    { key: 'scan',    label: 'Reading footage',    icon: '◉' },
-    { key: 'analyse', label: 'Analysing player',   icon: '✦' },
-    { key: 'done',    label: 'Complete',           icon: '✓' },
-  ];
-  const steps = hasUpload ? allSteps : allSteps.slice(1);
-  const activeIdx = hasUpload ? stepIndex : Math.max(0, stepIndex - 1);
-  const displayLabel = isDone ? 'Complete' : isRetrying ? 'High demand, retrying...' : (steps[activeIdx]?.label ?? 'Analysing player');
-  const displayIcon  = isDone ? '✓' : steps[activeIdx]?.icon ?? '✦';
-  return (
-    <div style={{ marginTop: 16, background: '#131920', border: '1px solid #1e2735', borderRadius: 12, padding: '28px 24px', textAlign: 'center' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-        <div style={{ position: 'relative', width: 64, height: 64 }}>
-          <svg width="64" height="64" style={{ position: 'absolute', top: 0, left: 0, animation: analyzing ? 'spinSlow 1.4s linear infinite' : 'none' }}>
-            <circle cx="32" cy="32" r="28" fill="none" stroke="#1e2735" strokeWidth="3" />
-            <circle cx="32" cy="32" r="28" fill="none" stroke="#3ecf70" strokeWidth="3"
-              strokeDasharray={analyzing ? '44 132' : '176 0'} strokeDashoffset="44" strokeLinecap="round"
-              style={{ transition: 'stroke-dasharray 0.6s ease' }} />
-          </svg>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>{displayIcon}</div>
-        </div>
-      </div>
-      <div className="font-syne" style={{ fontWeight: 700, fontSize: '1.05rem', color: '#f0f1f3', marginBottom: 6 }}>{displayLabel}</div>
-      {uploadInfo && (
-        <div style={{ margin: '12px auto 0', maxWidth: 240 }}>
-          <div style={{ height: 3, background: '#2a2d38', borderRadius: 99, overflow: 'hidden' }}>
-            <div style={{ height: '100%', background: '#3ecf70', borderRadius: 99, width: `${uploadPct * 100}%`, transition: 'width 0.5s ease' }} />
-          </div>
-          <div style={{ fontSize: '0.70rem', color: '#50535f', marginTop: 5 }}>
-            {uploadPct < 0.93 ? `${Math.round(uploadPct * 100)}% (~${Math.round(Math.max(0, (uploadInfo.totalMB / 0.6) - (Date.now() - uploadInfo.startMs) / 1000))}s left)` : 'Finalising...'}
-          </div>
-        </div>
-      )}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
-        {steps.map((st, i) => (
-          <div key={i} style={{ width: i === activeIdx ? 20 : 6, height: 6, borderRadius: 99, background: i <= activeIdx ? '#3ecf70' : '#2a2d38', transition: 'all 0.4s ease', opacity: i > activeIdx ? 0.4 : 1 }} />
-        ))}
-      </div>
-    </div>
-  );
-}
+import { validateHeadshotFile, validateVideoFile, validatePlayerForm } from '../services/validate.js';
+import PortalTelemetry    from './uploader/PortalTelemetry.jsx';
+import AnalysisStatusCard from './uploader/AnalysisStatusCard.jsx';
+import { SyncBadge, ShotstackBadge } from './uploader/StatusBadges.jsx';
+import { Label, Field, InfoCard }    from './uploader/FormAtoms.jsx';
 
 export default function UploaderPortal({
   onAnalysisComplete, onSaveProfile, onGoToScout,
@@ -126,13 +40,18 @@ export default function UploaderPortal({
   const handleHeadshot = e => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const err = validateHeadshotFile(file);
+    if (err) { setError(err); return; }
     setHeadshot(file);
     setHeadshotPreview(URL.createObjectURL(file));
   };
 
   const addVideoFile = e => {
     const file = e.target.files?.[0];
-    if (file) setVideoFiles(prev => [...prev, file]);
+    if (!file) return;
+    const err = validateVideoFile(file);
+    if (err) { setError(err); e.target.value = ''; return; }
+    setVideoFiles(prev => [...prev, file]);
     e.target.value = '';
   };
 
@@ -198,7 +117,8 @@ export default function UploaderPortal({
   };
 
   async function handleAnalyze() {
-    if (!form.name.trim()) { setError('Player name is required.'); return; }
+    const formErrors = validatePlayerForm(form);
+    if (formErrors.length > 0) { setError(formErrors[0]); return; }
     setError(''); setResult(null); setStreamOutput(''); setMetricClips([]);
     setCuttingProgress(null); setPhase('analyzing');
 
@@ -486,7 +406,7 @@ export default function UploaderPortal({
                 style={{ border: '1px dashed #28384d', borderRadius: 3, padding: '20px', textAlign: 'center', cursor: 'pointer', background: '#0d1117' }}
                 onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#334257'; }}
                 onDragLeave={e => { e.currentTarget.style.borderColor = '#28384d'; }}
-                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#28384d'; const f = e.dataTransfer.files?.[0]; if (f?.type.startsWith('video/')) setVideoFiles(prev => [...prev, f]); }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#28384d'; const f = e.dataTransfer.files?.[0]; if (!f) return; const err = validateVideoFile(f); if (err) { setError(err); return; } setVideoFiles(prev => [...prev, f]); }}
               >
                 <div style={{ color: '#4a5568', fontSize: '0.84rem', marginBottom: 3 }}>{videoFiles.length > 0 ? '+ Add another clip' : 'Drop video or click to browse'}</div>
                 <div style={{ color: '#28384d', fontSize: '0.72rem' }}>MP4, MOV, AVI — auto-cut by AI timestamps after analysis</div>
@@ -667,51 +587,4 @@ export default function UploaderPortal({
   );
 }
 
-function Label({ children }) {
-  return <div style={{ fontSize: '0.66rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#4a5568' }}>{children}</div>;
-}
-function Field({ label, children }) {
-  return (
-    <div>
-      <label style={{ display: 'block', fontSize: '0.75rem', color: '#7e8fa3', marginBottom: 5 }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-function InfoCard({ label, value, accent }) {
-  return (
-    <div style={{ background: '#131920', border: accent ? '1px solid rgba(0,200,83,0.20)' : '1px solid #1e2735', borderRadius: 3, padding: '12px 14px' }}>
-      <div style={{ fontSize: '0.64rem', letterSpacing: '0.10em', textTransform: 'uppercase', color: '#4a5568', marginBottom: 5 }}>{label}</div>
-      <div style={{ fontSize: '0.86rem', color: accent ? '#00c853' : '#dde3ec', lineHeight: 1.5 }}>{value ?? '—'}</div>
-    </div>
-  );
-}
-function SyncBadge({ status }) {
-  const cfg = SYNC_CFG[status] ?? SYNC_CFG.idle;
-  if (status === 'idle') return null;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', color: cfg.color, background: '#131920', border: '1px solid #1e2735', borderRadius: 2, padding: '4px 9px', flexShrink: 0 }}>
-      <span style={{ width: 5, height: 5, borderRadius: '50%', background: cfg.color, display: 'inline-block' }} />
-      {cfg.label}
-    </div>
-  );
-}
-
-function ShotstackBadge({ status, done, total }) {
-  const map = {
-    submitting: { color: '#c9a84c', label: `Rendering ${total} clips...` },
-    rendering:  { color: '#c9a84c', label: `Rendering ${done}/${total}...` },
-    done:       { color: '#00c853', label: `${done} clips ready` },
-    failed:     { color: '#c94f4f', label: 'Clip render failed, local clips kept' },
-  };
-  const cfg = map[status];
-  if (!cfg) return null;
-  return (
-    <span style={{ marginLeft: 10, fontSize: '0.72rem', color: cfg.color, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-      {(status === 'submitting' || status === 'rendering') && (
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.color, display: 'inline-block', animation: 'pulse 1.2s ease-in-out infinite' }} />
-      )}
-      {cfg.label}
-    </span>
-  );
-}
+// Label, Field, InfoCard, SyncBadge, ShotstackBadge are imported from ./uploader/

@@ -12,4 +12,10 @@ export default defineConfig({
       external: [],
     },
   },
+  server: {
+    // Proxy /api/* to the Express server — API keys never reach the browser bundle
+    proxy: {
+      '/api': 'http://localhost:3001',
+    },
+  },
 });
