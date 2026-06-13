@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { analyzePlayer } from '../services/geminiService.js';
-import { processHighlightsInstant, processHighlightsShotstack } from '../services/clipService.js';
+import { processHighlightsInstant, processHighlightsShotstack, loadFFmpeg } from '../services/clipService.js';
 import { validateHeadshotFile, validateVideoFile, validatePlayerForm } from '../services/validate.js';
 import PortalTelemetry    from './uploader/PortalTelemetry.jsx';
 import AnalysisStatusCard from './uploader/AnalysisStatusCard.jsx';
@@ -38,6 +38,11 @@ export default function UploaderPortal({
   const headshotRef  = useRef(null);
   const videoRef     = useRef(null);
   const streamBoxRef = useRef(null);
+
+  // Preload FFmpeg WASM as soon as the uploader mounts so it's ready before the user hits Analyze
+  useEffect(() => {
+    loadFFmpeg().catch(err => console.warn('[UploaderPortal] FFmpeg preload failed:', err.message));
+  }, []);
 
   const handleForm = useCallback(e => setForm(f => ({ ...f, [e.target.name]: e.target.value })), []);
 

@@ -189,7 +189,7 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
             onStream?.(`\n  ${msg}`);
           }),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('COMPRESS_TIMEOUT')), 90_000)
+            setTimeout(() => reject(new Error('COMPRESS_TIMEOUT')), 3 * 60_000) // 3 min — WASM load alone can take 60-90s on slow networks
           ),
         ]);
         console.timeEnd('[gemini] compression');
