@@ -117,20 +117,17 @@ export function processHighlightsInstant(videoFiles, highlights) {
  *  @returns {Promise<File>} compressed File
  */
 export async function compressVideoForUpload(file, onProgress) {
-  // Use the shared singleton — loading 30MB of WASM on every call takes 1-3 minutes.
-  // If the singleton is in a bad state we reset it and reload once.
   await loadFFmpeg();
   const inName  = 'cmp_in.mp4';
   const outName = 'cmp_out.mp4';
 
-  // Clean up any leftover files from a previous crashed run
+  // Clean up any leftovers from a previous crashed run
   await ffmpeg.deleteFile(inName).catch(() => {});
   await ffmpeg.deleteFile(outName).catch(() => {});
 
   onProgress?.('Writing to memory...');
   await ffmpeg.writeFile(inName, await fetchFile(file));
 
-  // Stream live FFmpeg log lines so the UI shows activity
   const onLog = ({ message }) => {
     if (!message) return;
     const frameMatch = message.match(/frame=\s*(\d+).*fps=\s*([\d.]+)/);
@@ -142,42 +139,45 @@ export async function compressVideoForUpload(file, onProgress) {
   };
   ffmpeg.on('log', onLog);
 
-  // 4-minute hard timeout — if FFmpeg hangs, terminate the worker and reset
-  let timedOut = false;
-  const timeoutId = setTimeout(() => {
-    timedOut = true;
-    try { ffmpeg.terminate(); } catch { /* ignore */ }
-    ffmpegLoaded = false;
-    ffmpeg = null;
-  }, 4 * 60 * 1000);
+  // Promise.race guarantees the timeout resolves even if ffmpeg.terminate()
+  // doesn't cause exec() to reject (known @ffmpeg/ffmpeg v0.12 behaviour).
+  const execPromise = ffmpeg.exec([
+    '-i', inName,
+    '-t', '60',                    // 60 s max — more than enough for analysis
+    '-vf', 'fps=12,scale=-2:144',  // 144p @ 12fps: very fast to encode, fine for AI vision
+    '-c:v', 'libx264',
+    '-crf', '45',
+    '-preset', 'ultrafast',
+    '-an',
+    '-movflags', '+faststart',
+    outName,
+  ]);
+
+  const TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('TIMEOUT')), TIMEOUT_MS)
+  );
 
   let execError = null;
   try {
-    await ffmpeg.exec([
-      '-i', inName,
-      '-t', '90',                // cap at 90 s — Gemini needs no more for analysis
-      '-vf', 'scale=-2:240',     // 240p: fine for AI visual analysis; keeps size well under 2.2 MB
-      '-c:v', 'libx264',
-      '-crf', '42',              // aggressive but sufficient for Gemini vision analysis
-      '-preset', 'ultrafast',
-      '-an',                     // no audio — not needed for football analysis
-      '-movflags', '+faststart',
-      outName,
-    ]);
+    await Promise.race([execPromise, timeoutPromise]);
   } catch (err) {
     execError = err;
+    if (err.message === 'TIMEOUT') {
+      try { ffmpeg.terminate(); } catch { /* ignore */ }
+      ffmpegLoaded = false;
+      ffmpeg = null;
+    }
   } finally {
-    clearTimeout(timeoutId);
     if (ffmpeg) ffmpeg.off('log', onLog);
   }
 
-  if (timedOut) {
-    throw new Error('Compression timed out. Try a shorter clip.');
+  if (execError?.message === 'TIMEOUT') {
+    throw new Error('Compression timed out (2 min). Please trim your video to under 2 minutes before uploading.');
   }
 
-  // Always try to read the output — exec may have written a valid file even on non-zero exit
   let data = null;
-  try { if (ffmpeg) data = await ffmpeg.readFile(outName); } catch { /* no output written */ }
+  try { if (ffmpeg) data = await ffmpeg.readFile(outName); } catch { /* no output */ }
 
   if (ffmpeg) {
     await ffmpeg.deleteFile(inName).catch(() => {});
@@ -185,7 +185,6 @@ export async function compressVideoForUpload(file, onProgress) {
   }
 
   if (!data || data.byteLength < 1024) {
-    // Reset singleton so next call gets a clean instance
     ffmpegLoaded = false;
     ffmpeg = null;
     throw execError ?? new Error('FFmpeg produced no output');
