@@ -3,77 +3,84 @@
  */
 import useBreakpoint from '../hooks/useBreakpoint.js';
 
-const NAV_LABELS = { uploader: 'Upload', scouter: 'Intelligence' };
-
-export default function Navigation({ view, setView, savedCount, cachedCount = 0, profileCount = 10 }) {
-  const { isMobile } = useBreakpoint();
+export default function Navigation({ view, setView, savedCount, cachedCount = 0 }) {
+  const { isMobile, isTablet } = useBreakpoint();
   return (
     <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
+      position: 'fixed', top: 6, left: 0, right: 0, zIndex: 300,
       height: 44,
-      background: '#070D08',
-      borderBottom: '1px solid #253328',
+      background: '#0d0d0f',
+      borderBottom: '1px solid #222225',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: isMobile ? '0 14px' : '0 24px',
-      gap: 16,
     }}>
-
-      {/* Left: logo breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
-        <span className="font-display" style={{ fontSize: '0.95rem', color: '#E8E4DC', letterSpacing: '0.02em' }}>
-          SCOUT<span style={{ color: '#B8874A' }}>AI</span>
-        </span>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <img
+          src="/assets/ScoutAI-logo.png"
+          alt="Scout AI"
+          style={{ height: 28, width: 'auto', objectFit: 'contain', display: 'block' }}
+        />
         {!isMobile && (
-          <>
-            <span style={{ margin: '0 10px', color: '#4A5E4D', fontSize: '0.75rem' }}>›</span>
-            <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.72rem', color: '#E8E4DC', letterSpacing: '0.01em' }}>
-              {NAV_LABELS[view] ?? 'Intelligence'}
-            </span>
-          </>
+          <span style={{
+            marginLeft: 10, fontSize: '0.68rem', color: '#4a5568',
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+            borderLeft: '1px solid #2e3040', paddingLeft: 10,
+          }}>African Talent Discovery</span>
         )}
       </div>
 
-      {/* Center: text tabs */}
-      <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', gap: 0, flexShrink: 0 }}>
-        {[
-          { id: 'uploader', label: 'UPLOAD' },
-          { id: 'scouter',  label: 'INTELLIGENCE' },
-        ].map((tab, i) => {
-          const active = view === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setView(tab.id)}
-              style={{
-                padding: '0 18px', background: 'none', border: 'none',
-                borderBottom: `2px solid ${active ? '#B8874A' : 'transparent'}`,
-                borderLeft: i > 0 ? '1px solid #253328' : 'none',
-                color: active ? '#E8E4DC' : '#7A8E7D',
-                cursor: 'pointer', fontFamily: 'IBM Plex Mono, monospace',
-                fontSize: '0.70rem', letterSpacing: '0.08em',
-                transition: 'color 0.15s ease, border-color 0.15s ease',
-                outline: 'none',
-              }}
-              onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#E8E4DC'; }}
-              onMouseLeave={e => { if (!active) e.currentTarget.style.color = '#7A8E7D'; }}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Role toggle */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        background: '#1a1a1c', border: '1px solid #252527', borderRadius: 8, padding: 3,
+      }}>
+        <RoleTab label={isMobile ? 'Upload' : 'Uploader Portal'}    sub={isMobile ? null : 'Coaches & Players'} icon="+" active={view === 'uploader'} onClick={() => setView('uploader')} compact={isMobile} />
+        <RoleTab label={isMobile ? 'Scout'  : 'Scout Intelligence'} sub={isMobile ? null : 'Discover Talent'}   icon="#" active={view === 'scouter'}  onClick={() => setView('scouter')}  compact={isMobile} />
       </div>
 
-      {/* Right: plain text stats */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-        {!isMobile && (
-          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.68rem', color: '#4A5E4D', letterSpacing: '0.06em' }}>
-            {profileCount} PROFILES{cachedCount > 0 ? ` · ${cachedCount} CACHED` : ''}{savedCount > 0 ? ` · ${savedCount} SAVED` : ''}
-          </span>
-        )}
-        {isMobile && savedCount > 0 && (
-          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.68rem', color: '#4A5E4D' }}>{savedCount}</span>
-        )}
-      </div>
+      {/* Status — hidden on mobile */}
+      {!isMobile && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Stat label="10 profiles" dot="#3ecf70" />
+          {cachedCount > 0 && <Stat label={`${cachedCount} cached`} dot="#d4a850" />}
+          {savedCount  > 0 && <Stat label={`${savedCount} shortlisted`} dot="#6b8af5" />}
+        </div>
+      )}
+      {isMobile && savedCount > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.70rem', color: '#6b8af5' }}>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#6b8af5', display: 'inline-block' }} />
+          {savedCount}
+        </div>
+      )}
     </nav>
+  );
+}
+
+function RoleTab({ label, sub, icon, active, onClick, compact = false }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: compact ? '7px 12px' : '7px 16px', borderRadius: 3,
+      border: `1px solid ${active ? '#3a3f54' : 'transparent'}`,
+      background: active ? '#1e1e21' : 'transparent',
+      color: active ? '#f0f1f3' : '#50535f',
+      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: compact ? 5 : 8,
+      transition: 'all 0.12s',
+    }}>
+      <span style={{ fontSize: '0.72rem', color: active ? '#3ecf70' : '#50535f' }}>{icon}</span>
+      <div>
+        <div className="font-syne" style={{ fontSize: compact ? '0.70rem' : '0.73rem', fontWeight: 700, lineHeight: 1.1 }}>{label}</div>
+        {sub && <div style={{ fontSize: '0.60rem', color: '#50535f', marginTop: 1 }}>{sub}</div>}
+      </div>
+    </button>
+  );
+}
+
+function Stat({ label, dot }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: '#8c909f' }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: dot, display: 'inline-block' }} />
+      {label}
+    </div>
   );
 }

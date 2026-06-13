@@ -352,10 +352,10 @@ export default function UploaderPortal({
                       {urls.headshotUrl ? <img src={urls.headshotUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : (meta.name?.slice(0, 2).toUpperCase() || '--')}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isEditing ? '#B8874A' : '#E8E4DC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.name || 'Unnamed'}</div>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isEditing ? '#3ecf70' : '#f0f1f3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.name || 'Unnamed'}</div>
                       <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>
                         {isMobile ? (meta.position || '') : (
-                          <>{clipCount > 0 && <span style={{ color: '#B8874A', marginRight: 6 }}>✦ {clipCount} clips</span>}{meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}</>
+                          <>{clipCount > 0 && <span style={{ color: '#3ecf70', marginRight: 6 }}>? {clipCount} clips</span>}{meta.createdAt ? new Date(meta.createdAt).toLocaleDateString() : ''}</>
                         )}
                       </div>
                     </div>
@@ -363,7 +363,7 @@ export default function UploaderPortal({
                     {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '�'}</div>}
                     {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '�'}</div>}
                     <div style={{ display: 'flex', gap: 5, justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
-                      <button onClick={e => { e.stopPropagation(); isEditing ? clearEdit() : loadProfile(meta); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 2, border: isEditing ? '1px solid rgba(184,135,74,0.30)' : '1px solid #253328', background: '#0F1A10', color: isEditing ? '#B8874A' : '#7A8E7D', cursor: 'pointer' }}>
+                      <button onClick={e => { e.stopPropagation(); isEditing ? clearEdit() : loadProfile(meta); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 5, border: isEditing ? '1px solid rgba(62,207,112,0.30)' : '1px solid #3a3f54', background: '#1d1f27', color: isEditing ? '#3ecf70' : '#8c909f', cursor: 'pointer' }}>
                         {isEditing ? 'Cancel' : 'Edit'}
                       </button>
                       {!isMobile && <button onClick={e => { e.stopPropagation(); if (editingId === meta.id) clearEdit(); onRemoveProfile?.(meta.id); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 2, border: '1px solid #222225', background: '#0d0d0f', color: '#c94f4f', cursor: 'pointer' }}>Del</button>}
@@ -535,7 +535,7 @@ export default function UploaderPortal({
         {phase === 'idle' && !result && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {editingId && (
-              <button className="btn-primary" onClick={handleSaveChanges} disabled={syncStatus === 'saving'} style={{ width: '100%', fontSize: '0.85rem', padding: '12px 20px', background: 'transparent', border: '1px solid rgba(184,135,74,0.4)', color: '#B8874A' }}>
+              <button className="btn-primary" onClick={handleSaveChanges} disabled={syncStatus === 'saving'} style={{ width: '100%', fontSize: '0.92rem', padding: '12px 20px', background: 'transparent', border: '1px solid rgba(62,207,112,0.4)', color: '#3ecf70' }}>
                 {syncStatus === 'saving' ? 'Saving...' : syncStatus === 'done' ? 'Saved ?' : 'Save Changes'}
               </button>
             )}

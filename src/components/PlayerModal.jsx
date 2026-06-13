@@ -105,7 +105,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }} />
                   <div style={{ display: 'none', position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', fontSize: '0.80rem', fontWeight: 700, color: THEME.colors.textMuted }}>{initials(player.name)}</div>
                 </div>
-                <div className="font-display" style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: '1.05rem', color: THEME.colors.textMain, letterSpacing: '0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="font-syne" style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: '1.05rem', color: THEME.colors.textMain, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {player.name}
                 </div>
                 <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: THEME.radius.element, border: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, color: THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
@@ -120,14 +120,14 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                   <span style={{ fontSize: '0.78rem', color: THEME.colors.textMuted }}>{player.age} yrs</span>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <span className="font-display" style={{ fontWeight: 700, fontSize: '1.9rem', lineHeight: 1, color: THEME.colors.textMain, letterSpacing: '0.02em' }}>{overall}</span>
+                  <span className="font-syne" style={{ fontWeight: 800, fontSize: '1.9rem', lineHeight: 1, color: oColor, letterSpacing: '-0.03em' }}>{overall}</span>
                   <div style={{ fontSize: '0.60rem', color: THEME.colors.textDark, marginTop: 1 }}>{player.aiMatch}% match</div>
                 </div>
               </div>
 
               {/* Row 3: action buttons */}
               <div style={{ padding: '0 14px 12px', display: 'flex', gap: 8 }}>
-                <button onClick={() => onSaveToggle(player.id)} style={{ flex: 1, height: 32, borderRadius: THEME.radius.element, border: `1px solid ${isSaved ? THEME.colors.accentHigh : THEME.colors.borderDim}`, background: isSaved ? '#1E1610' : THEME.colors.surfaceAlt, color: isSaved ? THEME.colors.accentHigh : THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                <button onClick={() => onSaveToggle(player.id)} style={{ flex: 1, height: 32, borderRadius: THEME.radius.element, border: `1px solid ${isSaved ? THEME.colors.accentHigh : THEME.colors.borderDim}`, background: isSaved ? 'rgba(62,207,112,0.06)' : THEME.colors.surfaceAlt, color: isSaved ? THEME.colors.accentHigh : THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                   <span style={{ fontSize: '0.85rem' }}>{isSaved ? '★' : '☆'}</span> {isSaved ? 'Shortlisted' : 'Shortlist'}
                 </button>
                 {onWatchlistToggle && (
@@ -138,12 +138,15 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 )}
               </div>
 
-              {/* Row 4: comparable pros — plain text */}
+              {/* Row 4: comparable pros scroll strip */}
               {((player.comparablePros ?? player.analysis?.comparablePros)?.length > 0) && (
-                <div style={{ padding: '0 14px 12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-                  <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.62rem', color: THEME.colors.textDark, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                    SIMILAR TO&nbsp;&nbsp;{(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i, arr) => `${pro.name} ${pro.similarity}%${i < arr.length - 1 ? '  ·  ' : ''}`).join('')}
-                  </span>
+                <div style={{ padding: '0 14px 12px', display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
+                  <span style={{ fontSize: '0.56rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar to:</span>
+                  {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
+                    <span key={i} style={{ fontSize: '0.70rem', padding: '3px 9px', borderRadius: 3, background: 'rgba(255,255,255,0.06)', color: THEME.colors.textMuted, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {pro.name} <span style={{ opacity: 0.55, fontFamily: 'monospace', fontSize: '0.63rem' }}>·{pro.similarity}%</span>
+                    </span>
+                  ))}
                 </div>
               )}
             </>
@@ -159,7 +162,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 </div>
                 {/* Name + meta */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="font-display" style={{ fontWeight: 700, fontSize: '1.35rem', color: THEME.colors.textMain, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>
+                  <div className="font-syne" style={{ fontWeight: 800, fontSize: '1.3rem', color: THEME.colors.textMain, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>
                   <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.80rem', color: THEME.colors.textMuted, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 700, color: THEME.colors.textMain, fontSize: '0.68rem', background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderMid}`, padding: '2px 6px', borderRadius: THEME.radius.pill, letterSpacing: '0.04em' }}>{player.pos}</span>
                     <span>{player.country}</span>
@@ -170,13 +173,13 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 </div>
                 {/* Score */}
                 <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 16 }}>
-                  <div className="font-display" style={{ fontWeight: 700, fontSize: '2.5rem', lineHeight: 1, color: THEME.colors.textMain, letterSpacing: '0.02em' }}>{overall}</div>
+                  <div className="font-syne" style={{ fontWeight: 800, fontSize: '2.5rem', lineHeight: 1, color: oColor, letterSpacing: '-0.03em' }}>{overall}</div>
                   <div style={{ fontSize: '0.60rem', color: THEME.colors.textDark, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>Overall</div>
-                  <div style={{ fontSize: '0.68rem', color: THEME.colors.textMuted, fontFamily: 'IBM Plex Mono, monospace' }}>{player.aiMatch}% MATCH</div>
+                  <div style={{ fontSize: '0.68rem', color: THEME.colors.textMuted, fontFamily: 'monospace' }}>{player.aiMatch}% match</div>
                 </div>
                 {/* Buttons */}
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                  <button onClick={() => onSaveToggle(player.id)} style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${isSaved ? THEME.colors.accentHigh : THEME.colors.borderDim}`, background: isSaved ? '#1E1610' : THEME.colors.surfaceAlt, color: isSaved ? THEME.colors.accentHigh : THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={isSaved ? 'Remove from shortlist' : 'Add to shortlist'}>{isSaved ? '★' : '☆'}</button>
+                  <button onClick={() => onSaveToggle(player.id)} style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${isSaved ? THEME.colors.accentHigh : THEME.colors.borderDim}`, background: isSaved ? 'rgba(62,207,112,0.06)' : THEME.colors.surfaceAlt, color: isSaved ? THEME.colors.accentHigh : THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={isSaved ? 'Remove from shortlist' : 'Add to shortlist'}>{isSaved ? '★' : '☆'}</button>
                   {onWatchlistToggle && (
                     <button onClick={() => onWatchlistToggle(player.id)} style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.4)' : THEME.colors.borderDim}`, background: watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.1)' : THEME.colors.surfaceAlt, color: watchlistIds.includes(player.id) ? '#60a5fa' : THEME.colors.textMuted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Watchlist">
                       <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 7.5S3.5 2 7.5 2s6 5.5 6 5.5-2 5.5-6 5.5-6-5.5-6-5.5Z" stroke="currentColor" strokeWidth="1.3"/><circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.3" fill={watchlistIds.includes(player.id) ? 'currentColor' : 'none'}/></svg>
@@ -187,12 +190,15 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     onMouseLeave={e => e.currentTarget.style.borderColor = THEME.colors.borderDim}>✕</button>
                 </div>
               </div>
-              {/* Desktop comparable pros — plain text */}
+              {/* Desktop comparable pros */}
               {((player.comparablePros ?? player.analysis?.comparablePros)?.length > 0) && (
-                <div style={{ padding: '0 24px 12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-                  <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.65rem', color: THEME.colors.textDark, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-                    SIMILAR TO&nbsp;&nbsp;{(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i, arr) => `${pro.name} ${pro.similarity}%${i < arr.length - 1 ? '  ·  ' : ''}`).join('')}
-                  </span>
+                <div style={{ padding: '0 24px 12px', display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
+                  <span style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar to:</span>
+                  {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
+                    <span key={i} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: 3, background: 'rgba(255,255,255,0.06)', color: THEME.colors.textMuted, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {pro.name} <span style={{ opacity: 0.55, fontFamily: 'monospace', fontSize: '0.65rem' }}>·{pro.similarity}%</span>
+                    </span>
+                  ))}
                 </div>
               )}
             </>
@@ -200,26 +206,19 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
         </div>
 
         {/* ── PARALLEL NAVIGATION TAB ROW ─────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 0, padding: isMobile ? '0 14px' : '0 24px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.bgCanvas, flexShrink: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <div style={{ display: 'flex', gap: 4, padding: isMobile ? '8px 14px' : '10px 24px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, flexShrink: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
           {TABS.map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               style={{
-                padding: isMobile ? '10px 10px' : '11px 16px',
-                borderBottom: `2px solid ${tab === t ? THEME.colors.accentHigh : 'transparent'}`,
-                background: 'transparent', border: 'none',
-                borderBottomWidth: 2, borderBottomStyle: 'solid',
-                borderBottomColor: tab === t ? THEME.colors.accentHigh : 'transparent',
+                padding: isMobile ? '5px 10px' : '6px 14px', borderRadius: THEME.radius.pill, fontSize: isMobile ? '0.72rem' : '0.78rem', fontWeight: 600, cursor: 'pointer',
+                background: tab === t ? THEME.colors.surfaceCard : 'transparent',
+                border: `1px solid ${tab === t ? THEME.colors.borderMid : 'transparent'}`,
                 color: tab === t ? THEME.colors.textMain : THEME.colors.textDark,
-                fontFamily: 'IBM Plex Mono, monospace',
-                fontSize: isMobile ? '0.65rem' : '0.68rem',
-                fontWeight: 400, cursor: 'pointer',
-                textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'color 0.12s, border-color 0.12s', outline: 'none',
+                textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'all 0.12s', outline: 'none',
                 whiteSpace: 'nowrap', flexShrink: 0,
               }}
-              onMouseEnter={e => { if (tab !== t) e.currentTarget.style.color = THEME.colors.textMuted; }}
-              onMouseLeave={e => { if (tab !== t) e.currentTarget.style.color = THEME.colors.textDark; }}
             >
               {t}
             </button>
@@ -235,7 +234,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
               
               {/* Left Column Stack */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <Panel label="Scout Assessment">
+                <Panel label="AI Field Synthesis Notes">
                   <p style={{ fontSize: '0.88rem', color: THEME.colors.textMain, lineHeight: 1.6, margin: 0 }}>{player.bio || 'No scouting summary file recorded.'}</p>
                   {player.tags?.length > 0 && (
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
@@ -248,7 +247,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                   )}
                 </Panel>
                 
-                <Panel label="Scouting Attributes">
+                <Panel label="Attribute Matrix Metrics">
                   {[
                     ['Target Position', player.pos],
                     ['Nationality', player.country],
@@ -278,9 +277,9 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                       disabled={pitchLoading}
                       style={{
                         padding: '8px 16px', borderRadius: 6, cursor: pitchLoading ? 'wait' : 'pointer',
-                        background: pitchLoading ? '#9A6E3A' : '#B8874A',
+                        background: pitchLoading ? '#16a34a' : '#22c55e',
                         border: 'none',
-                        color: '#070D08', fontSize: '0.72rem', fontWeight: 700, fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.04em',
+                        color: '#071a0e', fontSize: '0.78rem', fontWeight: 700,
                         display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
                         transition: 'all 0.12s',
                       }}
@@ -290,13 +289,13 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                           ? <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="8 4" strokeLinecap="round"/>
                           : <><rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.4"/><line x1="4.5" y1="4.5" x2="9.5" y2="4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="6.5" x2="9.5" y2="6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="8.5" x2="7.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></>}
                       </svg>
-                      {pitchLoading ? 'GENERATING...' : 'GENERATE SCOUTING MEMO'}
+                      {pitchLoading ? 'GENERATING...' : 'GENERATE RECRUITMENT MEMO'}
                     </button>
                   </div>
                   {pitchText && (
-                    <div style={{ padding: '20px 20px', background: THEME.colors.bgCanvas, fontFamily: '"IBM Plex Mono", monospace', fontSize: '0.78rem', color: THEME.colors.textMain, lineHeight: 1.8, whiteSpace: 'pre-wrap', borderTop: `1px solid ${THEME.colors.borderDim}` }}>
+                    <div style={{ padding: '20px 20px', background: THEME.colors.bgCanvas, fontFamily: '"JetBrains Mono", "Courier New", monospace', fontSize: '0.78rem', color: THEME.colors.textMain, lineHeight: 1.8, whiteSpace: 'pre-wrap', borderTop: `1px solid ${THEME.colors.borderDim}` }}>
                       <div style={{ fontSize: '0.58rem', letterSpacing: '0.14em', color: THEME.colors.textDark, fontWeight: 700, marginBottom: 12, textTransform: 'uppercase' }}>
-                        {pitchLoading ? 'Generating...' : 'Scouting Memo'}
+                        {pitchLoading ? 'Generating...' : 'Recruitment Memo'}
                       </div>
                       {pitchText}
                       {pitchLoading && <span style={{ display: 'inline-block', width: 8, height: 14, background: THEME.colors.accentHigh, marginLeft: 2, animation: 'none', verticalAlign: 'middle', opacity: 0.8 }}>▋</span>}
@@ -306,7 +305,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
               </div>
 
               {/* Right Radar Column Panel */}
-              <Panel label="Attribute Radar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
+              <Panel label="Parametric Vector Mesh" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
                 <div style={{ margin: '12px 0 20px' }}>
                   <RadarChart scores={scores} labels={group.labels} size={250} />
                 </div>
@@ -314,7 +313,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                   {group.keys.map((k, i) => (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem', padding: '4px 0' }}>
                       <span style={{ color: THEME.colors.textMuted }}>{group.labels[i]}</span>
-                      <span style={{ color: THEME.colors.textMain, fontWeight: 600, fontFamily: 'IBM Plex Mono, monospace' }}>{scores[i]}</span>
+                      <span style={{ color: getScoreColor(scores[i]), fontWeight: 700, fontFamily: 'monospace' }}>{scores[i]}</span>
                     </div>
                   ))}
                 </div>
@@ -443,10 +442,10 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                   {player.clipUrls.map((clip, i) => (
                     <div key={i} style={{ border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden', background: THEME.colors.surfaceCard }}>
                       <div style={{ padding: '10px 14px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.65rem', padding: '2px 6px', borderRadius: THEME.radius.pill, background: '#1E1610', border: `1px solid ${THEME.colors.borderActive}`, color: THEME.colors.accentHigh, fontWeight: 700, textTransform: 'uppercase', fontFamily: 'IBM Plex Mono, monospace' }}>
+                        <span style={{ fontSize: '0.65rem', padding: '2px 6px', borderRadius: THEME.radius.pill, background: 'rgba(62,207,112,0.06)', border: `1px solid ${THEME.colors.borderActive}`, color: THEME.colors.accentHigh, fontWeight: 700, textTransform: 'uppercase' }}>
                           {clip.metric}
                         </span>
-                        <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.72rem', color: THEME.colors.textMuted }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: THEME.colors.textMuted }}>
                           T: [{clip.start} - {clip.end}]
                         </span>
                       </div>
@@ -498,7 +497,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 </span>
                 <button
                   onClick={() => onSaveNote?.(player.id, localNote)}
-                  style={{ padding: '8px 18px', borderRadius: 2, background: '#1E1610', border: '1px solid #3D3020', color: THEME.colors.accentHigh, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.04em' }}
+                  style={{ padding: '8px 18px', borderRadius: 6, background: 'rgba(62,207,112,0.10)', border: '1px solid rgba(62,207,112,0.35)', color: THEME.colors.accentHigh, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
                 >
                   Save Note
                 </button>

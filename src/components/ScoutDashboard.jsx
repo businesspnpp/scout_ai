@@ -9,24 +9,24 @@ import useBreakpoint from '../hooks/useBreakpoint.js';
 
 // ── COLOUR TOKENS ──────────────────────────────────────────────────────────────
 const C = {
-  bg:     '#070D08',
-  card:   '#0F1A10',
-  border: '#253328',
-  brdHi:  '#3D5C41',
-  green:  '#B8874A',   // clay/ochre accent replaces green
-  gnDim:  '#1E1610',   // accent dim bg
-  gnBdr:  '#3D3020',   // muted accent border
-  txt:    '#E8E4DC',
-  txtMd:  '#7A8E7D',
-  txtDim: '#4A5E4D',
+  bg:     '#0b0b0d',
+  card:   '#131315',
+  border: 'rgba(255,255,255,0.07)',
+  brdHi:  'rgba(255,255,255,0.14)',
+  green:  '#4ade80',
+  gnDim:  'rgba(74,222,128,0.08)',
+  gnBdr:  'rgba(74,222,128,0.22)',
+  txt:    '#f1f5f9',
+  txtMd:  '#94a3b8',
+  txtDim: '#475569',
 };
 
-function posColor(pos) { return POS_COLORS[pos] ?? '#7A8E7D'; }
+function posColor(pos) { return POS_COLORS[pos] ?? '#94a3b8'; }
 
 function scoreCol(v) {
-  if (v >= 85) return '#E8E4DC';
-  if (v >= 72) return '#E8E4DC';
-  return '#7A8E7D';
+  if (v >= 85) return '#4ade80';
+  if (v >= 72) return '#fbbf24';
+  return '#94a3b8';
 }
 
 // ── BUILD LOCAL PLAYER ────────────────────────────────────────────────────────
@@ -120,10 +120,10 @@ function MiniRadar({ scores, labels, size = 180 }) {
         const a = ((i * 360) / n - 90) * (Math.PI / 180);
         return <line key={i} x1={cx} y1={cy} x2={cx + maxR * Math.cos(a)} y2={cy + maxR * Math.sin(a)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.6" />;
       })}
-      <polygon points={polyPts} fill="rgba(184,135,74,0.08)" stroke="#B8874A" strokeWidth="1.2" strokeLinejoin="round" />
+      <polygon points={polyPts} fill="rgba(74,222,128,0.06)" stroke="#4ade80" strokeWidth="1.2" strokeLinejoin="round" />
       {scores.map((v, i) => {
         const p = pt(i, v);
-        return <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#B8874A" stroke="#0F1A10" strokeWidth="1" />;
+        return <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#4ade80" stroke="#131315" strokeWidth="1" />;
       })}
       {labels.map((lbl, i) => {
         const a = ((i * 360) / n - 90) * (Math.PI / 180);
@@ -167,11 +167,11 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true, isWa
       style={{
         position: 'relative',
         height: tall ? 300 : 220,
-        borderRadius: 2, overflow: 'hidden', cursor: 'pointer',
+        borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
         border: `1px solid ${hov ? C.brdHi : C.border}`,
-        background: C.card,
+        background: '#0e0e10',
         transition: 'border-color 0.15s, transform 0.15s',
-        transform: hov ? 'translateY(-2px)' : 'none',
+        transform: hov ? 'translateY(-3px)' : 'none',
         flexShrink: 0,
       }}
     >
@@ -185,7 +185,7 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true, isWa
       ) : (
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(160deg, #162118 0%, #0F1A10 50%, #070D08 100%)',
+          background: 'linear-gradient(160deg, #1a1a1e 0%, #131315 50%, #0d0d0f 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <span style={{ fontSize: tall ? '3.5rem' : '2.5rem', fontWeight: 800, color: 'rgba(255,255,255,0.06)', fontFamily: 'syne, sans-serif', letterSpacing: '-0.04em' }}>
@@ -203,10 +203,10 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true, isWa
       {/* Score badge — top right */}
       <div style={{
         position: 'absolute', top: 10, right: 10,
-        background: 'rgba(7,13,8,0.82)', backdropFilter: 'blur(8px)',
-        border: `1px solid ${C.border}`,
-        borderRadius: 2, padding: '3px 8px',
-        fontSize: '0.85rem', fontWeight: 700, color: C.txt, fontFamily: 'Barlow Condensed, sans-serif',
+        background: 'rgba(5,11,20,0.82)', backdropFilter: 'blur(8px)',
+        border: `1px solid rgba(255,255,255,0.08)`,
+        borderRadius: 8, padding: '3px 8px',
+        fontSize: '0.88rem', fontWeight: 800, color: scoreCol(player.overall), fontFamily: 'monospace',
         zIndex: 2,
       }}>
         {player.overall}
@@ -218,10 +218,10 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true, isWa
           onClick={e => { e.stopPropagation(); onSaveToggle(player.id); }}
           style={{
             position: 'absolute', top: 8, left: 8, zIndex: 2,
-            background: 'rgba(7,13,8,0.70)', backdropFilter: 'blur(6px)',
-            border: `1px solid ${C.border}`,
-            borderRadius: 2, padding: '3px 7px',
-            color: isSaved ? '#B8874A' : 'rgba(255,255,255,0.45)',
+            background: 'rgba(5,11,20,0.70)', backdropFilter: 'blur(6px)',
+            border: `1px solid rgba(255,255,255,0.08)`,
+            borderRadius: 7, padding: '3px 7px',
+            color: isSaved ? C.green : 'rgba(255,255,255,0.45)',
             cursor: 'pointer', fontSize: '0.85rem',
           }}
         >
@@ -254,7 +254,7 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true, isWa
 
       {/* Text overlay — bottom */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 14px 14px', zIndex: 2 }}>
-        <div style={{ fontWeight: 600, fontSize: '0.88rem', color: C.txt, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 4, fontFamily: 'Barlow Condensed, sans-serif', letterSpacing: '0.01em' }}>
+        <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#f1f5f9', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 4 }}>
           {player.name}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -399,11 +399,11 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
             )}
             {onFullAnalysis && (
               <button onClick={onFullAnalysis} style={{
-                background: '#B8874A', border: 'none',
-                borderRadius: 2, padding: '6px 11px', color: '#070D08',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.04em',
+                background: '#22c55e', border: 'none',
+                borderRadius: 9, padding: '6px 11px', color: '#071a0e',
+                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
               }}>
-                FULL REPORT
+                Full Report
               </button>
             )}
             <button onClick={onClose} style={{ background: 'none', border: `1px solid ${C.border}`, borderRadius: 9, padding: '6px 10px', color: C.txtMd, cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}>
@@ -453,19 +453,19 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
                   <div>Region: <span style={{ color: C.txt }}>{player.country}</span></div>
                 </div>
               </div>
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 2, padding: '16px' }}>
-                <div style={{ fontWeight: 600, fontSize: '0.72rem', color: C.txtMd, marginBottom: 8, fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Scout Notes</div>
+              <div style={{ background: '#131315', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: C.green, marginBottom: 8 }}>AI Scout Report</div>
                 <p style={{ fontSize: '0.79rem', color: C.txtMd, lineHeight: 1.55, margin: 0 }}>
                   {(player.bio?.slice(0, 140) ?? 'No AI analysis available.')}{(player.bio?.length ?? 0) > 140 ? '...' : ''}
                 </p>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 2, padding: '16px' }}>
-                <div style={{ fontSize: '3rem', fontWeight: 700, color: C.txt, lineHeight: 1, fontFamily: 'Barlow Condensed, sans-serif' }}>{player.overall}</div>
-                <div style={{ color: C.txtMd, fontSize: '0.72rem', marginTop: 4, fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.06em' }}>OVERALL</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#B8874A', lineHeight: 1, fontFamily: 'Barlow Condensed, sans-serif', marginTop: 10 }}>{player.aiMatch}</div>
-                <div style={{ color: C.txtDim, fontSize: '0.68rem', marginTop: 2, fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.06em' }}>AI MATCH %</div>
+              <div style={{ background: '#131315', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
+                <div style={{ fontSize: '3rem', fontWeight: 800, color: C.green, lineHeight: 1, fontFamily: 'monospace' }}>{player.overall}</div>
+                <div style={{ color: C.txtMd, fontSize: '0.78rem', marginTop: 4 }}>Overall Score</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: scoreCol(player.aiMatch), lineHeight: 1, fontFamily: 'monospace', marginTop: 10 }}>{player.aiMatch}</div>
+                <div style={{ color: C.txtDim, fontSize: '0.70rem', marginTop: 2 }}>AI Match %</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button onClick={() => onSaveToggle?.(player.id)} style={{ padding: '12px', borderRadius: 12, background: C.green, border: 'none', color: '#0d0d0f', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>
@@ -491,10 +491,10 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
                 return (
                   <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 88, fontSize: '0.75rem', color: C.txtMd, textTransform: 'capitalize', flexShrink: 0 }}>{group.labels[i]}</div>
-                    <div style={{ flex: 1, height: 3, background: C.border, borderRadius: 1, overflow: 'hidden' }}>
-                      <div style={{ width: `${v}%`, height: '100%', background: '#B8874A', borderRadius: 1, transition: 'width 0.5s ease' }} />
+                    <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: `${v}%`, height: '100%', background: scoreCol(v), borderRadius: 2, transition: 'width 0.5s ease' }} />
                     </div>
-                    <div style={{ width: 28, fontSize: '0.75rem', fontWeight: 600, color: C.txt, fontFamily: 'IBM Plex Mono, monospace', textAlign: 'right' }}>{v}</div>
+                    <div style={{ width: 28, fontSize: '0.78rem', fontWeight: 700, color: scoreCol(v), fontFamily: 'monospace', textAlign: 'right' }}>{v}</div>
                   </div>
                 );
               })}
@@ -550,12 +550,12 @@ function CompareView({ allPlayers, compareIds, setCompareIds, onSelect }) {
               <div style={{ fontSize: '0.76rem', color: C.txtMd, marginTop: 2 }}>{player.pos} &middot; {player.age} &middot; {player.country}</div>
             </div>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-              <button onClick={() => onSelect(player)} style={{ padding: '4px 9px', borderRadius: 2, background: '#1E1610', border: '1px solid #3D3020', color: '#B8874A', cursor: 'pointer', fontSize: '0.70rem', fontWeight: 600, fontFamily: 'IBM Plex Mono, monospace' }}>Profile</button>
+              <button onClick={() => onSelect(player)} style={{ padding: '4px 9px', borderRadius: 7, background: C.gnDim, border: `1px solid ${C.gnBdr}`, color: C.green, cursor: 'pointer', fontSize: '0.70rem', fontWeight: 600 }}>Profile</button>
               <button onClick={() => setCompareIds(p => idx === 0 ? [null, p[1]] : [p[0], null])} style={{ padding: '4px 9px', borderRadius: 7, background: 'transparent', border: `1px solid ${C.border}`, color: C.txtDim, cursor: 'pointer', fontSize: '0.70rem' }}>Remove</button>
             </div>
           </div>
           <div style={{ borderTop: `1px solid ${C.border}`, padding: '10px 14px', display: 'flex', gap: 16 }}>
-            <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 700, color: C.txt, fontFamily: 'Barlow Condensed, sans-serif' }}>{player.overall}</div><div style={{ fontSize: '0.58rem', color: C.txtDim, textTransform: 'uppercase', fontFamily: 'IBM Plex Mono, monospace' }}>OVERALL</div></div>
+            <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: scoreCol(player.overall), fontFamily: 'monospace' }}>{player.overall}</div><div style={{ fontSize: '0.58rem', color: C.txtDim, textTransform: 'uppercase' }}>Overall</div></div>
             <div style={{ textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 800, color: C.txtMd, fontFamily: 'monospace' }}>{player.aiMatch}%</div><div style={{ fontSize: '0.58rem', color: C.txtDim, textTransform: 'uppercase' }}>AI Match</div></div>
           </div>
         </>
@@ -568,7 +568,7 @@ function CompareView({ allPlayers, compareIds, setCompareIds, onSelect }) {
               <button key={p.id} onClick={() => setCompareIds(prev => idx === 0 ? [p.id, prev[1]] : [prev[0], p.id])} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', background: 'transparent', border: 'none', borderRadius: 7, cursor: 'pointer', textAlign: 'left', marginBottom: 1 }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <span style={{ fontSize: '0.65rem', fontWeight: 700, color: posColor(p.pos), background: 'rgba(255,255,255,0.05)', borderRadius: 3, padding: '1px 5px' }}>{p.pos}</span>
                 <span style={{ flex: 1, fontSize: '0.82rem', color: C.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                <span style={{ fontSize: '0.76rem', fontWeight: 700, color: C.txt, fontFamily: 'Barlow Condensed, sans-serif' }}>{p.overall}</span>
+                <span style={{ fontSize: '0.76rem', fontWeight: 700, color: scoreCol(p.overall), fontFamily: 'monospace' }}>{p.overall}</span>
               </button>
             ))}
           </div>
@@ -827,7 +827,7 @@ export default function ScoutDashboard({
 
   const NAV_MAIN = [
     {
-      id: 'discover', label: 'Intelligence Feed',
+      id: 'discover', label: 'Discover',
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3"/><path d="M8 3.5v1.5M8 11v1.5M3.5 8H5M11 8h1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><path d="M6.5 6.5l3 3M9.5 6.5L6.5 9.5" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round"/><circle cx="8" cy="8" r="1.1" fill="currentColor"/></svg>,
     },
     {
@@ -867,7 +867,7 @@ export default function ScoutDashboard({
   ];
   const NAV_MY_SCOUTING = [
     {
-      id: 'myNotes', label: 'Field Notes',
+      id: 'myNotes', label: 'My Notes',
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0}}><rect x="2.5" y="1.5" width="11" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><line x1="4.5" y1="5.5" x2="11.5" y2="5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="4.5" y1="8" x2="11.5" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><polyline points="4.5,11.5 6,13 9,9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     },
     {
@@ -881,7 +881,7 @@ export default function ScoutDashboard({
   ];
 
   return (
-    <div style={{ background: C.bg, color: C.txt, marginTop: 44, height: 'calc(100vh - 44px)', display: 'flex', overflow: 'hidden' }}>
+    <div style={{ background: C.bg, color: C.txt, marginTop: 50, height: 'calc(100vh - 50px)', display: 'flex', overflow: 'hidden' }}>
       {/* Mobile nav backdrop */}
       {isMobile && navOpen && (
         <div onClick={() => setNavOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 200 }} />
@@ -889,7 +889,7 @@ export default function ScoutDashboard({
 
       {/* LEFT NAV SIDEBAR */}
       <aside style={{
-        width: 220, flexShrink: 0,
+        width: 240, flexShrink: 0,
         borderRight: `1px solid ${C.border}`,
         display: 'flex', flexDirection: 'column',
         background: C.bg, overflow: 'hidden',
@@ -917,24 +917,24 @@ export default function ScoutDashboard({
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   width: '100%', padding: '9px 14px 9px 13px',
-                  borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                  borderLeft: `3px solid ${active ? '#3ecf70' : 'transparent'}`,
                   borderRight: 'none', borderTop: 'none', borderBottom: 'none',
                   background: active
-                    ? 'linear-gradient(90deg, rgba(184,135,74,0.07) 0%, rgba(7,13,8,0) 100%)'
+                    ? 'linear-gradient(90deg, rgba(62,207,112,0.06) 0%, rgba(13,15,20,0) 100%)'
                     : 'transparent',
-                  borderRadius: '0px 2px 2px 0px',
-                  color: active ? '#E8E4DC' : C.txtDim,
-                  cursor: 'pointer', fontSize: '0.83rem', fontWeight: active ? 500 : 400,
+                  borderRadius: '0px 6px 6px 0px',
+                  color: active ? '#ffffff' : C.txtDim,
+                  cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
                   textAlign: 'left', transition: 'color 0.12s, background 0.12s, border-color 0.12s',
                   outline: 'none', marginBottom: 1,
                 }}
-                onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = '#7A8E7D'; } }}
-                onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.txtDim; } }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
               >
                 {item.icon}
                 <span>{item.label}</span>
                 {item.id === 'shortlist' && savedIds.length > 0 && (
-                  <span style={{ marginLeft: 'auto', fontSize: '0.68rem', background: '#1E1610', border: '1px solid #3D3020', borderRadius: 2, padding: '1px 6px', color: '#B8874A', fontFamily: 'IBM Plex Mono, monospace' }}>
+                  <span style={{ marginLeft: 'auto', fontSize: '0.70rem', background: C.gnDim, border: `1px solid ${C.gnBdr}`, borderRadius: 999, padding: '1px 7px', color: C.green }}>
                     {savedIds.length}
                   </span>
                 )}
@@ -974,19 +974,19 @@ export default function ScoutDashboard({
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     width: '100%', padding: '9px 14px 9px 13px',
-                    borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                    borderLeft: `3px solid ${active ? '#3ecf70' : 'transparent'}`,
                     borderRight: 'none', borderTop: 'none', borderBottom: 'none',
                     background: active
-                      ? 'linear-gradient(90deg, rgba(184,135,74,0.07) 0%, rgba(7,13,8,0) 100%)'
+                      ? 'linear-gradient(90deg, rgba(62,207,112,0.06) 0%, rgba(13,15,20,0) 100%)'
                       : 'transparent',
-                    borderRadius: '0px 2px 2px 0px',
-                    color: active ? '#E8E4DC' : C.txtDim,
-                    cursor: 'pointer', fontSize: '0.83rem', fontWeight: active ? 500 : 400,
+                    borderRadius: '0px 6px 6px 0px',
+                    color: active ? '#ffffff' : C.txtDim,
+                    cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
                     textAlign: 'left', transition: 'color 0.12s, background 0.12s, border-color 0.12s',
                     outline: 'none', marginBottom: 1,
                   }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = '#7A8E7D'; } }}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.txtDim; } }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                 >
                   {item.icon}
                   <span>{item.label}</span>
@@ -1027,19 +1027,19 @@ export default function ScoutDashboard({
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     width: '100%', padding: '9px 14px 9px 13px',
-                    borderLeft: `2px solid ${active ? '#B8874A' : 'transparent'}`,
+                    borderLeft: `3px solid ${active ? '#3ecf70' : 'transparent'}`,
                     borderRight: 'none', borderTop: 'none', borderBottom: 'none',
                     background: active
-                      ? 'linear-gradient(90deg, rgba(184,135,74,0.07) 0%, rgba(7,13,8,0) 100%)'
+                      ? 'linear-gradient(90deg, rgba(62,207,112,0.06) 0%, rgba(13,15,20,0) 100%)'
                       : 'transparent',
-                    borderRadius: '0px 2px 2px 0px',
-                    color: active ? '#E8E4DC' : C.txtDim,
-                    cursor: 'pointer', fontSize: '0.83rem', fontWeight: active ? 500 : 400,
+                    borderRadius: '0px 6px 6px 0px',
+                    color: active ? '#ffffff' : C.txtDim,
+                    cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 600 : 400,
                     textAlign: 'left', transition: 'color 0.12s, background 0.12s, border-color 0.12s',
                     outline: 'none', marginBottom: 1,
                   }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = '#7A8E7D'; } }}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.txtDim; } }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                 >
                   {item.icon}
                   <span>{item.label}</span>
@@ -1196,21 +1196,33 @@ export default function ScoutDashboard({
             <MyNotesView notes={notes} saveNote={saveNote} allPlayers={allPlayers} onSelect={selectPlayer} />
           ) : navSection === 'discover' && !hasActiveFilters ? (
             <>
-              {/* Page header */}
-              <section style={{ marginBottom: 28, paddingBottom: 18, borderBottom: `1px solid ${C.border}` }}>
-                <h1 className="font-display" style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 700, color: C.txt, letterSpacing: '0.01em', margin: 0, lineHeight: 1 }}>
-                  Intelligence Feed
-                </h1>
-                <p style={{ marginTop: 6, color: C.txtMd, fontSize: '0.8rem', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.04em' }}>
-                  {allPlayers.length} PROFILES · AI-POWERED ANALYSIS
-                </p>
+              {/* Hero Banner */}
+              <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, height: isMobile ? 200 : 280, marginBottom: 32, background: '#111113', border: `1px solid ${C.border}` }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #0b0b0d 0%, rgba(11,11,13,0.85) 50%, rgba(11,11,13,0) 100%)', zIndex: 1 }} />
+                <div style={{ position: 'absolute', right: 0, top: 0, width: '60%', height: '100%', overflow: 'hidden' }}>
+                  <img src="/assets/banner.png" alt="Scout AI hero" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+                </div>
+                <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '22px 20px' : '26px 36px', maxWidth: 500 }}>
+                  <div style={{ fontSize: isMobile ? '1.5rem' : '2.2rem', fontWeight: 800, lineHeight: 1.15, fontFamily: 'syne, sans-serif' }}>
+                    Find the{' '}<span style={{ color: C.green }}>next generation</span>{' '}of stars
+                  </div>
+                  <p style={{ marginTop: 12, color: C.txtMd, fontSize: isMobile ? '0.85rem' : '0.92rem', lineHeight: 1.5 }}>
+                    AI-powered scouting to discover, analyze and recruit talent worldwide.
+                  </p>
+                  {/* <button
+                    onClick={() => setNavSection('search')}
+                    style={{ marginTop: 18, padding: '10px 22px', background: C.green, border: 'none', borderRadius: 10, color: '#0d0d0f', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 }}
+                  >
+                    Explore Players
+                  </button> */}
+                </div>
               </section>
 
               {/* AI Picks */}
               <section style={{ marginBottom: 32 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: C.txt }}>AI Picks For You</h2>
-                  <button onClick={() => setNavSection('topPerformers')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.04em' }}>VIEW ALL</button>
+                  <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>AI Picks For You</h2>
+                  <button onClick={() => setNavSection('topPerformers')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem' }}>View All</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 14 }}>
                   {aiPicks.map(p => (
@@ -1222,8 +1234,8 @@ export default function ScoutDashboard({
               {/* Recently Added */}
               <section style={{ marginBottom: 32 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: C.txt }}>Recently Added</h2>
-                  <button onClick={() => setNavSection('newUploads')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.04em' }}>VIEW ALL</button>
+                  <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: C.txt }}>Recently Added</h2>
+                  <button onClick={() => setNavSection('newUploads')} style={{ background: 'none', border: 'none', color: C.txtMd, cursor: 'pointer', fontSize: '0.85rem' }}>View All</button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12 }}>
                   {recentAdds.map(p => (

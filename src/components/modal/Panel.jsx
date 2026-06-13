@@ -14,10 +14,9 @@ export default function Panel({ label, children, style = {} }) {
     }}>
       {label && (
         <div style={{
-          fontSize: '0.62rem', letterSpacing: '0.10em',
+          fontSize: '0.65rem', letterSpacing: '0.10em',
           textTransform: 'uppercase', color: THEME.colors.textDark,
-          fontWeight: 400, marginBottom: 14,
-          fontFamily: 'IBM Plex Mono, monospace',
+          fontWeight: 800, marginBottom: 14,
         }}>
           {label}
         </div>
