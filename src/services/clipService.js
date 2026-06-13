@@ -33,21 +33,38 @@ let ffmpegLoadPromise = null; // deduplicates concurrent loadFFmpeg() calls
 
 export async function loadFFmpeg() {
   if (ffmpegLoaded && ffmpeg) return;
-  // If already loading, wait on the same promise instead of starting a second load
   if (!ffmpegLoadPromise) {
     ffmpegLoadPromise = (async () => {
-      console.log('[ffmpeg] loading WASM from', LOCAL_BASE, '...');
-      console.time('[ffmpeg] load');
-      ffmpeg = new FFmpeg();
-      await ffmpeg.load({
-        coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
-        wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
-      });
-      console.timeEnd('[ffmpeg] load');
-      console.log('[ffmpeg] WASM loaded OK');
-      ffmpegLoaded = true;
+      const MAX_ATTEMPTS = 3;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          console.log(`[ffmpeg] loading WASM (attempt ${attempt}/${MAX_ATTEMPTS})...`);
+          console.time('[ffmpeg] load');
+          ffmpeg = new FFmpeg();
+          await ffmpeg.load({
+            coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
+            wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
+          });
+          console.timeEnd('[ffmpeg] load');
+          console.log('[ffmpeg] WASM loaded OK');
+          ffmpegLoaded = true;
+          return;
+        } catch (err) {
+          console.timeEnd('[ffmpeg] load');
+          console.warn(`[ffmpeg] load attempt ${attempt} failed:`, err?.message || err);
+          ffmpeg = null;
+          if (attempt < MAX_ATTEMPTS) {
+            const delay = attempt * 2000;
+            console.log(`[ffmpeg] retrying in ${delay}ms...`);
+            await new Promise(r => setTimeout(r, delay));
+          } else {
+            ffmpegLoadPromise = null;
+            throw err;
+          }
+        }
+      }
     })();
-    ffmpegLoadPromise.catch(() => { ffmpegLoadPromise = null; }); // reset on failure
+    ffmpegLoadPromise.catch(() => { ffmpegLoadPromise = null; });
   }
   return ffmpegLoadPromise;
 }

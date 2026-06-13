@@ -41,7 +41,7 @@ export default function UploaderPortal({
 
   // Preload FFmpeg WASM as soon as the uploader mounts so it's ready before the user hits Analyze
   useEffect(() => {
-    loadFFmpeg().catch(err => console.warn('[UploaderPortal] FFmpeg preload failed:', err.message));
+    loadFFmpeg().catch(err => console.warn('[UploaderPortal] FFmpeg preload failed:', err?.message || err));
   }, []);
 
   const handleForm = useCallback(e => setForm(f => ({ ...f, [e.target.name]: e.target.value })), []);
