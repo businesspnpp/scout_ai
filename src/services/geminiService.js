@@ -200,7 +200,7 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
         console.timeEnd('[gemini] compression');
         console.warn('[gemini] compression error:', e.message);
         if (e.message === 'COMPRESS_TIMEOUT') {
-          console.warn('[gemini] COMPRESSION TIMED OUT after 90s — falling back to original');
+          console.warn('[gemini] COMPRESSION TIMED OUT after 3 min — falling back to original');
           onStream?.('\nCompression timed out — sending original...');
         } else {
           console.warn('[gemini] compression threw:', e.message, '— falling back to original');
