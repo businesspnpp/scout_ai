@@ -31,8 +31,12 @@ let ffmpeg = null;
 let ffmpegLoaded = false;
 
 export async function loadFFmpeg() {
-  if (ffmpegLoaded) return;
-  ffmpeg = await createFFmpeg();
+  if (ffmpegLoaded && ffmpeg) return;
+  ffmpeg = new FFmpeg();
+  await ffmpeg.load({
+    coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
+    wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
+  });
   ffmpegLoaded = true;
 }
 
@@ -113,14 +117,18 @@ export function processHighlightsInstant(videoFiles, highlights) {
  *  @returns {Promise<File>} compressed File
  */
 export async function compressVideoForUpload(file, onProgress) {
-  // Always create a fresh instance for compression — avoids stale/crashed worker
-  // state from any previous failed compression attempt.
-  const cmp = await createFFmpeg();
+  // Use the shared singleton — loading 30MB of WASM on every call takes 1-3 minutes.
+  // If the singleton is in a bad state we reset it and reload once.
+  await loadFFmpeg();
   const inName  = 'cmp_in.mp4';
   const outName = 'cmp_out.mp4';
 
+  // Clean up any leftover files from a previous crashed run
+  await ffmpeg.deleteFile(inName).catch(() => {});
+  await ffmpeg.deleteFile(outName).catch(() => {});
+
   onProgress?.('Writing to memory...');
-  await cmp.writeFile(inName, await fetchFile(file));
+  await ffmpeg.writeFile(inName, await fetchFile(file));
 
   // Stream live FFmpeg log lines so the UI shows activity
   const onLog = ({ message }) => {
@@ -132,16 +140,23 @@ export async function compressVideoForUpload(file, onProgress) {
       onProgress?.(message.trim().slice(0, 60));
     }
   };
-  cmp.on('log', onLog);
+  ffmpeg.on('log', onLog);
 
-  // Capture exec errors instead of re-throwing immediately — FFmpeg WASM sometimes exits
-  // non-zero even when valid output was written (codec warnings, etc.)
+  // 4-minute hard timeout — if FFmpeg hangs, terminate the worker and reset
+  let timedOut = false;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    try { ffmpeg.terminate(); } catch { /* ignore */ }
+    ffmpegLoaded = false;
+    ffmpeg = null;
+  }, 4 * 60 * 1000);
+
   let execError = null;
   try {
-    await cmp.exec([
+    await ffmpeg.exec([
       '-i', inName,
       '-t', '90',                // cap at 90 s — Gemini needs no more for analysis
-      '-vf', 'scale=-2:240',     // 240p: plenty for AI visual analysis; keeps size well under 2.2 MB
+      '-vf', 'scale=-2:240',     // 240p: fine for AI visual analysis; keeps size well under 2.2 MB
       '-c:v', 'libx264',
       '-crf', '42',              // aggressive but sufficient for Gemini vision analysis
       '-preset', 'ultrafast',
@@ -152,16 +167,27 @@ export async function compressVideoForUpload(file, onProgress) {
   } catch (err) {
     execError = err;
   } finally {
-    cmp.off('log', onLog);
+    clearTimeout(timeoutId);
+    if (ffmpeg) ffmpeg.off('log', onLog);
+  }
+
+  if (timedOut) {
+    throw new Error('Compression timed out. Try a shorter clip.');
   }
 
   // Always try to read the output — exec may have written a valid file even on non-zero exit
   let data = null;
-  try { data = await cmp.readFile(outName); } catch { /* no output written */ }
+  try { if (ffmpeg) data = await ffmpeg.readFile(outName); } catch { /* no output written */ }
 
-  // cmp instance is disposable — no cleanup needed
+  if (ffmpeg) {
+    await ffmpeg.deleteFile(inName).catch(() => {});
+    if (data) await ffmpeg.deleteFile(outName).catch(() => {});
+  }
 
   if (!data || data.byteLength < 1024) {
+    // Reset singleton so next call gets a clean instance
+    ffmpegLoaded = false;
+    ffmpeg = null;
     throw execError ?? new Error('FFmpeg produced no output');
   }
 
