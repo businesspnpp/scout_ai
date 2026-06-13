@@ -17,7 +17,7 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
   const isDone     = !analyzing && s.length > 5;
 
   const allSteps = [
-    { key: 'upload',  label: 'Uploading footage', icon: 'UP' },
+    { key: 'upload',  label: 'Uploading footage', icon: 'upload' },
     { key: 'scan',    label: 'Reading footage',    icon: 'AI' },
     { key: 'analyse', label: 'Analysing player',   icon: '...' },
     { key: 'done',    label: 'Complete',           icon: 'OK' },
@@ -44,7 +44,9 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
               style={{ transition: 'stroke-dasharray 0.6s ease' }} />
           </svg>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>
-            {displayIcon}
+            {displayIcon === 'upload'
+              ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3ecf70" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
+              : displayIcon}
           </div>
         </div>
       </div>
@@ -56,10 +58,7 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
       {/* ── Live token stream — judges see Gemini thinking in real-time ── */}
       {analyzing && s.length > 4 && (
         <div style={{ marginTop: 18, textAlign: 'left' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#3ecf70', display: 'inline-block', animation: 'termBlink 0.9s step-end infinite' }} />
-            <span style={{ fontSize: '0.60rem', letterSpacing: '0.13em', textTransform: 'uppercase', color: '#3ecf70' }}>Gemini 2.5 Flash · Live Output</span>
-          </div>
+
           <div
             ref={termRef}
             style={{
