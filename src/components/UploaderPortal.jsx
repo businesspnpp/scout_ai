@@ -148,12 +148,26 @@ export default function UploaderPortal({
     const oldAnalysis = oldProfile?.analysis;
 
     try {
+      // If editing and no new headshot was uploaded, fetch the existing one as a File
+      // so Gemini receives actual image data (headshot state is null for existing CDN/blob URLs)
+      let headshotForAnalysis = headshot;
+      if (!headshotForAnalysis && headshotPreview) {
+        try {
+          const resp = await fetch(headshotPreview);
+          const blob = await resp.blob();
+          headshotForAnalysis = new File([blob], 'headshot.jpg', { type: blob.type || 'image/jpeg' });
+          console.log('[gemini] fetched existing headshot for analysis:', (blob.size/1024).toFixed(1), 'KB');
+        } catch (e) {
+          console.warn('[gemini] could not fetch existing headshot:', e.message);
+        }
+      }
+
       // -- Phase 1: Gemini analysis --
       let analysisResult = await analyzePlayer(
         { name: form.name, age: form.age, position: form.position, region: form.region, height: form.height, foot: form.foot, club: form.club },
         videoMode === 'file' ? videoFiles : [],
         videoMode === 'url'  ? videoUrl   : '',
-        headshot,
+        headshotForAnalysis,
         token => setStreamOutput(prev => prev + token),
       );
 
