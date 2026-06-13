@@ -198,12 +198,13 @@ export async function saveFullProfile({
     // deleting the old profile from storage won't break this profile's headshot URL.
     const newPath = `${profileId}/headshot.jpg`;
     let copied = false;
-    if (existingHeadshotPath) {
+    // Build the source URL — prefer the storage path, fall back to the CDN URL directly
+    const sourceUrl = existingHeadshotPath
+      ? supabase.storage.from(BUCKET).getPublicUrl(existingHeadshotPath).data.publicUrl
+      : existingHeadshotUrl;
+    if (sourceUrl) {
       try {
-        // Fetch the existing headshot and re-upload to the new path
-        // (avoids storage copy API which requires elevated permissions)
-        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(existingHeadshotPath);
-        const fetchRes = await fetch(urlData.publicUrl);
+        const fetchRes = await fetch(sourceUrl);
         if (fetchRes.ok) {
           const blob = await fetchRes.blob();
           const { error: upErr } = await supabase.storage
@@ -219,9 +220,9 @@ export async function saveFullProfile({
       } catch { /* fall through */ }
     }
     if (!copied) {
-      // Fallback: reference the original URL (safe as long as the old profile isn't deleted first)
-      headshotPublicUrl = existingHeadshotUrl;
-      await updateProfileRow(profileId, { headshot_url: existingHeadshotUrl });
+      // Upload failed — headshot_url stays null for this profile.
+      // The old storage file is about to be deleted (removeProfile is called after save).
+      console.warn('[saveFullProfile] headshot re-upload failed — no headshot for', profileId);
     }
   }
 
