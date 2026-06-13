@@ -186,7 +186,9 @@ export async function submitShotstackRender(videoPublicUrl, start, end) {
     const msg = await res.text().catch(() => String(res.status));
     throw new Error(`Shotstack submit failed (${res.status}): ${msg}`);
   }
-  const data = await res.json();
+  const text = await res.text();
+  if (text.trimStart().startsWith('<')) throw new Error('Shotstack API not configured (received HTML — add SHOTSTACK_API_KEY to Vercel env vars)');
+  const data = JSON.parse(text);
   const renderId = data.response?.id;
   if (!renderId) throw new Error('Shotstack: no render ID returned');
   return renderId;
@@ -203,7 +205,10 @@ export async function pollShotstackRender(renderId, onStatus) {
     await new Promise(r => setTimeout(r, 4000));
     const res = await fetch(`${SS_API}/poll/${renderId}`);
     if (!res.ok) throw new Error(`Shotstack poll failed: ${res.status}`);
-    const data   = await res.json();
+    const text = await res.text();
+    // Detect HTML response = Shotstack API key not configured
+    if (text.trimStart().startsWith('<')) throw new Error('Shotstack API not configured (received HTML)');
+    const data   = JSON.parse(text);
     const status = data.response?.status;
     onStatus?.(status);
     if (status === 'done') {

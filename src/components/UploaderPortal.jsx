@@ -50,11 +50,11 @@ export default function UploaderPortal({
     const url = URL.createObjectURL(file);
     setHeadshot(file);
     setHeadshotPreview(url);
-    // Check resolution � Gemini needs a clear, visible face
+    // Check resolution - Gemini needs a clear, visible face
     const img = new Image();
     img.onload = () => {
       if (img.naturalWidth < 200 || img.naturalHeight < 200) {
-        setHeadshotWarn(`Low resolution (${img.naturalWidth}�${img.naturalHeight}px). Use a clearer photo for better AI tracking accuracy.`);
+        setHeadshotWarn(`Low resolution (${img.naturalWidth}x${img.naturalHeight}px). Use a clearer photo for better AI tracking accuracy.`);
       } else if (img.naturalWidth < 400 || img.naturalHeight < 400) {
         setHeadshotWarn('Photo quality is acceptable but a higher resolution image will improve player identification.');
       }
@@ -217,6 +217,8 @@ export default function UploaderPortal({
                     setShotstackDone(shotstackClips.length);
                     setMetricClips(shotstackClips.map(c => ({ ...c })));
                     if (targetProfileId && onUpdateProfileClips) onUpdateProfileClips(targetProfileId, shotstackClips);
+                  } else {
+                    setShotstackStatus('failed');
                   }
                 })
                 .catch(err => { console.warn('[UploaderPortal] Shotstack failed:', err.message); setShotstackStatus('failed'); });
@@ -257,6 +259,8 @@ export default function UploaderPortal({
                     // Update stored profile clips to CDN URLs
                     const profId = savedProfileIdRef.current;
                     if (profId && onUpdateProfileClips) onUpdateProfileClips(profId, shotstackClips);
+                  } else {
+                    setShotstackStatus('failed');
                   }
                 })
                 .catch(err => {
@@ -359,9 +363,9 @@ export default function UploaderPortal({
                         )}
                       </div>
                     </div>
-                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || '�'}</div>}
-                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '�'}</div>}
-                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '�'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', fontFamily: 'JetBrains Mono, monospace' }}>{meta.position || '-'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3' }}>{meta.age || '-'}</div>}
+                    {!isMobile && <div style={{ fontSize: '0.76rem', color: '#7e8fa3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.region || '-'}</div>}
                     <div style={{ display: 'flex', gap: 5, justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
                       <button onClick={e => { e.stopPropagation(); isEditing ? clearEdit() : loadProfile(meta); }} style={{ fontSize: '0.70rem', padding: '2px 7px', borderRadius: 5, border: isEditing ? '1px solid rgba(62,207,112,0.30)' : '1px solid #3a3f54', background: '#1d1f27', color: isEditing ? '#3ecf70' : '#8c909f', cursor: 'pointer' }}>
                         {isEditing ? 'Cancel' : 'Edit'}
@@ -470,10 +474,10 @@ export default function UploaderPortal({
               <button className="btn-ghost" onClick={() => headshotRef.current?.click()}>
                 {headshotPreview ? 'Replace Photo' : 'Upload Photo'}
               </button>
-              <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>Clear, front-facing photo � min 200�200px</div>
+              <div style={{ fontSize: '0.70rem', color: '#4a5568' }}>Clear, front-facing photo &mdash; min 200&times;200px</div>
               {headshotWarn && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 2, padding: '6px 10px', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 4, maxWidth: 340 }}>
-                  <span style={{ color: '#c9a84c', fontSize: '0.75rem', flexShrink: 0, marginTop: 1 }}>?</span>
+                  <span style={{ color: '#c9a84c', fontSize: '0.75rem', flexShrink: 0, marginTop: 1 }}>&#9888;</span>
                   <span style={{ fontSize: '0.72rem', color: '#c9a84c', lineHeight: 1.4 }}>{headshotWarn}</span>
                 </div>
               )}
@@ -503,7 +507,7 @@ export default function UploaderPortal({
                       <span style={{ fontSize: '0.66rem', color: '#4a5568', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>Clip {i + 1}</span>
                       <span style={{ flex: 1, fontSize: '0.82rem', color: '#dde3ec', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
                       <span style={{ fontSize: '0.74rem', color: '#4a5568', flexShrink: 0 }}>{(f.size/1024/1024).toFixed(1)} MB</span>
-                      <button onClick={() => removeVideoFile(i)} style={{ fontSize: '0.70rem', padding: '1px 6px', borderRadius: 2, border: '1px solid #222225', background: 'transparent', color: '#c94f4f', cursor: 'pointer', flexShrink: 0 }}>?</button>
+                      <button onClick={() => removeVideoFile(i)} style={{ fontSize: '0.70rem', padding: '1px 6px', borderRadius: 2, border: '1px solid #222225', background: 'transparent', color: '#c94f4f', cursor: 'pointer', flexShrink: 0 }}>&times;</button>
                     </div>
                   ))}
                 </div>
@@ -516,7 +520,7 @@ export default function UploaderPortal({
                 onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = '#222225'; const f = e.dataTransfer.files?.[0]; if (!f) return; const err = validateVideoFile(f); if (err) { setError(err); return; } setVideoFiles(prev => [...prev, f]); }}
               >
                 <div style={{ color: '#4a5568', fontSize: '0.84rem', marginBottom: 3 }}>{videoFiles.length > 0 ? '+ Add another clip' : 'Drop video or click to browse'}</div>
-                <div style={{ color: '#222225', fontSize: '0.72rem' }}>MP4, MOV, AVI � Recommended under 45 MB for best speed � larger files are auto-compressed</div>
+                <div style={{ color: '#222225', fontSize: '0.72rem' }}>MP4, MOV, AVI &mdash; Recommended under 45 MB for best speed &mdash; larger files are auto-compressed</div>
               </div>
               <input ref={videoRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={addVideoFile} />
             </>
@@ -536,7 +540,7 @@ export default function UploaderPortal({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {editingId && (
               <button className="btn-primary" onClick={handleSaveChanges} disabled={syncStatus === 'saving'} style={{ width: '100%', fontSize: '0.92rem', padding: '12px 20px', background: 'transparent', border: '1px solid rgba(62,207,112,0.4)', color: '#3ecf70' }}>
-                {syncStatus === 'saving' ? 'Saving...' : syncStatus === 'done' ? 'Saved ?' : 'Save Changes'}
+                  {syncStatus === 'saving' ? 'Saving...' : syncStatus === 'done' ? 'Saved ✓' : 'Save Changes'}
               </button>
             )}
             <button className="btn-primary" onClick={handleAnalyze} disabled={!form.name.trim()} style={{ width: '100%', fontSize: '0.92rem', padding: '12px 20px' }}>
@@ -587,13 +591,13 @@ export default function UploaderPortal({
             <div style={{ background: '#0d1a14', border: '1px solid rgba(0,200,83,0.20)', borderRadius: 3, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
                 <div className="font-syne" style={{ fontWeight: 700, fontSize: '0.98rem', color: '#dde3ec' }}>
-                  {editingId ? 'Profile Updated' : 'Analysis Complete'} � {result.player?.name ?? form.name}
+                  {editingId ? 'Profile Updated' : 'Analysis Complete'} &mdash; {result.player?.name ?? form.name}
                   {result._analysisCount > 1 && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#c9a84c' }}>({result._analysisCount} sessions avg)</span>}
                 </div>
                 <div style={{ marginTop: 3, fontSize: '0.80rem', color: '#4a5568' }}>
                   Score <strong style={{ color: '#00c853' }}>{result.overallScore}</strong>
-                  &nbsp;�&nbsp; Confidence <strong style={{ color: '#00c853' }}>{result.aiMatchConfidence}%</strong>
-            {metricClips.length > 0 && <span style={{ marginLeft: 8, color: '#c9a84c' }}>? {metricClips.length} clips</span>}
+                  &nbsp;&middot;&nbsp; Confidence <strong style={{ color: '#00c853' }}>{result.aiMatchConfidence}%</strong>
+            {metricClips.length > 0 && <span style={{ marginLeft: 8, color: '#c9a84c' }}>&#10022; {metricClips.length} clips</span>}
                   {shotstackStatus && <ShotstackBadge status={shotstackStatus} done={shotstackDone} total={shotstackTotal} />}
                   {result._isMock && <span style={{ marginLeft: 8, color: '#c9a84c', fontSize: '0.70rem' }}>demo mode</span>}
                 </div>
@@ -611,13 +615,13 @@ export default function UploaderPortal({
               ))}
             </div>
 
-            {/* Metric Clips � inline video players */}
+            {/* Metric Clips - inline video players */}
             {metricClips.length > 0 && (
               <div style={{ background: '#131920', border: '1px solid #1e1e21', borderRadius: 3, padding: '14px 16px', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <Label>Metric Clips � Auto-cut &amp; Saved to Profile</Label>
+                  <Label>Metric Clips &mdash; Auto-cut &amp; Saved to Profile</Label>
                   <span style={{ fontSize: '0.68rem', color: metricClips[0]?.source === 'shotstack' ? '#c9a84c' : '#00c853' }}>
-                    {metricClips[0]?.source === 'shotstack' ? '? Shotstack CDN' : '? FFmpeg local'} � {metricClips.length} clips
+                    {metricClips[0]?.source === 'shotstack' ? '&#9654; Shotstack CDN' : '&#9654; FFmpeg local'} &mdash; {metricClips.length} clips
                   </span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
@@ -625,7 +629,7 @@ export default function UploaderPortal({
                     <div key={i} style={{ border: '1px solid #1e1e21', borderRadius: 3, overflow: 'hidden', background: '#0d0d0f' }}>
                       <div style={{ padding: '8px 10px', borderBottom: '1px solid #1e1e21', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.72rem', padding: '1px 6px', borderRadius: 2, background: 'rgba(0,200,83,0.08)', border: '1px solid rgba(0,200,83,0.18)', color: '#00c853', textTransform: 'capitalize' }}>{clip.metric}</span>
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: '#7e8fa3' }}>{clip.start} � {clip.end}</span>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: '#7e8fa3' }}>{clip.start} &ndash; {clip.end}</span>
                       </div>
                       <div className="tracker-pulse" style={{ position: 'relative', background: '#000', overflow: 'hidden' }}>
                         <video src={clip.url} controls preload="auto" style={{ width: '100%', display: 'block', background: '#000', maxHeight: 200 }} />
