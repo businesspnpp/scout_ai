@@ -124,29 +124,41 @@ export async function compressVideoForUpload(file, onProgress) {
   };
   ffmpeg.on('log', onLog);
 
+  // Capture exec errors instead of re-throwing immediately — FFmpeg WASM sometimes exits
+  // non-zero even when valid output was written (bad state from prior run, codec warnings, etc.)
+  let execError = null;
   try {
     await ffmpeg.exec([
       '-i', inName,
       '-t', '90',                // cap at 90 s — Gemini needs no more for analysis
-      '-vf', 'scale=-2:240',     // 240p: enough for AI visual analysis; at CRF 42 keeps size well under 2.2 MB
+      '-vf', 'scale=-2:240',     // 240p: plenty for AI visual analysis; keeps size well under 2.2 MB
       '-c:v', 'libx264',
-      '-crf', '42',              // very aggressive — sufficient for Gemini vision analysis
+      '-crf', '42',              // aggressive but sufficient for Gemini vision analysis
       '-preset', 'ultrafast',
       '-an',                     // no audio — not needed for football analysis
       '-movflags', '+faststart',
-      // NOTE: -fs omitted — it causes FFmpeg to exit with code 1 (non-zero) which FFmpeg WASM
-      // throws as an error even though the output was written. Size is controlled via 240p + CRF 42 + 90s.
       outName,
     ]);
+  } catch (err) {
+    execError = err;
   } finally {
     ffmpeg.off('log', onLog);
   }
 
-  const data = await ffmpeg.readFile(outName);
-  const blob = new Blob([data.buffer], { type: 'video/mp4' });
-  await ffmpeg.deleteFile(inName).catch(() => {});
-  await ffmpeg.deleteFile(outName).catch(() => {});
+  // Always try to read the output — exec may have written a valid file even on non-zero exit
+  let data = null;
+  try { data = await ffmpeg.readFile(outName); } catch { /* no output written */ }
 
+  await ffmpeg.deleteFile(inName).catch(() => {});
+  if (data) await ffmpeg.deleteFile(outName).catch(() => {});
+
+  if (!data || data.byteLength < 1024) {
+    // Genuine failure — reset singleton so the next call reloads FFmpeg cleanly
+    ffmpegLoaded = false;
+    throw execError ?? new Error('FFmpeg produced no output');
+  }
+
+  const blob = new Blob([data.buffer], { type: 'video/mp4' });
   const compressedName = file.name.replace(/(\.[^.]+)?$/, '_compressed.mp4');
   return new File([blob], compressedName, { type: 'video/mp4' });
 }
