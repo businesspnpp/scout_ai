@@ -2,30 +2,30 @@
 
 export const THEME = {
   colors: {
-    bgOverlay:    'rgba(7, 7, 8, 0.88)',
-    bgCanvas:     '#0d0d0f',
-    surfaceCard:  '#141416',
-    surfaceHover: '#1a1a1d',
-    surfaceAlt:   '#0a0a0c',
-    borderDim:    '#1e1e21',
-    borderMid:    '#2a2a2d',
-    borderActive: '#3ecf70',
-    accentHigh:   '#3ecf70',
-    accentMid:    '#d4a850',
-    accentLow:    '#e05353',
-    textMain:     '#f0f1f3',
-    textMuted:    '#8c909f',
-    textDark:     '#4e515f',
+    bgOverlay:    'rgba(7,13,8,0.92)',
+    bgCanvas:     '#070D08',
+    surfaceCard:  '#0F1A10',
+    surfaceHover: '#162118',
+    surfaceAlt:   '#0A1209',
+    borderDim:    '#253328',
+    borderMid:    '#3D5C41',
+    borderActive: '#B8874A',
+    accentHigh:   '#B8874A',
+    accentMid:    '#B8874A',
+    accentLow:    '#8B3A3A',
+    textMain:     '#E8E4DC',
+    textMuted:    '#7A8E7D',
+    textDark:     '#4A5E4D',
   },
   radius: {
-    card:    '10px',
-    element: '4px',
+    card:    '2px',
+    element: '2px',
     pill:    '2px',
   },
 };
 
 export function getScoreColor(val) {
-  if (val >= 85) return THEME.colors.accentHigh;
-  if (val >= 72) return THEME.colors.accentMid;
+  if (val >= 85) return THEME.colors.textMain;
+  if (val >= 72) return THEME.colors.textMain;
   return THEME.colors.textMuted;
 }

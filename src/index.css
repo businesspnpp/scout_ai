@@ -1,40 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap');
 @import "tailwindcss";
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --bg-base:        #070D08;
+  --bg-surface:     #0F1A10;
+  --bg-elevated:    #162118;
+  --border:         #253328;
+  --border-active:  #3D5C41;
+  --text-primary:   #E8E4DC;
+  --text-secondary: #7A8E7D;
+  --text-muted:     #4A5E4D;
+  --accent:         #B8874A;
+  --accent-dim:     #1E1610;
+  --score-high:     #E8E4DC;
+  --score-mid:      #7A8E7D;
+  --negative:       #8B3A3A;
+}
+
 @theme {
-  /* Backgrounds */
-  --color-bg:        #17181e;
-  --color-surface-1: #1d1f27;
-  --color-surface-2: #23252f;
-  --color-surface-3: #2a2d38;
-
-  /* Borders */
-  --color-border:        #2e3040;
-  --color-border-mid:    #3a3f54;
-  --color-border-strong: #4c5270;
-
-  /* Typography */
-  --color-text:   #f0f1f3;
-  --color-text-2: #8c909f;
-  --color-text-3: #50535f;
-
-  /* green for high scores */
-  --color-emerald:     #3ecf70;
-  --color-emerald-mid: #27b357;
-
-  /* gold for mid scores */
-  --color-gold:     #d4a850;
-  --color-gold-mid: #b88e38;
-
-  /* Functional */
-  --color-accent: #6b8af5;
-  --color-blue:   #6b8af5;
-  --color-red:    #d96060;
-  --color-white:  #ffffff;
-
-  /* Font families */
+  --color-bg:        #070D08;
+  --color-surface-1: #0F1A10;
+  --color-surface-2: #162118;
+  --color-surface-3: #253328;
+  --color-border:        #253328;
+  --color-border-mid:    #3D5C41;
+  --color-border-strong: #5A7A5E;
+  --color-text:   #E8E4DC;
+  --color-text-2: #7A8E7D;
+  --color-text-3: #4A5E4D;
+  --color-accent: #B8874A;
+  --color-accent-dim: #1E1610;
+  --color-red:    #8B3A3A;
+  --color-white:  #E8E4DC;
   --font-family-inter: 'Inter', system-ui, sans-serif;
-  --font-family-mono:  'JetBrains Mono', monospace;
+  --font-family-mono:  'IBM Plex Mono', monospace;
+  --font-family-display: 'Barlow Condensed', sans-serif;
 }
 
 /* ── Reset & base ──────────────────────────────────────────────────────────── */
@@ -42,9 +43,8 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background: #0d0d0f;
-  background-attachment: fixed;
-  color: #f0f1f3;
+  background: #070D08;
+  color: #E8E4DC;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -55,12 +55,13 @@ body {
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a2a2d; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3a3e; }
+::-webkit-scrollbar-thumb { background: #253328; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #3D5C41; }
 
-/* ── Typography ────────────────────────────────────────────────────────────── */
-.font-syne { font-family: 'Inter', system-ui, sans-serif; font-weight: 700; }
-.font-mono  { font-family: 'JetBrains Mono', monospace; }
+/* ── Typography utilities ──────────────────────────────────────────────────── */
+.font-display { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+.font-syne    { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+.font-mono    { font-family: 'IBM Plex Mono', monospace; }
 
 /* ── Animations ─────────────────────────────────────────────────────────────── */
 @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
@@ -86,42 +87,43 @@ body {
 .terminal-cursor::after {
   content: '█';
   animation: termBlink 1s step-end infinite;
-  color: #3ecf70;
+  color: #B8874A;
   margin-left: 1px;
 }
 
 /* ── Input ─────────────────────────────────────────────────────────────────── */
 .input-base {
   width: 100%;
-  background: #141416;
-  border: 1px solid #2e3040;
-  border-radius: 8px;
+  background: #0F1A10;
+  border: 1px solid #253328;
+  border-radius: 2px;
   padding: 10px 13px;
-  color: #f0f1f3;
+  color: #E8E4DC;
   font-size: 13.5px;
   font-family: 'Inter', sans-serif;
   outline: none;
   transition: border-color 0.14s;
 }
 .input-base:focus {
-  border-color: #3a3f54;
+  border-color: #3D5C41;
 }
-.input-base::placeholder { color: #50535f; }
-.input-base option { background: #141416; color: #f0f1f3; }
+.input-base::placeholder { color: #4A5E4D; }
+.input-base option { background: #0F1A10; color: #E8E4DC; }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────────── */
 .btn-primary {
   padding: 10px 20px;
-  border-radius: 8px;
-  background: #3ecf70;
+  border-radius: 2px;
+  background: #B8874A;
   border: none;
-  color: #17181e;
+  color: #070D08;
   font-weight: 700;
   font-size: 13.5px;
   cursor: pointer;
   transition: opacity 0.13s, transform 0.1s;
-  letter-spacing: 0.01em;
-  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.04em;
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
 }
 .btn-primary:hover   { opacity: 0.87; }
 .btn-primary:active  { transform: translateY(1px); }
@@ -129,93 +131,93 @@ body {
 
 .btn-ghost {
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 2px;
   background: transparent;
-  border: 1px solid #2e3040;
-  color: #8c909f;
+  border: 1px solid #253328;
+  color: #7A8E7D;
   font-weight: 500;
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.13s, color 0.13s, background 0.13s;
   font-family: 'Inter', sans-serif;
 }
-.btn-ghost:hover  { border-color: #2e2e32; color: #f0f1f3; background: #1e1e21; }
+.btn-ghost:hover  { border-color: #3D5C41; color: #E8E4DC; background: #0F1A10; }
 .btn-ghost:active { transform: translateY(1px); }
 
 /* ── Panels ───────────────────────────────────────────────────────────────────── */
-.glass      { background: #1e1e21; border: 1px solid #2a2a2d; }
-.glass-dark { background: #141416; border: 1px solid #2a2a2d; }
+.glass      { background: #0F1A10; border: 1px solid #253328; }
+.glass-dark { background: #070D08; border: 1px solid #253328; }
 
 /* ── Terminal / code blocks ─────────────────────────────────────────────────── */
 .terminal-block {
-  background: #14151b;
-  border: 1px solid #2e3040;
-  border-radius: 10px;
+  background: #070D08;
+  border: 1px solid #253328;
+  border-radius: 2px;
   padding: 16px 18px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
   line-height: 1.7;
-  color: #8c909f;
+  color: #7A8E7D;
 }
 .json-block {
-  background: #14151b;
-  border: 1px solid #2e3040;
-  border-radius: 10px;
+  background: #070D08;
+  border: 1px solid #253328;
+  border-radius: 2px;
   padding: 14px 16px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11.5px;
   line-height: 1.7;
   overflow-x: auto;
 }
-.json-key    { color: #8c909f; }
-.json-string { color: #3ecf70; }
-.json-number { color: #d4a850; }
-.json-bool   { color: #d96060; }
-.json-null   { color: #50535f; }
+.json-key    { color: #7A8E7D; }
+.json-string { color: #B8874A; }
+.json-number { color: #E8E4DC; }
+.json-bool   { color: #8B3A3A; }
+.json-null   { color: #4A5E4D; }
 
 /* ── Score tones ─────────────────────────────────────────────────────────────── */
-.score-high { color: #3ecf70; }
-.score-mid  { color: #d4a850; }
-.score-low  { color: #8c909f; }
+.score-high { color: #E8E4DC; }
+.score-mid  { color: #E8E4DC; }
+.score-low  { color: #7A8E7D; }
 
 /* ── Metric label colors ────────────────────────────────────────────────────── */
-.metric-speed        { color: #3ecf70; }
-.metric-pace         { color: #3ecf70; }
+.metric-speed        { color: #B8874A; }
+.metric-pace         { color: #B8874A; }
 .metric-dribbling    { color: #7eb3f7; }
 .metric-finishing    { color: #e87d7d; }
-.metric-passing      { color: #f5c965; }
+.metric-passing      { color: #E8E4DC; }
 .metric-positioning  { color: #b89cf7; }
 .metric-workrate     { color: #5ccfe8; }
 .metric-heading      { color: #f09b5c; }
-.metric-crossing     { color: #f5c965; }
-.metric-tackling     { color: #3ecf70; }
+.metric-crossing     { color: #E8E4DC; }
+.metric-tackling     { color: #B8874A; }
 .metric-aerial       { color: #c899f7; }
 .metric-pressResistance { color: #7eb3f7; }
 .metric-creativity   { color: #f08bbf; }
-.metric-reflexes     { color: #3ecf70; }
-.metric-distribution { color: #f5c965; }
+.metric-reflexes     { color: #B8874A; }
+.metric-distribution { color: #E8E4DC; }
 .metric-command      { color: #8e9cf7; }
 .metric-sweeping     { color: #5ccfe8; }
 
 /* ── Metric bar fill colors ─────────────────────────────────────────────────── */
-.bar-0 { background: #3ecf70; }
+.bar-0 { background: #B8874A; }
 .bar-1 { background: #7eb3f7; }
 .bar-2 { background: #e87d7d; }
-.bar-3 { background: #f5c965; }
+.bar-3 { background: #E8E4DC; }
 .bar-4 { background: #b89cf7; }
 .bar-5 { background: #5ccfe8; }
 
 /* ── Position badge colors ──────────────────────────────────────────────────── */
 .pos-ST  { color: #e87d7d; }
-.pos-CAM { color: #f5c965; }
+.pos-CAM { color: #E8E4DC; }
 .pos-CM  { color: #7eb3f7; }
 .pos-CDM { color: #b89cf7; }
-.pos-RW  { color: #3ecf70; }
+.pos-RW  { color: #B8874A; }
 .pos-LW  { color: #5ccfe8; }
 .pos-CB  { color: #d0d4df; }
 .pos-RB  { color: #f08bbf; }
 .pos-LB  { color: #93c5fd; }
-.pos-GK  { color: #f5c965; }
+.pos-GK  { color: #E8E4DC; }
 
 /* ── Scrollbar in panels ─────────────────────────────────────────────────────── */
 .custom-scroll::-webkit-scrollbar { width: 3px; }

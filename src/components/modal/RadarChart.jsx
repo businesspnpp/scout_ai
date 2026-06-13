@@ -41,7 +41,7 @@ export default function RadarChart({ scores, labels, size = 240 }) {
       })}
 
       {/* Performance polygon */}
-      <polygon points={polyPts} fill="rgba(62,207,112,0.05)"
+      <polygon points={polyPts} fill="rgba(184,135,74,0.10)"
         stroke={THEME.colors.accentHigh} strokeWidth="1.5" strokeLinejoin="round" />
 
       {/* Vertex dots */}

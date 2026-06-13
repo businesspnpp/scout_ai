@@ -133,8 +133,8 @@ export default function App() {
         pointerEvents: 'none',
         transition: 'transform 0.14s ease, opacity 0.14s ease',
       }}>
-        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#3ecf70', flexShrink: 0, display: 'inline-block' }} />
-        <span style={{ fontSize: '0.84rem', color: '#f0f1f3' }}>{toast.msg}</span>
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#B8874A', flexShrink: 0, display: 'inline-block' }} />
+        <span style={{ fontSize: '0.84rem', color: '#E8E4DC' }}>{toast.msg}</span>
       </div>
     </>
   );
