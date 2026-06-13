@@ -41,7 +41,7 @@ function buildMockResponse(playerDetails) {
     scoutNotes:       `Good ${pos} with a strong showing in his ${Object.keys(baseMetrics)[0]}. Worth monitoring over the next few months.`,
     developmentAreas: ['weak foot', 'pressing intensity', 'aerial duels'],
     potential:        overall >= 85 ? 'Elite (A-Grade)' : overall >= 78 ? 'High (B-Grade)' : 'Promising (C-Grade)',
-    valuationBracket: overall >= 88 ? 'EUR 120,000 - EUR 250,000' : overall >= 80 ? 'EUR 50,000 - EUR 120,000' : 'EUR 15,000 - EUR 50,000',
+    valuationBracket: overall >= 88 ? '€120,000 - €250,000' : overall >= 80 ? '€50,000 - €120,000' : '€15,000 - €50,000',
     recommendedPath:  'CAF youth pathway, worth a trial at European U23 level',
     comparablePros: [
       { name: 'Thomas Partey',       club: 'Atletico Madrid (Youth Reference)', ageWhen: 18, similarity: 89 },
@@ -98,7 +98,7 @@ Return ONLY a valid JSON object (no markdown, no explanation):
   "scoutNotes": string,
   "developmentAreas": string[],
   "potential": "Elite (A-Grade)" | "High (B-Grade)" | "Promising (C-Grade)" | "Developmental",
-  "valuationBracket": string,
+  "valuationBracket": string (use € symbol, e.g. "€50,000 - €120,000"),
   "recommendedPath": string,
   "comparablePros": [
     {
