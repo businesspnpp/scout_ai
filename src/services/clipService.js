@@ -42,8 +42,8 @@ export async function loadFFmpeg() {
           console.time('[ffmpeg] load');
           ffmpeg = new FFmpeg();
           await ffmpeg.load({
-            coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
-            wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
+            coreURL: new URL('/ffmpeg/ffmpeg-core.js',   location.href).href,
+            wasmURL: new URL('/ffmpeg/ffmpeg-core.wasm', location.href).href,
           });
           console.timeEnd('[ffmpeg] load');
           console.log('[ffmpeg] WASM loaded OK');
