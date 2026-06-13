@@ -1,7 +1,7 @@
 ﻿// clipService.js
 // handles video clip cutting - instant browser clips + Shotstack cloud renders
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 // converts MM:SS or HH:MM:SS to plain seconds
 export function parseToSeconds(ts) {
@@ -41,9 +41,10 @@ export async function loadFFmpeg() {
           console.log(`[ffmpeg] loading WASM (attempt ${attempt}/${MAX_ATTEMPTS})...`);
           console.time('[ffmpeg] load');
           ffmpeg = new FFmpeg();
+          const baseURL = new URL('/ffmpeg', location.href).href;
           await ffmpeg.load({
-            coreURL: new URL('/ffmpeg/ffmpeg-core.js',   location.href).href,
-            wasmURL: new URL('/ffmpeg/ffmpeg-core.wasm', location.href).href,
+            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`,   'text/javascript'),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
           });
           console.timeEnd('[ffmpeg] load');
           console.log('[ffmpeg] WASM loaded OK');
