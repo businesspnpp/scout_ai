@@ -3,6 +3,7 @@
 // API keys live only on the server — they are never included in the browser bundle.
 
 import { compressVideoForUpload } from './clipService.js';
+import { supabase, isSupabaseEnabled } from './supabaseClient.js';
 // API keys live server-side only — see server.js / api/ directory.
 
 // mock data used when the API is down or no key is set
@@ -167,7 +168,7 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   // 2. Process video files
   const COMPRESS_MB = 1;
   const INLINE_MB   = 2.2;
-  const MAX_RAW_MB  = 100;
+  const MAX_RAW_MB  = 2000; // Gemini Files API accepts up to 2 GB; Supabase handles the upload
   for (let i = 0; i < videoFiles.length; i++) {
     let file = videoFiles[i];
     const sizeMB = file.size / 1_048_576;
@@ -206,16 +207,9 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
           console.warn('[gemini] compression threw:', e.message);
         }
         const fallbackMB = file.size / 1_048_576;
-        console.log(`[gemini] fallback file size: ${fallbackMB.toFixed(2)} MB (INLINE_MB limit: ${INLINE_MB})`);
-        if (fallbackMB > INLINE_MB) {
-          // File is too large to send inline and compression failed.
-          // Skip this video but CONTINUE with real Gemini analysis using headshot + player details.
-          // This gives real AI output instead of hardcoded mock data.
-          console.warn(`[gemini] video ${i+1} skipped (${fallbackMB.toFixed(0)} MB, uncompressable) — continuing without it`);
-          onStream?.(`\nVideo too large to process — analysing from reference photo and player details`);
-          parts.push({ text: `--- Video Clip ${i + 1}: could not be processed (${fallbackMB.toFixed(0)} MB, compression unavailable in this browser). Analyse from reference photo and player details only. ---` });
-          continue; // skip to next video
-        }
+        console.log(`[gemini] fallback file size: ${fallbackMB.toFixed(2)} MB — routing to Supabase upload path`);
+        // Compression failed — fall through with original file.
+        // If > INLINE_MB the code below will call uploadViaProxy (Supabase → Gemini Files API).
       }
     } else {
       console.log(`[gemini] video ${i+1} small enough — skipping compression`);
@@ -255,13 +249,36 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   return result;
 }
 
-// Upload a large video through the server proxy to Gemini Files API.
+// Upload video to Supabase Storage first (direct from browser, no Vercel size limit),
+// then pass the public URL to the server so it can stream to Gemini Files API.
 async function uploadViaProxy(file, onStream) {
-  const formData = new FormData();
-  formData.append('video', file);
   const heartbeat = setInterval(() => onStream?.(' .'), 4000);
   try {
-    const res = await fetch('/api/gemini/upload', { method: 'POST', body: formData });
+    // Step 1: upload directly to Supabase Storage from the browser
+    if (!isSupabaseEnabled || !supabase) {
+      throw new Error('Supabase not configured — cannot upload large video');
+    }
+    const ext = file.name.split('.').pop() || 'mp4';
+    const path = `videos/tmp_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    console.log('[gemini] uploading video to Supabase Storage...');
+    console.time('[gemini] supabase upload');
+    const { error: uploadErr } = await supabase.storage
+      .from('profiles')
+      .upload(path, file, { contentType: file.type || 'video/mp4', upsert: false });
+    console.timeEnd('[gemini] supabase upload');
+    if (uploadErr) throw new Error(`Supabase upload failed: ${uploadErr.message}`);
+
+    // Step 2: get a public URL
+    const { data: urlData } = supabase.storage.from('profiles').getPublicUrl(path);
+    const publicUrl = urlData.publicUrl;
+    console.log('[gemini] Supabase public URL:', publicUrl);
+
+    // Step 3: tell the server to fetch that URL and forward to Gemini Files API
+    const res = await fetch('/api/gemini/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: publicUrl, mimeType: file.type || 'video/mp4', path }),
+    });
     if (!res.ok) {
       const msg = await res.text().catch(() => String(res.status));
       throw new Error(`Gemini upload failed (${res.status}): ${msg}`);
