@@ -154,24 +154,41 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   }
 
   // 2. Process video files
-  const COMPRESS_MB = 1;   // compress anything over 1 MB — always compress to stay well under limits
+  const COMPRESS_MB = 1;   // compress anything over 1 MB
   const INLINE_MB   = 2.2; // max binary MB to send inline — 2.2 MB × 1.37 base64 ≈ 3.0 MB body; safe under Vercel 4.5 MB
+  const MAX_RAW_MB  = 100; // refuse files over 100 MB outright — compression cannot help these
   for (let i = 0; i < videoFiles.length; i++) {
     let file = videoFiles[i];
     const sizeMB = file.size / 1_048_576;
 
+    if (sizeMB > MAX_RAW_MB) {
+      throw new Error(`Video is ${sizeMB.toFixed(0)} MB — please trim to under 5 minutes before uploading.`);
+    }
+
     if (sizeMB > COMPRESS_MB) {
       onStream?.('\nOptimising video...');
       try {
-        file = await compressVideoForUpload(file, msg => onStream?.(`\n  ${msg}`));
+        // Hard 90-second wall-clock timeout on the entire compression pipeline
+        // (covers load, writeFile, exec, readFile — any of which can hang)
+        const compressed = await Promise.race([
+          compressVideoForUpload(file, msg => onStream?.(`\n  ${msg}`)),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('COMPRESS_TIMEOUT')), 90_000)
+          ),
+        ]);
+        file = compressed;
         onStream?.('\nOptimisation complete');
       } catch (e) {
-        // Compression failed — only continue with original if it's small enough to inline
+        if (e.message === 'COMPRESS_TIMEOUT') {
+          onStream?.('\nCompression timed out — sending original...');
+        } else {
+          onStream?.('\nCompression failed — sending original...');
+        }
+        // Fall through with original file — if it fits inline, Gemini handles it
         const fallbackMB = file.size / 1_048_576;
         if (fallbackMB > INLINE_MB) {
-          throw new Error(`Compression failed and video is too large (${fallbackMB.toFixed(0)} MB). Please trim the clip to under 90 seconds before uploading.`);
+          throw new Error(`Video is ${fallbackMB.toFixed(0)} MB and could not be compressed. Please trim to under 2 minutes before uploading.`);
         }
-        onStream?.('\nContinuing with original...');
       }
     }
 
