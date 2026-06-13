@@ -17,5 +17,10 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:3001',
     },
+    // SharedArrayBuffer (required by @ffmpeg/ffmpeg v0.12 WASM) needs these two headers
+    headers: {
+      'Cross-Origin-Opener-Policy':   'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
   },
 });
