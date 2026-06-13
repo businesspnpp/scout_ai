@@ -70,7 +70,10 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
               scrollbarWidth: 'none',
             }}
           >
-            {s.indexOf('{') !== -1 ? s.slice(s.indexOf('{')) : s}
+            {s.indexOf('{') !== -1
+              ? s.slice(s.indexOf('{'))
+              : s.replace(/\nUploading video[^\n]*/g, '').replace(/( \.)+/g, '').trim()
+            }
             <span style={{ display: 'inline-block', width: 7, height: '0.9em', background: '#3ecf70', marginLeft: 1, verticalAlign: 'text-bottom', animation: 'termBlink 0.9s step-end infinite' }} />
           </div>
         </div>
