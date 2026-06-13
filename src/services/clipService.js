@@ -127,11 +127,12 @@ export async function compressVideoForUpload(file, onProgress) {
   try {
     await ffmpeg.exec([
       '-i', inName,
-      '-vf', 'scale=-2:480',     // 480p keeps file under Vercel's 4.5 MB function limit
+      '-t', '120',               // cap at 2 min — Gemini needs no more for analysis
+      '-vf', 'scale=-2:360',     // 360p: fine for AI visual analysis, much smaller file
       '-c:v', 'libx264',
-      '-crf', '32',               // higher CRF = smaller file; fine for AI analysis
+      '-crf', '36',              // aggressive but still clear enough for Gemini
       '-preset', 'ultrafast',
-      '-c:a', 'aac', '-b:a', '64k',
+      '-an',                     // no audio — not needed for football analysis
       '-movflags', '+faststart',
       outName,
     ]);
