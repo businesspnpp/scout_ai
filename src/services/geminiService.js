@@ -154,7 +154,7 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   }
 
   // 2. Process video files
-  const COMPRESS_MB = 60;
+  const COMPRESS_MB = 3;   // compress anything over 3 MB — keeps inline base64 under Vercel's 4.5 MB limit
   const INLINE_MB   = 15;
   for (let i = 0; i < videoFiles.length; i++) {
     let file = videoFiles[i];

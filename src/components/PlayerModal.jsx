@@ -143,7 +143,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 <div style={{ padding: '0 14px 12px', display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
                   <span style={{ fontSize: '0.56rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar to:</span>
                   {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
-                    <span key={i} style={{ fontSize: '0.70rem', padding: '3px 9px', borderRadius: 3, background: 'rgba(62,207,112,0.07)', border: '1px solid rgba(62,207,112,0.22)', color: THEME.colors.accentHigh, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    <span key={i} style={{ fontSize: '0.70rem', padding: '3px 9px', borderRadius: 3, background: 'rgba(255,255,255,0.06)', color: THEME.colors.textMuted, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {pro.name} <span style={{ opacity: 0.55, fontFamily: 'monospace', fontSize: '0.63rem' }}>·{pro.similarity}%</span>
                     </span>
                   ))}
@@ -195,7 +195,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 <div style={{ padding: '0 24px 12px', display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
                   <span style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar to:</span>
                   {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
-                    <span key={i} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: 3, background: 'rgba(62,207,112,0.07)', border: '1px solid rgba(62,207,112,0.22)', color: THEME.colors.accentHigh, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    <span key={i} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: 3, background: 'rgba(255,255,255,0.06)', color: THEME.colors.textMuted, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {pro.name} <span style={{ opacity: 0.55, fontFamily: 'monospace', fontSize: '0.65rem' }}>·{pro.similarity}%</span>
                     </span>
                   ))}
@@ -277,9 +277,9 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                       disabled={pitchLoading}
                       style={{
                         padding: '8px 16px', borderRadius: 6, cursor: pitchLoading ? 'wait' : 'pointer',
-                        background: pitchLoading ? 'rgba(62,207,112,0.04)' : 'rgba(62,207,112,0.10)',
-                        border: `1px solid ${pitchLoading ? 'rgba(62,207,112,0.15)' : 'rgba(62,207,112,0.35)'}`,
-                        color: THEME.colors.accentHigh, fontSize: '0.78rem', fontWeight: 700,
+                        background: pitchLoading ? '#16a34a' : '#22c55e',
+                        border: 'none',
+                        color: '#071a0e', fontSize: '0.78rem', fontWeight: 700,
                         display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
                         transition: 'all 0.12s',
                       }}
@@ -294,8 +294,8 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                   </div>
                   {pitchText && (
                     <div style={{ padding: '20px 20px', background: THEME.colors.bgCanvas, fontFamily: '"JetBrains Mono", "Courier New", monospace', fontSize: '0.78rem', color: THEME.colors.textMain, lineHeight: 1.8, whiteSpace: 'pre-wrap', borderTop: `1px solid ${THEME.colors.borderDim}` }}>
-                      <div style={{ fontSize: '0.58rem', letterSpacing: '0.14em', color: THEME.colors.accentHigh, fontWeight: 800, marginBottom: 12, textTransform: 'uppercase' }}>
-                        ● TRANSMISSION ACTIVE {pitchLoading ? '— STREAMING' : '— COMPLETE'}
+                      <div style={{ fontSize: '0.58rem', letterSpacing: '0.14em', color: THEME.colors.textDark, fontWeight: 700, marginBottom: 12, textTransform: 'uppercase' }}>
+                        {pitchLoading ? 'Generating...' : 'Recruitment Memo'}
                       </div>
                       {pitchText}
                       {pitchLoading && <span style={{ display: 'inline-block', width: 8, height: 14, background: THEME.colors.accentHigh, marginLeft: 2, animation: 'none', verticalAlign: 'middle', opacity: 0.8 }}>▋</span>}
