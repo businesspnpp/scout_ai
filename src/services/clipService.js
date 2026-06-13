@@ -12,19 +12,27 @@ export function parseToSeconds(ts) {
   return parseFloat(ts) || 0;
 }
 
-// FFmpeg WASM - used for compression only now
-const ffmpeg = new FFmpeg();
-let ffmpegLoaded = false;
-
-// loaded from public/ffmpeg/ so it works offline
+// FFmpeg WASM - loaded from public/ffmpeg/ so it works offline
 const LOCAL_BASE = '/ffmpeg';
 
-export async function loadFFmpeg() {
-  if (ffmpegLoaded) return;
-  await ffmpeg.load({
+// Returns a freshly loaded FFmpeg instance.
+// A new instance (new Worker) is created every time to avoid stale/crashed worker state.
+async function createFFmpeg() {
+  const instance = new FFmpeg();
+  await instance.load({
     coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
     wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
   });
+  return instance;
+}
+
+// Keep one shared instance for clip cutting (lightweight, rarely fails)
+let ffmpeg = null;
+let ffmpegLoaded = false;
+
+export async function loadFFmpeg() {
+  if (ffmpegLoaded) return;
+  ffmpeg = await createFFmpeg();
   ffmpegLoaded = true;
 }
 
@@ -105,12 +113,14 @@ export function processHighlightsInstant(videoFiles, highlights) {
  *  @returns {Promise<File>} compressed File
  */
 export async function compressVideoForUpload(file, onProgress) {
-  await loadFFmpeg();
+  // Always create a fresh instance for compression — avoids stale/crashed worker
+  // state from any previous failed compression attempt.
+  const cmp = await createFFmpeg();
   const inName  = 'cmp_in.mp4';
   const outName = 'cmp_out.mp4';
 
   onProgress?.('Writing to memory...');
-  await ffmpeg.writeFile(inName, await fetchFile(file));
+  await cmp.writeFile(inName, await fetchFile(file));
 
   // Stream live FFmpeg log lines so the UI shows activity
   const onLog = ({ message }) => {
@@ -122,13 +132,13 @@ export async function compressVideoForUpload(file, onProgress) {
       onProgress?.(message.trim().slice(0, 60));
     }
   };
-  ffmpeg.on('log', onLog);
+  cmp.on('log', onLog);
 
   // Capture exec errors instead of re-throwing immediately — FFmpeg WASM sometimes exits
-  // non-zero even when valid output was written (bad state from prior run, codec warnings, etc.)
+  // non-zero even when valid output was written (codec warnings, etc.)
   let execError = null;
   try {
-    await ffmpeg.exec([
+    await cmp.exec([
       '-i', inName,
       '-t', '90',                // cap at 90 s — Gemini needs no more for analysis
       '-vf', 'scale=-2:240',     // 240p: plenty for AI visual analysis; keeps size well under 2.2 MB
@@ -142,19 +152,16 @@ export async function compressVideoForUpload(file, onProgress) {
   } catch (err) {
     execError = err;
   } finally {
-    ffmpeg.off('log', onLog);
+    cmp.off('log', onLog);
   }
 
   // Always try to read the output — exec may have written a valid file even on non-zero exit
   let data = null;
-  try { data = await ffmpeg.readFile(outName); } catch { /* no output written */ }
+  try { data = await cmp.readFile(outName); } catch { /* no output written */ }
 
-  await ffmpeg.deleteFile(inName).catch(() => {});
-  if (data) await ffmpeg.deleteFile(outName).catch(() => {});
+  // cmp instance is disposable — no cleanup needed
 
   if (!data || data.byteLength < 1024) {
-    // Genuine failure — reset singleton so the next call reloads FFmpeg cleanly
-    ffmpegLoaded = false;
     throw execError ?? new Error('FFmpeg produced no output');
   }
 
