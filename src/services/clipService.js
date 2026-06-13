@@ -42,10 +42,14 @@ export async function loadFFmpeg() {
           console.time('[ffmpeg] load');
           ffmpeg = new FFmpeg();
           const baseURL = new URL('/ffmpeg', location.href).href;
-          await ffmpeg.load({
-            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`,   'text/javascript'),
-            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-          });
+          // toBlobURL fetches and creates blob: URLs the worker can importScripts() from
+          // workerURL must also be a blob so the classic worker can load it
+          const [coreURL, wasmURL, workerURL] = await Promise.all([
+            toBlobURL(`${baseURL}/ffmpeg-core.js`,   'text/javascript'),
+            toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+            toBlobURL(`${baseURL}/ffmpeg-worker.js`, 'text/javascript'),
+          ]);
+          await ffmpeg.load({ coreURL, wasmURL, workerURL });
           console.timeEnd('[ffmpeg] load');
           console.log('[ffmpeg] WASM loaded OK');
           ffmpegLoaded = true;
