@@ -211,7 +211,7 @@ export function useLocalProfiles() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addProfile = useCallback(async ({
-    formData, headshotFile, existingHeadshotUrl = null, videoFile, videoUrl, analysis,
+    formData, headshotFile, existingHeadshotUrl = null, existingHeadshotPath = null, videoFile, videoUrl, analysis,
     metricClips = [],
     onSyncProgress,
   }) => {
@@ -303,7 +303,7 @@ export function useLocalProfiles() {
         try {
           onSyncProgress?.('uploading');
           const { headshotPublicUrl, videoPublicUrl } = await saveFullProfile({
-            profileId: id, formData, headshotFile, existingHeadshotUrl, videoFile, videoUrl, analysis,
+            profileId: id, formData, headshotFile, existingHeadshotUrl, existingHeadshotPath, videoFile, videoUrl, analysis,
             metricClips: clipMetas,  // persist timestamps + metrics to Supabase
           });
           // Preserve all local URLs, then overlay Supabase public URLs on top

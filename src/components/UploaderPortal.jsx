@@ -183,8 +183,11 @@ export default function UploaderPortal({
       setSyncStatus('saving');
 
       // Capture existing headshot URL BEFORE removing old profile (editing without new headshot)
-      const existingHeadshotUrl = (editingId && !headshot)
+      const existingHeadshotUrl  = (editingId && !headshot)
         ? (blobUrls[editingId]?.headshotUrl ?? null)
+        : null;
+      const existingHeadshotPath = (editingId && !headshot)
+        ? (localProfiles.find(p => p.id === editingId)?._headshotPath ?? null)
         : null;
 
       // Track saved profile ID for Shotstack upgrade
@@ -232,6 +235,7 @@ export default function UploaderPortal({
           formData:          form,
           headshotFile:      headshot,
           existingHeadshotUrl,
+          existingHeadshotPath,
           videoFile:    videoMode === 'file' && videoFiles.length > 0 ? videoFiles[0] : null,
           videoUrl:     videoMode === 'url' ? videoUrl : '',
           analysis:     analysisResult,
@@ -289,12 +293,14 @@ export default function UploaderPortal({
     if (!form.name.trim() || !editingId) return;
     setSyncStatus('saving');
     const oldProfile = localProfiles.find(p => p.id === editingId);
-    const existingHeadshotUrl = !headshot ? (blobUrls[editingId]?.headshotUrl ?? null) : null;
+    const existingHeadshotUrl  = !headshot ? (blobUrls[editingId]?.headshotUrl ?? null) : null;
+    const existingHeadshotPath = !headshot ? (oldProfile?._headshotPath ?? null) : null;
     try {
       const meta = await onSaveProfile?.({
         formData: form,
         headshotFile: headshot,
         existingHeadshotUrl,
+        existingHeadshotPath,
         videoFile: null,
         videoUrl: oldProfile?.videoUrl || '',
         analysis: oldProfile?.analysis ?? null,

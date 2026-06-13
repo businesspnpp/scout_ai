@@ -147,7 +147,8 @@ export async function saveFullProfile({
   profileId,
   formData,
   headshotFile,
-  existingHeadshotUrl = null,  // carry over existing CDN URL when editing without a new file
+  existingHeadshotUrl  = null,  // carry over existing CDN URL when editing without a new file
+  existingHeadshotPath = null,  // storage path of existing headshot — used to copy file to new profile path
   videoFile,
   videoUrl,   // external URL (YouTube/TikTok) when no file
   analysis,
@@ -193,9 +194,26 @@ export async function saveFullProfile({
       });
     }
   } else if (existingHeadshotUrl && !existingHeadshotUrl.startsWith('blob:')) {
-    // Editing with an existing CDN URL - carry it over to the new row
-    headshotPublicUrl = existingHeadshotUrl;
-    await updateProfileRow(profileId, { headshot_url: existingHeadshotUrl });
+    // Editing without a new headshot — copy the file to this profile's own path so
+    // deleting the old profile from storage won't break this profile's headshot URL.
+    const newPath = `${profileId}/headshot.jpg`;
+    let copied = false;
+    if (existingHeadshotPath) {
+      try {
+        const { error } = await supabase.storage.from(BUCKET).copy(existingHeadshotPath, newPath);
+        if (!error) {
+          const { data } = supabase.storage.from(BUCKET).getPublicUrl(newPath);
+          headshotPublicUrl = data.publicUrl;
+          await updateProfileRow(profileId, { headshot_url: data.publicUrl, headshot_path: newPath });
+          copied = true;
+        }
+      } catch { /* fall through */ }
+    }
+    if (!copied) {
+      // Fallback: reference the original URL (safe as long as the old profile isn't deleted first)
+      headshotPublicUrl = existingHeadshotUrl;
+      await updateProfileRow(profileId, { headshot_url: existingHeadshotUrl });
+    }
   }
 
   // ── Step 3: Upload video → patch URL (links video back to profile) ───────
