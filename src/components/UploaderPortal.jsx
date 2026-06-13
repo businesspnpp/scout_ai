@@ -598,7 +598,7 @@ export default function UploaderPortal({
                   Score <strong style={{ color: '#00c853' }}>{result.overallScore}</strong>
                   &nbsp;&middot;&nbsp; Confidence <strong style={{ color: '#00c853' }}>{result.aiMatchConfidence}%</strong>
             {metricClips.length > 0 && <span style={{ marginLeft: 8, color: '#c9a84c' }}>&#10022; {metricClips.length} clips</span>}
-                  {shotstackStatus && <ShotstackBadge status={shotstackStatus} done={shotstackDone} total={shotstackTotal} />}
+                  {shotstackStatus && metricClips[0]?.source !== 'ffmpeg' && <ShotstackBadge status={shotstackStatus} done={shotstackDone} total={shotstackTotal} />}
                   {result._isMock && <span style={{ marginLeft: 8, color: '#c9a84c', fontSize: '0.70rem' }}>demo mode</span>}
                 </div>
               </div>
