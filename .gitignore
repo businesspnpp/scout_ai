@@ -8,3 +8,8 @@ dist-ssr
 .DS_Store
 *.log
 public/ffmpeg/
+
+# Backup/copy files
+*copy*.jsx
+*copy*.js
+* copy.*

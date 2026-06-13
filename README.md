@@ -65,19 +65,19 @@ npm run dev
 Create a `.env.local` file with your keys:
 
 ```
-VITE_GEMINI_API_KEY=your_key
-VITE_GEMINI_API_KEY2=your_backup_key
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_SHOTSTACK_API_KEY=your_shotstack_key
-VITE_SHOTSTACK_URL=https://api.shotstack.io/edit/stage/render
+GEMINI_API_KEY=your_key
+GEMINI_API_KEY_2=your_backup_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_anon_key
+SHOTSTACK_API_KEY=your_shotstack_key
+SHOTSTACK_URL=https://api.shotstack.io/edit/stage/render
 ```
 
 The app runs in demo mode with mock data if no Gemini key is set.
 
 
-> **BeOrchid Africa 2026** · AI-powered dual-sided football scouting platform  
-> Built with React 18 + Vite 6 + Tailwind CSS v4 + Gemini 1.5 Pro
+> **BeOrchid Africa 2026** · AI-powered dual-sided football scouting platform
+> Built with React 18 + Vite 6 + Tailwind CSS v4 + Gemini 2.5 Flash
 
 ---
 
