@@ -245,17 +245,11 @@ export default function ScoutChat({ focusPlayer = null, localProfiles = [], blob
             <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
           </svg>
         ) : (
-          <>
-            {/* Chat bubble with sparkle */}
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-              <path d="M4 3h14a1.5 1.5 0 011.5 1.5v9A1.5 1.5 0 0118 15H9.5L5 19.5V4.5A1.5 1.5 0 014 3z"
-                stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="rgba(120,180,150,0.06)"/>
-              {/* sparkle */}
-              <path d="M11 7.5 L11.55 9.45 L13.5 10 L11.55 10.55 L11 12.5 L10.45 10.55 L8.5 10 L10.45 9.45 Z"
-                fill="currentColor" opacity="0.75"/>
-            </svg>
-            <span style={{ fontSize: '0.52rem', letterSpacing: '0.06em', fontWeight: 600, opacity: 0.7, lineHeight: 1 }}>AI</span>
-          </>
+          <img
+            src="/assets/ScoutAI-icon.png"
+            alt="Scout AI"
+            style={{ width: 28, height: 28, objectFit: 'contain', opacity: 0.9 }}
+          />
         )}
       </button>
 
