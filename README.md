@@ -83,10 +83,10 @@ The app runs in demo mode with mock data if no Gemini key is set.
 
 ## Overview
 
-Scout AI is a dual-sided talent discovery platform connecting grassroots African football players with elite scouts worldwide. Coaches upload match footage; scouts discover talent through an AI-analyzed profile grid with interactive radar charts and metric evidence clips.
+Scout AI is a dual-sided talent discovery platform connecting grassroots African football players with elite scouts worldwide. Coaches upload match footage; scouts discover talent through an AI-analyzed profile grid with interactive radar charts, metric evidence clips, AI-generated scouting pitches, comparable professional players, and a live AI chat assistant.
 
 ```
-Uploader Portal  →  Gemini 1.5 Pro analysis  →  Scout Intelligence Grid
+Uploader Portal  →  Gemini 2.5 Flash analysis  →  Scout Intelligence Grid
 ```
 
 ---
@@ -96,36 +96,35 @@ Uploader Portal  →  Gemini 1.5 Pro analysis  →  Scout Intelligence Grid
 ```
 scout-ai/
 ├── public/
-│   ├── headshots/
-│   │   ├── player1.jpg              # Celestin Kamdem
-│   │   ├── player2.jpg              # Oumar Coulibaly
-│   │   └── ...  (player3–10.jpg)
+│   ├── headshots/                   # Player headshot images
 │   └── reels/
-│       ├── celestin-kamdem/
-│       │   ├── highlight.mp4        # Full 60–90s reel
-│       │   ├── finishing.mp4        # Metric evidence clip
-│       │   └── pace.mp4
-│       ├── oumar-coulibaly/
-│       │   ├── highlight.mp4
-│       │   ├── dribbling.mp4
-│       │   └── passing.mp4
-│       └── ... (8 more player folders)
+│       └── {player-slug}/           # Per-player video clips (highlight.mp4, metric clips)
 ├── src/
-│   ├── assets/
 │   ├── components/
-│   │   ├── Navigation.jsx           # Dual-role top nav with toggle pill
-│   │   ├── UploaderPortal.jsx       # Ingestion form + cinematic AI terminal
-│   │   ├── ScoutDashboard.jsx       # Filter sidebar + 10-player discovery grid
-│   │   ├── PlayerCard.jsx           # Profile card with SVG radar chart
-│   │   └── VideoLightbox.jsx        # Full-screen video popup for metric clips
+│   │   ├── Navigation.jsx           # Dual-role top nav with Scout / Coach toggle
+│   │   ├── ScoutDashboard.jsx       # Left nav sidebar + all scout views (grid, compare, reports, notes)
+│   │   ├── PlayerCard.jsx           # Compact profile card with radar chart + watchlist toggle
+│   │   ├── PlayerModal.jsx          # Full player detail modal (overview, metrics, highlights, clips, notes)
+│   │   ├── ScoutChat.jsx            # Floating AI chat panel (Gemini 2.5 Flash conversational assistant)
+│   │   ├── UploaderPortal.jsx       # Coach upload form with live Gemini terminal
+│   │   └── VideoLightbox.jsx        # Full-screen metric evidence clip viewer
+│   │   └── uploader/
+│   │       └── AnalysisStatusCard.jsx  # Progress ring + live Gemini output terminal
 │   ├── data/
-│   │   └── mockPlayers.js           # 10 pre-loaded deep-data African profiles
+│   │   └── mockPlayers.js           # 10 pre-loaded deep-data African player profiles
+│   ├── hooks/
+│   │   └── useLocalProfiles.js      # IndexedDB hook for local-first profile persistence
 │   ├── services/
-│   │   └── geminiService.js         # Gemini 1.5 Pro API connection + mock fallback
-│   ├── App.jsx                      # Root state: view, lightbox, shortlist
+│   │   ├── geminiService.js         # Gemini 2.5 Flash multimodal analysis + streaming + mock fallback
+│   │   ├── supabaseService.js       # Supabase DB read/write + storage upload
+│   │   ├── supabaseClient.js        # Supabase client singleton
+│   │   ├── dbService.js             # IndexedDB helpers
+│   │   └── clipService.js           # Browser-side video clip extraction from timestamps
+│   ├── App.jsx                      # Root state: role, modal, toast, watchlist, notes, reports
 │   ├── main.jsx
 │   └── index.css                    # Tailwind v4 + custom design tokens
-├── .env.local                       # VITE_GEMINI_API_KEY=your_key_here
+├── server.js                        # Express proxy (keeps API keys server-side, handles Gemini SSE)
+├── .env                             # Server-side env vars (see below)
 ├── package.json
 └── README.md
 ```
@@ -138,10 +137,10 @@ scout-ai/
 # 1. Install dependencies
 npm install
 
-# 2. Add your Gemini API key (optional - app works without it via mock data)
-echo "VITE_GEMINI_API_KEY=your_free_key_here" > .env.local
+# 2. Add your keys to a .env file (optional - app works without them via mock data)
+# See environment variables section below
 
-# 3. Start development server
+# 3. Start development server (runs Express proxy + Vite concurrently)
 npm run dev
 
 # 4. Build for production
@@ -152,27 +151,29 @@ npm run build
 
 ## Feature Breakdown
 
-### Uploader Portal (`/uploader`)
-- Input: Player name, age, region, position
-- Anchor headshot / ID photo upload (used for facial reference tracking)
-- Video input: native `.mp4` file upload **or** YouTube/TikTok URL
-- **Cinematic 4-step AI loading sequence:**
-  1. Ingesting video frames + facial anchor alignment
-  2. Gemini 1.5 Pro multimodal inference
-  3. Positional metric scoring across 6 axes
-  4. FFmpeg highlight slicing & timestamp extraction
-- Live JSON response display with syntax highlighting
-- Auto-injects analyzed player into the Scout grid
+### Uploader Portal (Coach side)
+- Player details: name, age, region, position, height, preferred foot, current club/academy
+- Anchor headshot upload — Gemini uses this as a facial reference to track the specific player in team footage
+- Video input: native `.mp4` file upload or YouTube/TikTok URL
+- Large files are uploaded to the Gemini Files API via the Express proxy; small files are inlined as base64
+- FFmpeg compresses oversized files in-browser before upload
+- Live Gemini token stream displayed in a terminal panel as analysis runs
+- Auto-injects analyzed player into the Scout grid; syncs to Supabase if keys are set
 
-### Scout Intelligence (`/scouter`)
-- **Filter sidebar:** Position (grouped), Region, Age max, Overall score threshold, Saved only
-- **Sort:** Overall ↓, AI Match ↓, Youngest, Name A–Z
-- **Player cards** include:
-  - Position-specific radar chart (6 dynamic axes per role group)
-  - Clickable metric score bars → opens video lightbox with evidence clip
-  - Highlight reel play button
-  - Star shortlist toggle
-- Stats strip: active profiles, countries, avg score, positions represented
+### Scout Intelligence (Scout side)
+- **Filter sidebar:** Position (grouped), Region, Age max, Overall score threshold
+- **Persistent scout data (localStorage):** Watchlist, shortlist, per-player notes, generated reports, recently viewed, comparison slot
+- **Player cards:** Radar chart, metric score bars, watchlist eye toggle, view count
+- **Discover / Trending / Recently Added** sections on the dashboard home
+
+### AI Scouting Pitch
+Inside a player's profile modal, scouts can generate an AI scouting pitch with one click. Gemini 2.5 Flash writes a professional-grade written pitch for that player based on their scores, metrics, position, and scout notes. The pitch is saved locally and accessible from the **My Reports** section of the sidebar.
+
+### Comparable Professional Player
+The player profile overview surfaces an AI-identified comparable professional — a real-world footballer whose play style and attributes most closely match the analyzed player. This gives scouts an immediate frame of reference when evaluating grassroots talent.
+
+### AI Scout Chat (ScoutChat)
+A floating chat panel available to scouts at all times. Powered by Gemini 2.5 Flash, it lets scouts ask questions about players, request tactical breakdowns, get position advice, or explore the platform — all in a conversational interface. Messages stream in real time via SSE through the Express proxy. Runs in demo mode with a readable mock response if no API key is configured.
 
 ### Position-Specific Radar Axes
 
@@ -187,53 +188,14 @@ npm run build
 
 ---
 
-## Gemini 1.5 Pro Integration
+## Gemini 2.5 Flash Integration
 
-`src/services/geminiService.js` uses the `@google/genai` SDK:
+`src/services/geminiService.js` sends requests through `server.js` (Express proxy) via SSE:
 
-```js
-import { GoogleGenAI } from '@google/genai';
-
-const genai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
-
-const response = await genai.models.generateContent({
-  model: 'gemini-1.5-pro',
-  contents: [{ role: 'user', parts: [{ text: structuredPrompt }, { fileData: { fileUri, mimeType } }] }],
-  config: { temperature: 0.3, maxOutputTokens: 1024 },
-});
-```
-
-**Fallback behavior:** When `VITE_GEMINI_API_KEY` is absent or the API call fails, the service automatically returns position-accurate mock data so the UI always demonstrates correctly.
-
----
-
-## Adding Real Video Files
-
-Place `.mp4` files in `public/reels/{player-slug}/`:
-
-```
-public/reels/celestin-kamdem/highlight.mp4
-public/reels/celestin-kamdem/finishing.mp4
-public/reels/celestin-kamdem/pace.mp4
-```
-
-Cards gracefully show a placeholder when a file is missing - no broken states.
-
----
-
-## Design System
-
-| Token             | Value         | Usage |
-|-------------------|---------------|-------|
-| `--color-bg`      | `#0b0f16`     | Page background |
-| `--color-surface` | `#0f1623`     | Panel surfaces |
-| `--color-card`    | `#121b2a`     | Card backgrounds |
-| `--color-accent`  | `#4f7cff`     | Primary CTA, highlights |
-| `--color-success` | `#2ecc71`     | High scores, complete states |
-| `--color-warn`    | `#f59e0b`     | Mid-tier scores |
-| `--color-danger`  | `#ef4444`     | Low scores |
-
-Fonts: **Syne** (headings/scores) · **Inter** (body) · **JetBrains Mono** (terminal/JSON)
+- **Video analysis** — multimodal input (video + optional headshot reference photo), position-aware scoring prompt, returns structured JSON with scores, scout notes, timestamps, comparable pro, and valuation
+- **AI Pitch generation** — called from `PlayerModal.jsx`, streams a written scouting pitch to the reports store
+- **ScoutChat** — open-ended conversational endpoint streamed via `/api/gemini/stream`
+- **Fallback** — if no API key is set, analysis returns position-accurate mock data; chat streams a readable demo message
 
 ---
 
@@ -244,8 +206,26 @@ Fonts: **Syne** (headings/scores) · **Inter** (body) · **JetBrains Mono** (ter
 | Framework    | React 18 |
 | Build tool   | Vite 6 |
 | Styling      | Tailwind CSS v4 (`@tailwindcss/vite`) |
-| AI           | Google Gemini 1.5 Pro (`@google/genai` v1.9) |
+| AI           | Google Gemini 2.5 Flash (`@google/genai`) |
+| Database     | Supabase (PostgreSQL + Storage) |
+| Video render | Shotstack (cloud CDN clips) |
+| Video encode | @ffmpeg/ffmpeg (in-browser compression) |
+| Server       | Express (API proxy, SSE streaming) |
 | Fonts        | Google Fonts (Syne, Inter, JetBrains Mono) |
+
+---
+
+## Supabase Setup
+
+The app saves player profiles to a `player_profiles` table and headshot/video files to a `profiles` storage bucket.
+
+Run these migrations in the Supabase SQL editor if you haven't already:
+
+```sql
+ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS height text;
+ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS foot   text;
+ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS club   text;
+```
 
 ---
 
