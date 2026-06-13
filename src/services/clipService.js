@@ -130,10 +130,11 @@ export async function compressVideoForUpload(file, onProgress) {
       '-t', '120',               // cap at 2 min — Gemini needs no more for analysis
       '-vf', 'scale=-2:360',     // 360p: fine for AI visual analysis, much smaller file
       '-c:v', 'libx264',
-      '-crf', '36',              // aggressive but still clear enough for Gemini
+      '-crf', '40',              // very aggressive — sufficient for Gemini vision analysis
       '-preset', 'ultrafast',
       '-an',                     // no audio — not needed for football analysis
       '-movflags', '+faststart',
+      '-fs', '2200000',          // hard stop at 2.2 MB — base64 ≈ 3.0 MB, safe under Vercel 4.5 MB limit
       outName,
     ]);
   } finally {

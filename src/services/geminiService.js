@@ -154,8 +154,8 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   }
 
   // 2. Process video files
-  const COMPRESS_MB = 3;   // compress anything over 3 MB — keeps inline base64 under Vercel's 4.5 MB limit
-  const INLINE_MB   = 15;
+  const COMPRESS_MB = 1;   // compress anything over 1 MB — always compress to stay well under limits
+  const INLINE_MB   = 2.2; // max binary MB to send inline — 2.2 MB × 1.37 base64 ≈ 3.0 MB body; safe under Vercel 4.5 MB
   for (let i = 0; i < videoFiles.length; i++) {
     let file = videoFiles[i];
     const sizeMB = file.size / 1_048_576;
@@ -166,7 +166,12 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
         file = await compressVideoForUpload(file, msg => onStream?.(`\n  ${msg}`));
         onStream?.('\nOptimisation complete');
       } catch (e) {
-        onStream?.('\nContinuing...');
+        // Compression failed — only continue with original if it's small enough to inline
+        const fallbackMB = file.size / 1_048_576;
+        if (fallbackMB > INLINE_MB) {
+          throw new Error(`Compression failed and video is too large (${fallbackMB.toFixed(0)} MB). Please trim to under 2 minutes before uploading.`);
+        }
+        onStream?.('\nContinuing with original...');
       }
     }
 
