@@ -93,84 +93,78 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
         {/* Alignment Drag Handle Rig */}
         <div style={{ width: 36, height: 3, borderRadius: 2, background: THEME.colors.borderMid, margin: '12px auto 0', flexShrink: 0 }} />
 
-        {/* ── CORE HEADER IDENTITY BAR ────────────────────────────────────── */}
-        <div style={{ padding: isMobile ? '12px 14px' : '16px 24px', borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceCard, display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 16, flexShrink: 0 }}>
-          
-          {/* Hardware Anchor Headshot Frame */}
-          <div style={{ width: 52, height: 52, borderRadius: THEME.radius.element, background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
-            <img src={player.headshot} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }} />
-            <div style={{ display: 'none', position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700, color: THEME.colors.textMuted, fontFamily: 'Inter, sans-serif' }}>
-              {initials(player.name)}
-            </div>
-          </div>
+        {/* ── HEADER ───────────────────────────────────────────────────────── */}
+        <div style={{ borderBottom: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceCard, flexShrink: 0 }}>
 
-          {/* Primary Meta String Group */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="font-syne" style={{ fontWeight: 800, fontSize: '1.3rem', color: THEME.colors.textMain, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {player.name}
-            </div>
-            <div style={{ marginTop: 4, fontSize: '0.80rem', color: THEME.colors.textMuted, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontWeight: 700, color: THEME.colors.textMain, fontSize: '0.68rem', background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderMid}`, padding: '2px 6px', borderRadius: THEME.radius.pill, letterSpacing: '0.04em' }}>{player.pos}</span>
-              <span>{player.country}</span>
-              <span style={{ color: THEME.colors.textDark }}>•</span>
-              <span>{player.age} Yrs</span>
-              <span style={{ color: THEME.colors.textDark }}>•</span>
-              <span style={{ color: THEME.colors.textDark }}>{player.club}</span>
-            </div>
+          {/* Row 1: headshot · name/meta · score · buttons */}
+          <div style={{ padding: isMobile ? '12px 14px' : '16px 24px', display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 16 }}>
 
-            {/* ── Comparable Professionals Badges ── */}
-            {((player.comparablePros ?? player.analysis?.comparablePros)?.length > 0) && (
-              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar Profile:</span>
-                {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
-                  <span key={i} style={{
-                    fontSize: '0.70rem', padding: '3px 9px', borderRadius: 3,
-                    background: 'rgba(62,207,112,0.07)', border: '1px solid rgba(62,207,112,0.22)',
-                    color: THEME.colors.accentHigh, fontWeight: 600, whiteSpace: 'nowrap',
-                    fontFamily: 'Inter, sans-serif', letterSpacing: '0.01em',
-                  }}>
-                    {pro.name} <span style={{ opacity: 0.6 }}>(age {pro.ageWhen})</span> · <span style={{ fontFamily: 'monospace' }}>{pro.similarity}%</span>
-                  </span>
-                ))}
+            {/* Headshot */}
+            <div style={{ width: isMobile ? 44 : 52, height: isMobile ? 44 : 52, borderRadius: THEME.radius.element, background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderDim}`, flexShrink: 0, overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src={player.headshot} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }} />
+              <div style={{ display: 'none', position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700, color: THEME.colors.textMuted }}>
+                {initials(player.name)}
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Core Analytics Target Score Block */}
-          <div style={{ textAlign: 'right', flexShrink: 0, marginRight: isMobile ? 0 : 16 }}>
-            <div className="font-syne" style={{ fontWeight: 800, fontSize: isMobile ? '1.8rem' : '2.5rem', lineHeight: 1, color: oColor, letterSpacing: '-0.03em' }}>{overall}</div>
-            {!isMobile && <div style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>Overall Rating</div>}
-            <div style={{ fontSize: '0.70rem', color: THEME.colors.textMuted, marginTop: 1, fontFamily: 'monospace' }}>{player.aiMatch}%</div>
-          </div>
+            {/* Name + meta */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="font-syne" style={{ fontWeight: 800, fontSize: isMobile ? '1.05rem' : '1.3rem', color: THEME.colors.textMain, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {player.name}
+              </div>
+              <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px', fontSize: '0.78rem', color: THEME.colors.textMuted }}>
+                <span style={{ fontWeight: 700, color: THEME.colors.textMain, fontSize: '0.66rem', background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderMid}`, padding: '2px 6px', borderRadius: THEME.radius.pill, letterSpacing: '0.04em', flexShrink: 0 }}>{player.pos}</span>
+                <span style={{ flexShrink: 0 }}>{player.country}</span>
+                <span style={{ color: THEME.colors.textDark, flexShrink: 0 }}>·</span>
+                <span style={{ flexShrink: 0 }}>{player.age} yrs</span>
+                {!isMobile && player.club && <>
+                  <span style={{ color: THEME.colors.textDark }}>·</span>
+                  <span style={{ color: THEME.colors.textDark, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.club}</span>
+                </>}
+              </div>
+            </div>
 
-          {/* Pipeline Processing Triggers */}
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button
-              onClick={() => onSaveToggle(player.id)}
-              style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${isSaved ? THEME.colors.accentHigh : THEME.colors.borderDim}`, background: isSaved ? 'rgba(62,207,112,0.06)' : THEME.colors.surfaceAlt, color: isSaved ? THEME.colors.accentHigh : THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
-              title={isSaved ? 'Release from Pipeline' : 'Shortlist Player'}
-            >
-              {isSaved ? '★' : '☆'}
-            </button>
-            {onWatchlistToggle && (
-              <button
-                onClick={() => onWatchlistToggle(player.id)}
-                style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.4)' : THEME.colors.borderDim}`, background: watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.1)' : THEME.colors.surfaceAlt, color: watchlistIds.includes(player.id) ? '#60a5fa' : THEME.colors.textMuted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
-                title={watchlistIds.includes(player.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-              >
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 7.5S3.5 2 7.5 2s6 5.5 6 5.5-2 5.5-6 5.5-6-5.5-6-5.5Z" stroke="currentColor" strokeWidth="1.3"/><circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.3" fill={watchlistIds.includes(player.id) ? 'currentColor' : 'none'}/></svg>
+            {/* Score */}
+            <div style={{ textAlign: 'right', flexShrink: 0, marginRight: isMobile ? 4 : 16 }}>
+              <div className="font-syne" style={{ fontWeight: 800, fontSize: isMobile ? '1.7rem' : '2.5rem', lineHeight: 1, color: oColor, letterSpacing: '-0.03em' }}>{overall}</div>
+              <div style={{ fontSize: '0.62rem', color: THEME.colors.textDark, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>{player.aiMatch}% match</div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: isMobile ? 6 : 8, flexShrink: 0 }}>
+              <button onClick={() => onSaveToggle(player.id)}
+                style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: THEME.radius.element, border: `1px solid ${isSaved ? THEME.colors.accentHigh : THEME.colors.borderDim}`, background: isSaved ? 'rgba(62,207,112,0.06)' : THEME.colors.surfaceAlt, color: isSaved ? THEME.colors.accentHigh : THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
+                title={isSaved ? 'Remove from shortlist' : 'Add to shortlist'}>
+                {isSaved ? '★' : '☆'}
               </button>
-            )}
-            <button
-              onClick={handleClose}
-              style={{ width: 36, height: 36, borderRadius: THEME.radius.element, border: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, color: THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.90rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = THEME.colors.borderMid}
-              onMouseLeave={e => e.currentTarget.style.borderColor = THEME.colors.borderDim}
-            >
-              ✕
-            </button>
+              {onWatchlistToggle && (
+                <button onClick={() => onWatchlistToggle(player.id)}
+                  style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: THEME.radius.element, border: `1px solid ${watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.4)' : THEME.colors.borderDim}`, background: watchlistIds.includes(player.id) ? 'rgba(96,165,250,0.1)' : THEME.colors.surfaceAlt, color: watchlistIds.includes(player.id) ? '#60a5fa' : THEME.colors.textMuted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
+                  title={watchlistIds.includes(player.id) ? 'Remove from watchlist' : 'Add to watchlist'}>
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 7.5S3.5 2 7.5 2s6 5.5 6 5.5-2 5.5-6 5.5-6-5.5-6-5.5Z" stroke="currentColor" strokeWidth="1.3"/><circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.3" fill={watchlistIds.includes(player.id) ? 'currentColor' : 'none'}/></svg>
+                </button>
+              )}
+              <button onClick={handleClose}
+                style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: THEME.radius.element, border: `1px solid ${THEME.colors.borderDim}`, background: THEME.colors.surfaceAlt, color: THEME.colors.textMuted, cursor: 'pointer', fontSize: '0.90rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = THEME.colors.borderMid}
+                onMouseLeave={e => e.currentTarget.style.borderColor = THEME.colors.borderDim}>
+                ✕
+              </button>
+            </div>
           </div>
+
+          {/* Row 2: comparable pros — own row, horizontal scroll, never wraps into Row 1 */}
+          {((player.comparablePros ?? player.analysis?.comparablePros)?.length > 0) && (
+            <div style={{ padding: isMobile ? '0 14px 10px' : '0 24px 12px', display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
+              <span style={{ fontSize: '0.58rem', color: THEME.colors.textDark, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, flexShrink: 0 }}>Similar to:</span>
+              {(player.comparablePros ?? player.analysis?.comparablePros).slice(0, 3).map((pro, i) => (
+                <span key={i} style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: 3, background: 'rgba(62,207,112,0.07)', border: '1px solid rgba(62,207,112,0.22)', color: THEME.colors.accentHigh, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {pro.name} <span style={{ opacity: 0.55, fontFamily: 'monospace', fontSize: '0.65rem' }}>·{pro.similarity}%</span>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── PARALLEL NAVIGATION TAB ROW ─────────────────────────────────── */}
