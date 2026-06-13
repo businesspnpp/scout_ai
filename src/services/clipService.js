@@ -32,11 +32,15 @@ let ffmpegLoaded = false;
 
 export async function loadFFmpeg() {
   if (ffmpegLoaded && ffmpeg) return;
+  console.log('[ffmpeg] loading WASM from', LOCAL_BASE, '...');
+  console.time('[ffmpeg] load');
   ffmpeg = new FFmpeg();
   await ffmpeg.load({
     coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
     wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
   });
+  console.timeEnd('[ffmpeg] load');
+  console.log('[ffmpeg] WASM loaded OK');
   ffmpegLoaded = true;
 }
 
@@ -117,15 +121,22 @@ export function processHighlightsInstant(videoFiles, highlights) {
  *  @returns {Promise<File>} compressed File
  */
 export async function compressVideoForUpload(file, onProgress) {
+  console.log(`[ffmpeg] compressVideoForUpload: "${file.name}" ${(file.size/1_048_576).toFixed(2)} MB`);
+  console.time('[ffmpeg] compressVideoForUpload total');
   await loadFFmpeg();
   const inName  = 'cmp_in.mp4';
   const outName = 'cmp_out.mp4';
 
-  // Clean up any leftovers from a previous crashed run
+  console.log('[ffmpeg] cleaning up stale files...');
   await ffmpeg.deleteFile(inName).catch(() => {});
   await ffmpeg.deleteFile(outName).catch(() => {});
 
   onProgress?.('Writing to memory...');
+  console.log('[ffmpeg] writeFile start...');
+  console.time('[ffmpeg] writeFile');
+  await ffmpeg.writeFile(inName, await fetchFile(file));
+  console.timeEnd('[ffmpeg] writeFile');
+  console.log('[ffmpeg] writeFile done');
   await ffmpeg.writeFile(inName, await fetchFile(file));
 
   const onLog = ({ message }) => {
@@ -139,9 +150,7 @@ export async function compressVideoForUpload(file, onProgress) {
   };
   ffmpeg.on('log', onLog);
 
-  // Promise.race guarantees the timeout resolves even if ffmpeg.terminate()
-  // doesn't cause exec() to reject (known @ffmpeg/ffmpeg v0.12 behaviour).
-  const execPromise = ffmpeg.exec([
+  const execArgs = [
     '-i', inName,
     '-t', '60',                    // 60 s max — more than enough for analysis
     '-vf', 'fps=12,scale=-2:144',  // 144p @ 12fps: very fast to encode, fine for AI vision
@@ -151,8 +160,13 @@ export async function compressVideoForUpload(file, onProgress) {
     '-an',
     '-movflags', '+faststart',
     outName,
-  ]);
+  ];
+  console.log('[ffmpeg] exec args:', execArgs.join(' '));
+  console.time('[ffmpeg] exec');
 
+  // Promise.race guarantees the timeout resolves even if ffmpeg.terminate()
+  // doesn't cause exec() to reject (known @ffmpeg/ffmpeg v0.12 behaviour).
+  const execPromise = ffmpeg.exec(execArgs);
   const TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
   const timeoutPromise = new Promise((_, reject) =>
     setTimeout(() => reject(new Error('TIMEOUT')), TIMEOUT_MS)
@@ -161,12 +175,18 @@ export async function compressVideoForUpload(file, onProgress) {
   let execError = null;
   try {
     await Promise.race([execPromise, timeoutPromise]);
+    console.timeEnd('[ffmpeg] exec');
+    console.log('[ffmpeg] exec completed OK');
   } catch (err) {
+    console.timeEnd('[ffmpeg] exec');
     execError = err;
     if (err.message === 'TIMEOUT') {
+      console.error('[ffmpeg] exec TIMED OUT after 2 minutes — terminating worker');
       try { ffmpeg.terminate(); } catch { /* ignore */ }
       ffmpegLoaded = false;
       ffmpeg = null;
+    } else {
+      console.warn('[ffmpeg] exec threw:', err.message);
     }
   } finally {
     if (ffmpeg) ffmpeg.off('log', onLog);
@@ -176,8 +196,12 @@ export async function compressVideoForUpload(file, onProgress) {
     throw new Error('Compression timed out (2 min). Please trim your video to under 2 minutes before uploading.');
   }
 
+  console.log('[ffmpeg] reading output file...');
   let data = null;
-  try { if (ffmpeg) data = await ffmpeg.readFile(outName); } catch { /* no output */ }
+  try { if (ffmpeg) data = await ffmpeg.readFile(outName); } catch (e) {
+    console.warn('[ffmpeg] readFile failed:', e.message);
+  }
+  console.log('[ffmpeg] output size:', data ? `${(data.byteLength/1024).toFixed(1)} KB` : 'NO OUTPUT');
 
   if (ffmpeg) {
     await ffmpeg.deleteFile(inName).catch(() => {});
@@ -185,6 +209,7 @@ export async function compressVideoForUpload(file, onProgress) {
   }
 
   if (!data || data.byteLength < 1024) {
+    console.error('[ffmpeg] output invalid — resetting singleton');
     ffmpegLoaded = false;
     ffmpeg = null;
     throw execError ?? new Error('FFmpeg produced no output');
@@ -192,7 +217,10 @@ export async function compressVideoForUpload(file, onProgress) {
 
   const blob = new Blob([data.buffer], { type: 'video/mp4' });
   const compressedName = file.name.replace(/(\.[^.]+)?$/, '_compressed.mp4');
-  return new File([blob], compressedName, { type: 'video/mp4' });
+  const result = new File([blob], compressedName, { type: 'video/mp4' });
+  console.timeEnd('[ffmpeg] compressVideoForUpload total');
+  console.log(`[ffmpeg] done: ${(result.size/1_048_576).toFixed(2)} MB`);
+  return result;
 }
 
 // -- Shotstack cloud API — routed through /api/shotstack/* (server.js) --------

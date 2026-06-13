@@ -135,83 +135,120 @@ export async function analyzePlayer(
   try {
     return await runAnalysis(playerDetails, videoFiles, headshotFile, onStream);
   } catch (err) {
-    console.warn('[geminiService] falling back to mock:', err.message);
+    console.error('[gemini] ── PIPELINE FAILED — falling back to mock ──');
+    console.error('[gemini] error:', err.message);
+    console.error('[gemini] stack:', err.stack);
     return buildMockResponse(playerDetails);
   }
 }
 
 // ── Proxy-based analysis pipeline ─────────────────────────────────────────
 async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
+  console.log('[gemini] ── runAnalysis START ──');
+  console.log('[gemini] player:', playerDetails);
+  console.log('[gemini] videos:', videoFiles.map(f => `${f.name} (${(f.size/1_048_576).toFixed(2)} MB)`));
+  console.log('[gemini] headshot:', headshotFile ? `${headshotFile.name} (${(headshotFile.size/1024).toFixed(1)} KB)` : 'none');
+
   const parts = [];
 
   // 1. Reference photo
   if (headshotFile) {
+    console.log('[gemini] 1/3 encoding headshot as base64...');
     const b64 = await fileToBase64(headshotFile);
+    console.log('[gemini] 1/3 headshot encoded:', (b64.length / 1024).toFixed(1), 'KB base64');
     parts.push({ inlineData: { mimeType: headshotFile.type || 'image/jpeg', data: b64 } });
     parts.push({ text: `This is the reference photo of the player to analyze. Use it to identify and track this specific individual in the footage. Analyze ONLY this player.\n\n${buildPrompt(playerDetails, videoFiles.length)}` });
   } else {
+    console.log('[gemini] 1/3 no headshot — skipping');
     parts.push({ text: buildPrompt(playerDetails, videoFiles.length) });
   }
 
   // 2. Process video files
-  const COMPRESS_MB = 1;   // compress anything over 1 MB
-  const INLINE_MB   = 2.2; // max binary MB to send inline — 2.2 MB × 1.37 base64 ≈ 3.0 MB body; safe under Vercel 4.5 MB
-  const MAX_RAW_MB  = 100; // refuse files over 100 MB outright — compression cannot help these
+  const COMPRESS_MB = 1;
+  const INLINE_MB   = 2.2;
+  const MAX_RAW_MB  = 100;
   for (let i = 0; i < videoFiles.length; i++) {
     let file = videoFiles[i];
     const sizeMB = file.size / 1_048_576;
+    console.log(`[gemini] 2/3 video ${i+1}: "${file.name}" — ${sizeMB.toFixed(2)} MB`);
 
     if (sizeMB > MAX_RAW_MB) {
+      console.error(`[gemini] video ${i+1} rejected — ${sizeMB.toFixed(0)} MB exceeds 100 MB limit`);
       throw new Error(`Video is ${sizeMB.toFixed(0)} MB — please trim to under 5 minutes before uploading.`);
     }
 
     if (sizeMB > COMPRESS_MB) {
+      console.log(`[gemini] video ${i+1} — needs compression (${sizeMB.toFixed(2)} MB > ${COMPRESS_MB} MB threshold)`);
+      console.log('[gemini] starting FFmpeg compression (90s timeout)...');
+      console.time('[gemini] compression');
       onStream?.('\nOptimising video...');
       try {
-        // Hard 90-second wall-clock timeout on the entire compression pipeline
-        // (covers load, writeFile, exec, readFile — any of which can hang)
         const compressed = await Promise.race([
-          compressVideoForUpload(file, msg => onStream?.(`\n  ${msg}`)),
+          compressVideoForUpload(file, msg => {
+            console.log('[ffmpeg]', msg);
+            onStream?.(`\n  ${msg}`);
+          }),
           new Promise((_, reject) =>
             setTimeout(() => reject(new Error('COMPRESS_TIMEOUT')), 90_000)
           ),
         ]);
+        console.timeEnd('[gemini] compression');
+        console.log(`[gemini] compressed: ${(compressed.size/1_048_576).toFixed(2)} MB (was ${sizeMB.toFixed(2)} MB, ratio ${(compressed.size/file.size*100).toFixed(1)}%)`);
         file = compressed;
         onStream?.('\nOptimisation complete');
       } catch (e) {
+        console.timeEnd('[gemini] compression');
+        console.warn('[gemini] compression error:', e.message);
         if (e.message === 'COMPRESS_TIMEOUT') {
+          console.warn('[gemini] COMPRESSION TIMED OUT after 90s — falling back to original');
           onStream?.('\nCompression timed out — sending original...');
         } else {
+          console.warn('[gemini] compression threw:', e.message, '— falling back to original');
           onStream?.('\nCompression failed — sending original...');
         }
-        // Fall through with original file — if it fits inline, Gemini handles it
         const fallbackMB = file.size / 1_048_576;
+        console.log(`[gemini] fallback file size: ${fallbackMB.toFixed(2)} MB (INLINE_MB limit: ${INLINE_MB})`);
         if (fallbackMB > INLINE_MB) {
+          console.error('[gemini] fallback too large — aborting');
           throw new Error(`Video is ${fallbackMB.toFixed(0)} MB and could not be compressed. Please trim to under 2 minutes before uploading.`);
         }
       }
+    } else {
+      console.log(`[gemini] video ${i+1} small enough — skipping compression`);
     }
 
     const finalMB = file.size / 1_048_576;
+    console.log(`[gemini] video ${i+1} final size: ${finalMB.toFixed(2)} MB — sending ${finalMB <= INLINE_MB ? 'INLINE base64' : 'via Files API proxy'}`);
     parts.push({ text: `--- Video Clip ${i + 1}: ${videoFiles[i].name} ---` });
 
     if (finalMB <= INLINE_MB) {
-      // Small file: base64 inline (no Files API round-trip needed)
       onStream?.('\nScanning footage...');
+      console.log('[gemini] encoding video as base64 inline...');
+      console.time('[gemini] base64 encode');
       const b64 = await fileToBase64(file);
+      console.timeEnd('[gemini] base64 encode');
+      console.log(`[gemini] base64 size: ${(b64.length/1_048_576).toFixed(2)} MB (~${(b64.length*4/3/1_048_576).toFixed(2)} MB wire)`);
       parts.push({ inlineData: { mimeType: file.type || 'video/mp4', data: b64 } });
       onStream?.('\nRunning analysis...');
     } else {
-      // Large file: upload to Gemini Files API via server proxy
       onStream?.('\nUploading video...');
+      console.log('[gemini] uploading via Files API proxy...');
+      console.time('[gemini] upload');
       const { uri, mimeType } = await uploadViaProxy(file, onStream);
+      console.timeEnd('[gemini] upload');
+      console.log('[gemini] upload complete — uri:', uri);
       onStream?.('\nRunning analysis...');
       parts.push({ fileData: { fileUri: uri, mimeType } });
     }
   }
 
   // 3. Stream analysis from server via SSE
-  return await streamViaProxy(parts, playerDetails, onStream);
+  console.log(`[gemini] 3/3 sending to Gemini via SSE — ${parts.length} parts total`);
+  console.time('[gemini] stream');
+  const result = await streamViaProxy(parts, playerDetails, onStream);
+  console.timeEnd('[gemini] stream');
+  console.log('[gemini] ── runAnalysis COMPLETE ──', result._isMock ? '⚠ MOCK' : '✓ REAL', 'score:', result.overallScore);
+  return result;
 }
 
 // Upload a large video through the server proxy to Gemini Files API.
@@ -233,11 +270,14 @@ async function uploadViaProxy(file, onStream) {
 
 // Open an SSE connection to the server and stream Gemini tokens back to the UI.
 async function streamViaProxy(parts, playerDetails, onStream) {
+  const bodyJson = JSON.stringify({ parts });
+  console.log(`[gemini] POST /api/gemini/stream — body: ${(bodyJson.length/1_048_576).toFixed(2)} MB`);
   const res = await fetch('/api/gemini/stream', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ parts }),
+    body:    bodyJson,
   });
+  console.log(`[gemini] /api/gemini/stream response: ${res.status} ${res.statusText}`);
   if (!res.ok) throw new Error(`Gemini stream request failed: ${res.status}`);
 
   const reader  = res.body.getReader();
@@ -262,27 +302,31 @@ async function streamViaProxy(parts, playerDetails, onStream) {
 
       try {
         const { t, error } = JSON.parse(payload);
-        if (error) throw new Error(error);
+        if (error) { console.error('[gemini] SSE error token:', error); throw new Error(error); }
         if (t) { accumulated += t; onStream?.(t); }
       } catch (e) {
-        // Skip malformed SSE lines
+        console.warn('[gemini] malformed SSE line:', line.slice(0, 80));
       }
     }
   }
 
   // Parse accumulated JSON response
+  console.log(`[gemini] SSE stream ended — accumulated ${accumulated.length} chars`);
   const stripped = accumulated.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
   const start    = stripped.indexOf('{');
   const end      = stripped.lastIndexOf('}');
   if (start === -1 || end === -1 || end <= start) {
-    console.warn('[geminiService] No JSON in response, using mock');
+    console.warn('[gemini] No JSON found in response — raw (first 500 chars):', stripped.slice(0, 500));
+    console.warn('[gemini] Falling back to mock');
     return buildMockResponse(playerDetails);
   }
   try {
     const parsed = JSON.parse(stripped.slice(start, end + 1));
+    console.log('[gemini] JSON parsed OK — overallScore:', parsed.overallScore, 'metrics:', Object.keys(parsed.metrics ?? {}));
     return { ...parsed, _isMock: false };
   } catch (e) {
-    console.warn('[geminiService] JSON parse error:', e.message);
+    console.warn('[gemini] JSON parse error:', e.message);
+    console.warn('[gemini] Raw response (first 500 chars):', stripped.slice(0, 500));
     return buildMockResponse(playerDetails);
   }
 }
