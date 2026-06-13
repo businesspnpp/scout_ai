@@ -127,11 +127,11 @@ export async function compressVideoForUpload(file, onProgress) {
   try {
     await ffmpeg.exec([
       '-i', inName,
-      '-vf', 'scale=-2:720',
+      '-vf', 'scale=-2:480',     // 480p keeps file under Vercel's 4.5 MB function limit
       '-c:v', 'libx264',
-      '-crf', '28',
+      '-crf', '32',               // higher CRF = smaller file; fine for AI analysis
       '-preset', 'ultrafast',
-      '-c:a', 'aac', '-b:a', '96k',
+      '-c:a', 'aac', '-b:a', '64k',
       '-movflags', '+faststart',
       outName,
     ]);
