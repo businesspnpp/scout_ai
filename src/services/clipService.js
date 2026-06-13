@@ -26,22 +26,30 @@ async function createFFmpeg() {
   return instance;
 }
 
-// Keep one shared instance for clip cutting (lightweight, rarely fails)
+// Keep one shared instance for clip cutting and compression
 let ffmpeg = null;
 let ffmpegLoaded = false;
+let ffmpegLoadPromise = null; // deduplicates concurrent loadFFmpeg() calls
 
 export async function loadFFmpeg() {
   if (ffmpegLoaded && ffmpeg) return;
-  console.log('[ffmpeg] loading WASM from', LOCAL_BASE, '...');
-  console.time('[ffmpeg] load');
-  ffmpeg = new FFmpeg();
-  await ffmpeg.load({
-    coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
-    wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
-  });
-  console.timeEnd('[ffmpeg] load');
-  console.log('[ffmpeg] WASM loaded OK');
-  ffmpegLoaded = true;
+  // If already loading, wait on the same promise instead of starting a second load
+  if (!ffmpegLoadPromise) {
+    ffmpegLoadPromise = (async () => {
+      console.log('[ffmpeg] loading WASM from', LOCAL_BASE, '...');
+      console.time('[ffmpeg] load');
+      ffmpeg = new FFmpeg();
+      await ffmpeg.load({
+        coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
+        wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
+      });
+      console.timeEnd('[ffmpeg] load');
+      console.log('[ffmpeg] WASM loaded OK');
+      ffmpegLoaded = true;
+    })();
+    ffmpegLoadPromise.catch(() => { ffmpegLoadPromise = null; }); // reset on failure
+  }
+  return ffmpegLoadPromise;
 }
 
 export async function cutClipFFmpeg(videoFile, start, end, outputName) {
@@ -184,6 +192,7 @@ export async function compressVideoForUpload(file, onProgress) {
       console.error('[ffmpeg] exec TIMED OUT after 2 minutes — terminating worker');
       try { ffmpeg.terminate(); } catch { /* ignore */ }
       ffmpegLoaded = false;
+      ffmpegLoadPromise = null;
       ffmpeg = null;
     } else {
       console.warn('[ffmpeg] exec threw:', err.message);
@@ -211,6 +220,7 @@ export async function compressVideoForUpload(file, onProgress) {
   if (!data || data.byteLength < 1024) {
     console.error('[ffmpeg] output invalid — resetting singleton');
     ffmpegLoaded = false;
+    ffmpegLoadPromise = null;
     ffmpeg = null;
     throw execError ?? new Error('FFmpeg produced no output');
   }
