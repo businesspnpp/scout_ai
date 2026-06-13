@@ -127,14 +127,15 @@ export async function compressVideoForUpload(file, onProgress) {
   try {
     await ffmpeg.exec([
       '-i', inName,
-      '-t', '120',               // cap at 2 min — Gemini needs no more for analysis
-      '-vf', 'scale=-2:360',     // 360p: fine for AI visual analysis, much smaller file
+      '-t', '90',                // cap at 90 s — Gemini needs no more for analysis
+      '-vf', 'scale=-2:240',     // 240p: enough for AI visual analysis; at CRF 42 keeps size well under 2.2 MB
       '-c:v', 'libx264',
-      '-crf', '40',              // very aggressive — sufficient for Gemini vision analysis
+      '-crf', '42',              // very aggressive — sufficient for Gemini vision analysis
       '-preset', 'ultrafast',
       '-an',                     // no audio — not needed for football analysis
       '-movflags', '+faststart',
-      '-fs', '2200000',          // hard stop at 2.2 MB — base64 ≈ 3.0 MB, safe under Vercel 4.5 MB limit
+      // NOTE: -fs omitted — it causes FFmpeg to exit with code 1 (non-zero) which FFmpeg WASM
+      // throws as an error even though the output was written. Size is controlled via 240p + CRF 42 + 90s.
       outName,
     ]);
   } finally {

@@ -169,7 +169,7 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
         // Compression failed — only continue with original if it's small enough to inline
         const fallbackMB = file.size / 1_048_576;
         if (fallbackMB > INLINE_MB) {
-          throw new Error(`Compression failed and video is too large (${fallbackMB.toFixed(0)} MB). Please trim to under 2 minutes before uploading.`);
+          throw new Error(`Compression failed and video is too large (${fallbackMB.toFixed(0)} MB). Please trim the clip to under 90 seconds before uploading.`);
         }
         onStream?.('\nContinuing with original...');
       }
