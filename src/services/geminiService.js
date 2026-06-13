@@ -145,6 +145,7 @@ export async function analyzePlayer(
 // ── Proxy-based analysis pipeline ─────────────────────────────────────────
 async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   console.log('[gemini] ── runAnalysis START ──');
+  console.log('[gemini] SharedArrayBuffer available:', typeof SharedArrayBuffer !== 'undefined');
   console.log('[gemini] player:', playerDetails);
   console.log('[gemini] videos:', videoFiles.map(f => `${f.name} (${(f.size/1_048_576).toFixed(2)} MB)`));
   console.log('[gemini] headshot:', headshotFile ? `${headshotFile.name} (${(headshotFile.size/1024).toFixed(1)} KB)` : 'none');
@@ -200,17 +201,20 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
         console.timeEnd('[gemini] compression');
         console.warn('[gemini] compression error:', e.message);
         if (e.message === 'COMPRESS_TIMEOUT') {
-          console.warn('[gemini] COMPRESSION TIMED OUT after 3 min — falling back to original');
-          onStream?.('\nCompression timed out — sending original...');
+          console.warn('[gemini] COMPRESSION TIMED OUT after 3 min');
         } else {
-          console.warn('[gemini] compression threw:', e.message, '— falling back to original');
-          onStream?.('\nCompression failed — sending original...');
+          console.warn('[gemini] compression threw:', e.message);
         }
         const fallbackMB = file.size / 1_048_576;
         console.log(`[gemini] fallback file size: ${fallbackMB.toFixed(2)} MB (INLINE_MB limit: ${INLINE_MB})`);
         if (fallbackMB > INLINE_MB) {
-          console.error('[gemini] fallback too large — aborting');
-          throw new Error(`Video is ${fallbackMB.toFixed(0)} MB and could not be compressed. Please trim to under 2 minutes before uploading.`);
+          // File is too large to send inline and compression failed.
+          // Skip this video but CONTINUE with real Gemini analysis using headshot + player details.
+          // This gives real AI output instead of hardcoded mock data.
+          console.warn(`[gemini] video ${i+1} skipped (${fallbackMB.toFixed(0)} MB, uncompressable) — continuing without it`);
+          onStream?.(`\nVideo too large to process — analysing from reference photo and player details`);
+          parts.push({ text: `--- Video Clip ${i + 1}: could not be processed (${fallbackMB.toFixed(0)} MB, compression unavailable in this browser). Analyse from reference photo and player details only. ---` });
+          continue; // skip to next video
         }
       }
     } else {
