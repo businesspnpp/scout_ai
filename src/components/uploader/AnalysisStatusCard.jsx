@@ -45,7 +45,7 @@ export default function AnalysisStatusCard({ streamOutput, analyzing, uploadInfo
           </svg>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>
             {displayIcon === 'upload'
-              ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3ecf70" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
+              ? <img src="/assets/ScoutAI-icon.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
               : displayIcon}
           </div>
         </div>
