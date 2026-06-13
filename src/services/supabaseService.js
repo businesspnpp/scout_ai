@@ -200,12 +200,21 @@ export async function saveFullProfile({
     let copied = false;
     if (existingHeadshotPath) {
       try {
-        const { error } = await supabase.storage.from(BUCKET).copy(existingHeadshotPath, newPath);
-        if (!error) {
-          const { data } = supabase.storage.from(BUCKET).getPublicUrl(newPath);
-          headshotPublicUrl = data.publicUrl;
-          await updateProfileRow(profileId, { headshot_url: data.publicUrl, headshot_path: newPath });
-          copied = true;
+        // Fetch the existing headshot and re-upload to the new path
+        // (avoids storage copy API which requires elevated permissions)
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(existingHeadshotPath);
+        const fetchRes = await fetch(urlData.publicUrl);
+        if (fetchRes.ok) {
+          const blob = await fetchRes.blob();
+          const { error: upErr } = await supabase.storage
+            .from(BUCKET)
+            .upload(newPath, blob, { contentType: blob.type || 'image/jpeg', upsert: true });
+          if (!upErr) {
+            const { data } = supabase.storage.from(BUCKET).getPublicUrl(newPath);
+            headshotPublicUrl = data.publicUrl;
+            await updateProfileRow(profileId, { headshot_url: data.publicUrl, headshot_path: newPath });
+            copied = true;
+          }
         }
       } catch { /* fall through */ }
     }
