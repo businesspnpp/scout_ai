@@ -1,7 +1,7 @@
 ﻿// clipService.js
 // handles video clip cutting - instant browser clips + Shotstack cloud renders
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { fetchFile } from '@ffmpeg/util';
 
 // converts MM:SS or HH:MM:SS to plain seconds
 export function parseToSeconds(ts) {
@@ -14,17 +14,6 @@ export function parseToSeconds(ts) {
 
 // FFmpeg WASM - loaded from public/ffmpeg/ so it works offline
 const LOCAL_BASE = '/ffmpeg';
-
-// Returns a freshly loaded FFmpeg instance.
-// A new instance (new Worker) is created every time to avoid stale/crashed worker state.
-async function createFFmpeg() {
-  const instance = new FFmpeg();
-  await instance.load({
-    coreURL: `${LOCAL_BASE}/ffmpeg-core.js`,
-    wasmURL: `${LOCAL_BASE}/ffmpeg-core.wasm`,
-  });
-  return instance;
-}
 
 // Keep one shared instance for clip cutting and compression
 let ffmpeg = null;
@@ -41,15 +30,11 @@ export async function loadFFmpeg() {
           console.log(`[ffmpeg] loading WASM (attempt ${attempt}/${MAX_ATTEMPTS})...`);
           console.time('[ffmpeg] load');
           ffmpeg = new FFmpeg();
-          const baseURL = new URL('/ffmpeg', location.href).href;
-          // toBlobURL fetches and creates blob: URLs the worker can importScripts() from
-          // workerURL must also be a blob so the classic worker can load it
-          const [coreURL, wasmURL, workerURL] = await Promise.all([
-            toBlobURL(`${baseURL}/ffmpeg-core.js`,   'text/javascript'),
-            toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-            toBlobURL(`${baseURL}/ffmpeg-worker.js`, 'text/javascript'),
-          ]);
-          await ffmpeg.load({ coreURL, wasmURL, workerURL });
+          // Use direct same-origin URLs — avoids blob: URL dynamic import restrictions
+          // in module workers under COEP headers. coreURL doubles as the pthread workerURL.
+          const coreURL = `${LOCAL_BASE}/ffmpeg-core.js`;
+          const wasmURL = `${LOCAL_BASE}/ffmpeg-core.wasm`;
+          await ffmpeg.load({ coreURL, wasmURL, workerURL: coreURL });
           console.timeEnd('[ffmpeg] load');
           console.log('[ffmpeg] WASM loaded OK');
           ffmpegLoaded = true;
