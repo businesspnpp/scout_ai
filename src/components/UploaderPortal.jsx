@@ -336,7 +336,10 @@ export default function UploaderPortal({
     } catch { setSyncStatus('error'); }
   }
 
-  const addMoreFootage = () => {    setResult(null); setError(''); setStreamOutput(''); setMetricClips([]);
+  const addMoreFootage = () => {
+    // Route the next analysis as an append to the just-saved profile
+    if (savedProfileIdRef.current) setTargetProfileId(savedProfileIdRef.current);
+    setResult(null); setError(''); setStreamOutput(''); setMetricClips([]);
     setCuttingProgress(null); setPhase('idle');
     setShotstackStatus(null); setShotstackDone(0); setShotstackTotal(0);
     savedProfileIdRef.current = null;
