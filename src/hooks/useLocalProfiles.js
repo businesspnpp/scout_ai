@@ -451,7 +451,7 @@ export function useLocalProfiles() {
     }));
   }, [setProfiles]);
 
-  const removeProfile = useCallback(async id => {
+  const removeProfile = useCallback(async (id, { skipHeadshotDelete = false } = {}) => {
     const meta  = profiles.find(p => p.id === id);
     const entry = urlsRef.current[id];
     if (entry?.headshotUrl?.startsWith('blob:')) URL.revokeObjectURL(entry.headshotUrl);
@@ -466,7 +466,10 @@ export function useLocalProfiles() {
       ...clipKeys.map(k => deleteBlob(k)),
     ]);
     if (isSupabaseEnabled) {
-      await supabaseDelete(id, meta?._headshotPath ?? null, meta?._videoPath ?? null);
+      // When removing an old profile as part of an edit-replace, skip deleting the headshot
+      // from storage — the new profile's background upload may still need to fetch it.
+      // (Race condition: saveFullProfile's async IIFE hasn't had a chance to copy it yet.)
+      await supabaseDelete(id, skipHeadshotDelete ? null : (meta?._headshotPath ?? null), meta?._videoPath ?? null);
     }
     setProfiles(prev => prev.filter(p => p.id !== id));
   }, [profiles, setProfiles]);

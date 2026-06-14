@@ -296,7 +296,7 @@ export default function UploaderPortal({
           // Remove old profile only if this is a genuine re-analysis of the same player
           const editingProfile = editingId ? localProfiles.find(p => p.id === editingId) : null;
           const isReallyEditing = editingProfile && editingProfile.name?.trim() === form.name?.trim();
-          if (isReallyEditing) onRemoveProfile?.(editingId);
+          if (isReallyEditing) onRemoveProfile?.(editingId, { skipHeadshotDelete: true });
           if (meta?.id) savedProfileIdRef.current = meta.id;
         }).catch(() => setSyncStatus('error'));
       }
@@ -329,7 +329,7 @@ export default function UploaderPortal({
           setSyncStatus(status);
         },
       });
-      if (editingId) onRemoveProfile?.(editingId);
+      if (editingId) onRemoveProfile?.(editingId, { skipHeadshotDelete: true });
       if (meta?.id) { setEditingId(meta.id); savedProfileIdRef.current = meta.id; }
       setSyncStatus('done');
       setTimeout(() => setSyncStatus('idle'), 2000);

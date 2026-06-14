@@ -267,7 +267,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
 
                 {/* ── AI Transfer Pitch Generator ── */}
                 <div style={{ border: `1px solid ${THEME.colors.borderDim}`, borderRadius: THEME.radius.card, overflow: 'hidden' }}>
-                  <div style={{ padding: '12px 16px', background: THEME.colors.surfaceAlt, borderBottom: pitchText ? `1px solid ${THEME.colors.borderDim}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ padding: '12px 16px', background: THEME.colors.surfaceAlt, borderBottom: pitchText ? `1px solid ${THEME.colors.borderDim}` : 'none', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                     <div>
                       <div style={{ fontSize: '0.60rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: THEME.colors.textDark, fontWeight: 800 }}>Recruitment Intelligence</div>
                       <div style={{ fontSize: '0.82rem', fontWeight: 700, color: THEME.colors.textMain, marginTop: 2 }}>Transfer Pitch Generator</div>
@@ -280,7 +280,9 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                         background: pitchLoading ? '#16a34a' : '#22c55e',
                         border: 'none',
                         color: '#071a0e', fontSize: '0.78rem', fontWeight: 700,
-                        display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
+                        display: 'flex', alignItems: 'center', gap: 7,
+                        flexShrink: 0, width: isMobile ? '100%' : 'auto',
+                        justifyContent: 'center',
                         transition: 'all 0.12s',
                       }}
                     >
