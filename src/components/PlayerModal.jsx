@@ -7,7 +7,8 @@ import { THEME, getScoreColor } from './modal/theme.js';
 import RadarChart from './modal/RadarChart.jsx';
 import VideoHUD   from './modal/VideoHUD.jsx';
 import MetricRow  from './modal/MetricRow.jsx';
-import Panel      from './modal/Panel.jsx';
+import Panel          from './modal/Panel.jsx';
+import PlayerHeatmap  from './modal/PlayerHeatmap.jsx';
 import useBreakpoint from '../hooks/useBreakpoint.js';
 import { generateTransferPitch } from '../services/geminiService.js';
 import { countryFlag } from '../data/countryFlags.js';
@@ -66,7 +67,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
     return () => window.removeEventListener('keydown', h);
   }, []);
 
-  const TABS = ['overview', 'metrics', 'highlights', 'clips', 'notes'];
+  const TABS = ['overview', 'metrics', 'highlights', 'clips', 'heatmap', 'notes'];
 
   return (
     <div
@@ -472,6 +473,10 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 </div>
               )}
             </div>
+          )}
+
+          {tab === 'heatmap' && (
+            <PlayerHeatmap playerId={player.id} />
           )}
 
           {tab === 'notes' && (
