@@ -210,7 +210,7 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   console.time('[gemini] stream');
   const result = await streamViaProxy(parts, playerDetails, onStream);
   console.timeEnd('[gemini] stream');
-  console.log('[gemini] ── runAnalysis COMPLETE ──', result._isMock ? '⚠ MOCK' : '✓ REAL', 'score:', result.overallScore);
+  console.log('[gemini] - runAnalysis COMPLETE -', result._isMock ? 'MOCK' : 'Analyzed', 'score:', result.overallScore);
   return result;
 }
 
