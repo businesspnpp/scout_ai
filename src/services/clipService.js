@@ -24,7 +24,7 @@ export async function loadFFmpeg() {
   if (ffmpegLoaded && ffmpeg) return;
   if (!ffmpegLoadPromise) {
     ffmpegLoadPromise = (async () => {
-      const MAX_ATTEMPTS = 3;
+      const MAX_ATTEMPTS = 1; // module worker can't import UMD core as ESM — fail fast, no retry delays
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           console.log(`[ffmpeg] loading WASM (attempt ${attempt}/${MAX_ATTEMPTS})...`);

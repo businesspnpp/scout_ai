@@ -2,7 +2,8 @@
 // All Gemini API calls are routed through /api/gemini/* (server.js).
 // API keys live only on the server — they are never included in the browser bundle.
 
-import { compressVideoForUpload } from './clipService.js';
+// FFmpeg compression removed — UMD core is not valid ESM so the module worker always fails.
+// Large videos go directly via Supabase → Gemini Files API which works reliably.
 import { supabase, isSupabaseEnabled } from './supabaseClient.js';
 // API keys live server-side only — see server.js / api/ directory.
 
@@ -166,53 +167,17 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   }
 
   // 2. Process video files
-  const COMPRESS_MB = 1;
+  // Files ≤ 2.2 MB are sent inline as base64. Larger files go via Supabase → Gemini Files API.
   const INLINE_MB   = 2.2;
   const MAX_RAW_MB  = 2000; // Gemini Files API accepts up to 2 GB; Supabase handles the upload
   for (let i = 0; i < videoFiles.length; i++) {
-    let file = videoFiles[i];
+    const file = videoFiles[i];
     const sizeMB = file.size / 1_048_576;
     console.log(`[gemini] 2/3 video ${i+1}: "${file.name}" — ${sizeMB.toFixed(2)} MB`);
 
     if (sizeMB > MAX_RAW_MB) {
-      console.error(`[gemini] video ${i+1} rejected — ${sizeMB.toFixed(0)} MB exceeds 100 MB limit`);
+      console.error(`[gemini] video ${i+1} rejected — ${sizeMB.toFixed(0)} MB exceeds 2 GB limit`);
       throw new Error(`Video is ${sizeMB.toFixed(0)} MB — please trim to under 5 minutes before uploading.`);
-    }
-
-    if (sizeMB > COMPRESS_MB) {
-      console.log(`[gemini] video ${i+1} — needs compression (${sizeMB.toFixed(2)} MB > ${COMPRESS_MB} MB threshold)`);
-      console.log('[gemini] starting FFmpeg compression (90s timeout)...');
-      console.time('[gemini] compression');
-      onStream?.('\nOptimising video...');
-      try {
-        const compressed = await Promise.race([
-          compressVideoForUpload(file, msg => {
-            console.log('[ffmpeg]', msg);
-            onStream?.(`\n  ${msg}`);
-          }),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('COMPRESS_TIMEOUT')), 3 * 60_000) // 3 min — WASM load alone can take 60-90s on slow networks
-          ),
-        ]);
-        console.timeEnd('[gemini] compression');
-        console.log(`[gemini] compressed: ${(compressed.size/1_048_576).toFixed(2)} MB (was ${sizeMB.toFixed(2)} MB, ratio ${(compressed.size/file.size*100).toFixed(1)}%)`);
-        file = compressed;
-        onStream?.('\nOptimisation complete');
-      } catch (e) {
-        console.timeEnd('[gemini] compression');
-        console.warn('[gemini] compression error:', e.message);
-        if (e.message === 'COMPRESS_TIMEOUT') {
-          console.warn('[gemini] COMPRESSION TIMED OUT after 3 min');
-        } else {
-          console.warn('[gemini] compression threw:', e.message);
-        }
-        const fallbackMB = file.size / 1_048_576;
-        console.log(`[gemini] fallback file size: ${fallbackMB.toFixed(2)} MB — routing to Supabase upload path`);
-        // Compression failed — fall through with original file.
-        // If > INLINE_MB the code below will call uploadViaProxy (Supabase → Gemini Files API).
-      }
-    } else {
-      console.log(`[gemini] video ${i+1} small enough — skipping compression`);
     }
 
     const finalMB = file.size / 1_048_576;
