@@ -14,6 +14,7 @@ export default function CountryFlag({ name, size = 13 }) {
   return (
     <img
       src={`https://flagcdn.com/w40/${code}.png`}
+      crossOrigin="anonymous"
       width={Math.round(size * 1.4)}
       height={size}
       alt={name}
