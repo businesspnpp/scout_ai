@@ -376,14 +376,26 @@ const LINE_MAIN = 'rgba(255, 255, 255, 0.3)';
 const LINE_SUB  = 'rgba(255, 255, 255, 0.15)';
 
 function TacticalGreenPitchSVG() {
+  // 10 vertical strips, alternating lighter/darker grass bands (real mown pitch look)
+  const STRIP_W = 105 / 10; // 10.5 units each
+  const GRASS_DARK  = '#162E1E';
+  const GRASS_LIGHT = '#1C3A24';
+
   return (
     <svg
       viewBox="0 0 105 68"
       preserveAspectRatio="none"
       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
     >
-      {/* Professional desaturated muted green pitch background */}
-      <rect x={0} y={0} width={105} height={68} fill="#162E1E" />
+      {/* Base grass colour */}
+      <rect x={0} y={0} width={105} height={68} fill={GRASS_DARK} />
+
+      {/* Alternating vertical mown stripes */}
+      {Array.from({ length: 10 }, (_, i) => (
+        i % 2 === 1 ? (
+          <rect key={i} x={i * STRIP_W} y={0} width={STRIP_W} height={68} fill={GRASS_LIGHT} />
+        ) : null
+      ))}
 
       {/* Outer touchlines */}
       <rect x={0} y={0} width={105} height={68} fill="none" stroke={LINE_MAIN} strokeWidth={0.4} />
@@ -412,10 +424,14 @@ function TacticalGreenPitchSVG() {
       <path d={`M 88.5 ${(34 - ARC_DY).toFixed(3)} A 9.15 9.15 0 0 0 88.5 ${(34 + ARC_DY).toFixed(3)}`} fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
 
       {/* Corner arcs */}
-      <path d="M 0 1 A 1 1 0 0 1 1 0"     fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
-      <path d="M 104 0 A 1 1 0 0 1 105 1"  fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
+      <path d="M 0 1 A 1 1 0 0 1 1 0"      fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
+      <path d="M 104 0 A 1 1 0 0 1 105 1"   fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
       <path d="M 105 67 A 1 1 0 0 1 104 68" fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
-      <path d="M 1 68 A 1 1 0 0 1 0 67"    fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
+      <path d="M 1 68 A 1 1 0 0 1 0 67"     fill="none" stroke={LINE_SUB} strokeWidth={0.3} />
+
+      {/* Goals */}
+      <rect x={-2.4} y={30.34} width={2.4} height={7.32} fill="none" stroke={LINE_MAIN} strokeWidth={0.4} />
+      <rect x={105}  y={30.34} width={2.4} height={7.32} fill="none" stroke={LINE_MAIN} strokeWidth={0.4} />
     </svg>
   );
 }
