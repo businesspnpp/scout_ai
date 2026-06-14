@@ -4,6 +4,7 @@
  */
 import { useState, useMemo, useCallback } from 'react';
 import { mockPlayers, getPositionGroup, POS_COLORS } from '../data/mockPlayers.js';
+import { countryFlag } from '../data/countryFlags.js';
 import PlayerModal from './PlayerModal.jsx';
 import useBreakpoint from '../hooks/useBreakpoint.js';
 
@@ -45,7 +46,7 @@ function buildLocalPlayer(meta, urls = {}) {
     name: meta.name || 'Unknown Player',
     age: parseInt(meta.age) || 19, pos,
     country: meta.region?.split(',').pop()?.trim() || 'Africa',
-    flag: '', region: meta.region || 'Africa',
+    flag: countryFlag(meta.region?.split(',').pop()?.trim() || ''), region: meta.region || 'Africa',
     club: meta.club || `Uploaded ${new Date(meta.createdAt).toLocaleDateString()}`,
     height: meta.height || '-', foot: meta.foot || '-',
     overall: meta.analysis?.overallScore ?? 80,
@@ -87,7 +88,7 @@ function buildInjectedPlayer(result) {
     name: result.player?.name ?? 'Analyzed Player',
     age: parseInt(result.player?.age) || 19, pos,
     country: result.player?.region?.split(',').pop()?.trim() ?? 'Africa',
-    flag: '', region: result.player?.region ?? 'Africa',
+    flag: countryFlag(result.player?.region?.split(',').pop()?.trim() ?? ''), region: result.player?.region ?? 'Africa',
     club: 'Submitted via Scout AI', height: '-', foot: '-',
     overall: result.overallScore ?? 80,
     aiMatch: result.aiMatchConfidence ?? 88,

@@ -4,7 +4,7 @@ import { THEME, getScoreColor } from './theme.js';
 
 const ACCENT     = '#3ecf70';
 const ACCENT_DIM = 'rgba(62,207,112,0.18)';
-const GLOW       = 'rgba(62,207,112,0.55)';
+const GLOW       = 'rgba(62,207,112,0.28)';
 
 // Inject keyframes once
 if (typeof document !== 'undefined' && !document.getElementById('rc-styles')) {
@@ -89,11 +89,11 @@ export default function RadarChart({ scores, labels, size = 250 }) {
             <stop offset="100%" stopColor={ACCENT} stopOpacity="0.02" />
           </radialGradient>
           <filter id="rc-glow-f" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
             <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
           <filter id="rc-dot-f" x="-300%" y="-300%" width="700%" height="700%">
-            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
             <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
           <clipPath id="rc-scan-clip">
@@ -106,7 +106,7 @@ export default function RadarChart({ scores, labels, size = 250 }) {
           <polygon key={r} points={ringPoints(r)} fill="none"
             stroke={stroke} strokeWidth={w}
             strokeDasharray={dash}
-            style={breathe ? { animation: 'rc-ring-breathe 3.5s ease-in-out infinite' } : undefined}
+            style={breathe ? { animation: 'rc-ring-breathe 4s ease-in-out infinite' } : undefined}
           />
         ))}
 
@@ -127,7 +127,7 @@ export default function RadarChart({ scores, labels, size = 250 }) {
 
         {/* Rotating scan line */}
         <g clipPath="url(#rc-scan-clip)"
-           style={{ transformOrigin: `${cx}px ${cy}px`, animation: 'rc-spin 9s linear infinite', opacity: 0.2 }}>
+           style={{ transformOrigin: `${cx}px ${cy}px`, animation: 'rc-spin 12s linear infinite', opacity: 0.12 }}>
           <line x1={cx} y1={cy} x2={cx} y2={cy - maxR - 2}
             stroke={ACCENT} strokeWidth="1" strokeDasharray="3 4" />
         </g>
@@ -139,7 +139,7 @@ export default function RadarChart({ scores, labels, size = 250 }) {
 
         {/* Stroke — animated draw */}
         <polygon points={polyPts} fill="none"
-          stroke={ACCENT} strokeWidth="1.8" strokeLinejoin="round"
+          stroke={ACCENT} strokeWidth="1.4" strokeLinejoin="round"
           filter="url(#rc-glow-f)"
           strokeDasharray="1400"
           strokeDashoffset={mounted ? 0 : 1400}
