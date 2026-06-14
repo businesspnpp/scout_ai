@@ -213,10 +213,11 @@ export default function UploaderPortal({
       const savedHighlights   = [...analysisResult.highlights];
       const savedVideoFiles   = [...videoFiles];
 
-      if (targetProfileId && onAppendVideo) {
+      if ((targetProfileId || editingId) && onAppendVideo) {
         // ── Append video to existing player ──────────────────────────────────
+        const appendTargetId = targetProfileId || editingId;
         onAppendVideo({
-          targetId:   targetProfileId,
+          targetId:   appendTargetId,
           videoFile:  videoMode === 'file' && videoFiles.length > 0 ? videoFiles[0] : null,
           videoUrl:   videoMode === 'url' ? videoUrl : '',
           analysis:   analysisResult,
@@ -238,7 +239,7 @@ export default function UploaderPortal({
                     setShotstackStatus('done');
                     setShotstackDone(shotstackClips.length);
                     setMetricClips(shotstackClips.map(c => ({ ...c })));
-                    if (targetProfileId && onUpdateProfileClips) onUpdateProfileClips(targetProfileId, shotstackClips);
+                    if (targetProfileId && onUpdateProfileClips) onUpdateProfileClips(appendTargetId, shotstackClips);
                   } else {
                     setShotstackStatus('failed');
                   }
@@ -337,8 +338,6 @@ export default function UploaderPortal({
   }
 
   const addMoreFootage = () => {
-    // Route the next analysis as an append to the just-saved profile
-    if (savedProfileIdRef.current) setTargetProfileId(savedProfileIdRef.current);
     setResult(null); setError(''); setStreamOutput(''); setMetricClips([]);
     setCuttingProgress(null); setPhase('idle');
     setShotstackStatus(null); setShotstackDone(0); setShotstackTotal(0);
