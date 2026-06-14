@@ -259,7 +259,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                     ['Height', player.height || 'Not provided'],
                     ['Preferred Foot', player.foot || 'Not provided'],
                     ['Scout Match Confidence', `${player.aiMatch}%`],
-                  .map(([k, v, jsx]) => v ? (
+                  ].map(([k, v, jsx]) => v ? (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${THEME.colors.borderDim}` }}>
                       <span style={{ fontSize: '0.78rem', color: THEME.colors.textMuted }}>{k}</span>
                       <span style={{ fontSize: '0.82rem', color: THEME.colors.textMain, fontWeight: 600 }}>{jsx ?? v}</span>
