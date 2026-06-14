@@ -5,6 +5,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { mockPlayers, getPositionGroup, POS_COLORS } from '../data/mockPlayers.js';
 import { countryFlag } from '../data/countryFlags.js';
+import CountryFlag from './CountryFlag.jsx';
 import PlayerModal from './PlayerModal.jsx';
 import useBreakpoint from '../hooks/useBreakpoint.js';
 
@@ -262,7 +263,7 @@ function CompactCard({ player, onClick, isSaved, onSaveToggle, tall = true, isWa
           <span style={{ fontSize: '0.68rem', fontWeight: 700, color: posColor(player.pos), background: 'rgba(5,11,20,0.6)', borderRadius: 4, padding: '1px 6px' }}>
             {player.pos}
           </span>
-          <span style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,0.55)' }}>{player.age} · {player.country}</span>
+          <span style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,0.55)', display: 'flex', alignItems: 'center', gap: 4 }}>{player.age} · <CountryFlag name={player.country} size={11} /> {player.country}</span>
         </div>
       </div>
     </div>
@@ -384,7 +385,7 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
             </div>
             <div style={{ fontSize: '0.85rem', color: C.txtMd, marginTop: 5 }}>
               <span style={{ color: posColor(player.pos), fontWeight: 700 }}>{player.pos}</span>
-              {' - '}{player.age}{' - '}{player.country}
+              {' - '}{player.age}{' - '}<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, verticalAlign: 'middle' }}><CountryFlag name={player.country} size={12} /> {player.country}</span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 10 }}>
@@ -451,7 +452,7 @@ function PlayerPanel({ player, onClose, isSaved, onSaveToggle, onOpenLightbox, o
                   <div>Height: <span style={{ color: C.txt }}>{player.height ?? '-'}</span></div>
                   <div>Foot: <span style={{ color: C.txt }}>{player.foot ?? '-'}</span></div>
                   <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Club: <span style={{ color: C.txt, fontSize: '0.76rem' }}>{player.club ?? '-'}</span></div>
-                  <div>Region: <span style={{ color: C.txt }}>{player.country}</span></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Region: <span style={{ color: C.txt, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CountryFlag name={player.country} size={11} /> {player.country}</span></div>
                 </div>
               </div>
               <div style={{ background: '#131315', border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
@@ -548,7 +549,7 @@ function CompareView({ allPlayers, compareIds, setCompareIds, onSelect }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: '0.93rem', color: C.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</div>
-              <div style={{ fontSize: '0.76rem', color: C.txtMd, marginTop: 2 }}>{player.pos} &middot; {player.age} &middot; {player.country}</div>
+              <div style={{ fontSize: '0.76rem', color: C.txtMd, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>{player.pos} &middot; {player.age} &middot; <CountryFlag name={player.country} size={11} /> {player.country}</div>
             </div>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
               <button onClick={() => onSelect(player)} style={{ padding: '4px 9px', borderRadius: 7, background: C.gnDim, border: `1px solid ${C.gnBdr}`, color: C.green, cursor: 'pointer', fontSize: '0.70rem', fontWeight: 600 }}>Profile</button>

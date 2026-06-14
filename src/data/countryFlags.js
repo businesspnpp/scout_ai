@@ -115,15 +115,29 @@ const NAME_TO_CODE = {
 };
 
 /**
- * Returns a flag emoji for the given country name string.
+ * Returns the lowercase ISO 3166-1 alpha-2 code for a country name.
  * Falls back to '' if not found.
+ */
+export function countryCode(name) {
+  if (!name) return '';
+  const key = name.trim().toLowerCase();
+  const code = NAME_TO_CODE[key];
+  if (code) return code.toLowerCase();
+  for (const [k, v] of Object.entries(NAME_TO_CODE)) {
+    if (key.includes(k) || k.includes(key)) return v.toLowerCase();
+  }
+  return '';
+}
+
+/**
+ * Returns a flag emoji (kept for backward compat).
+ * On Windows emoji flags don't render — prefer the CountryFlag component.
  */
 export function countryFlag(name) {
   if (!name) return '';
   const key = name.trim().toLowerCase();
   const code = NAME_TO_CODE[key];
   if (code) return toFlag(code);
-  // Try partial match for values like "Lagos, Nigeria" already split
   for (const [k, v] of Object.entries(NAME_TO_CODE)) {
     if (key.includes(k) || k.includes(key)) return toFlag(v);
   }

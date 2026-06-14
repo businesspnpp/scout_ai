@@ -11,6 +11,7 @@ import Panel      from './modal/Panel.jsx';
 import useBreakpoint from '../hooks/useBreakpoint.js';
 import { generateTransferPitch } from '../services/geminiService.js';
 import { countryFlag } from '../data/countryFlags.js';
+import CountryFlag from './CountryFlag.jsx';
 
 // ── Inline sub-components extracted to src/components/modal/ ──────────────
 // THEME, getScoreColor → modal/theme.js
@@ -116,7 +117,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
               <div style={{ padding: '0 14px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.64rem', fontWeight: 700, color: THEME.colors.textMain, background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderMid}`, padding: '2px 7px', borderRadius: THEME.radius.pill, letterSpacing: '0.04em' }}>{player.pos}</span>
-                  <span style={{ fontSize: '0.78rem', color: THEME.colors.textMuted }}>{player.flag || countryFlag(player.country)} {player.country}</span>
+                  <span style={{ fontSize: '0.78rem', color: THEME.colors.textMuted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><CountryFlag name={player.country} size={12} /> {player.country}</span>
                   <span style={{ fontSize: '0.78rem', color: THEME.colors.textDark }}>·</span>
                   <span style={{ fontSize: '0.78rem', color: THEME.colors.textMuted }}>{player.age} yrs</span>
                 </div>
@@ -166,7 +167,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                   <div className="font-syne" style={{ fontWeight: 800, fontSize: '1.3rem', color: THEME.colors.textMain, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>
                   <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.80rem', color: THEME.colors.textMuted, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 700, color: THEME.colors.textMain, fontSize: '0.68rem', background: THEME.colors.surfaceAlt, border: `1px solid ${THEME.colors.borderMid}`, padding: '2px 6px', borderRadius: THEME.radius.pill, letterSpacing: '0.04em' }}>{player.pos}</span>
-                    <span>{player.flag || countryFlag(player.country)} {player.country}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><CountryFlag name={player.country} size={12} /> {player.country}</span>
                     <span style={{ color: THEME.colors.textDark }}>·</span>
                     <span>{player.age} yrs</span>
                     {player.club && <><span style={{ color: THEME.colors.textDark }}>·</span><span style={{ color: THEME.colors.textDark }}>{player.club}</span></>}
@@ -251,17 +252,17 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
                 <Panel label="Attribute Matrix Metrics">
                   {[
                     ['Target Position', player.pos],
-                    ['Nationality', `${player.flag || countryFlag(player.country)} ${player.country}`.trim()],
+                    ['Nationality', player.country, <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CountryFlag name={player.country} size={13} /> {player.country}</span>],
                     ['Scouting Region', player.region],
                     ['Age Profile', `${player.age} yrs`],
                     ['Current Club / Academy', player.club || 'Not provided'],
                     ['Height', player.height || 'Not provided'],
                     ['Preferred Foot', player.foot || 'Not provided'],
                     ['Scout Match Confidence', `${player.aiMatch}%`],
-                  ].map(([k, v]) => v ? (
+                  .map(([k, v, jsx]) => v ? (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${THEME.colors.borderDim}` }}>
                       <span style={{ fontSize: '0.78rem', color: THEME.colors.textMuted }}>{k}</span>
-                      <span style={{ fontSize: '0.82rem', color: THEME.colors.textMain, fontWeight: 600 }}>{v}</span>
+                      <span style={{ fontSize: '0.82rem', color: THEME.colors.textMain, fontWeight: 600 }}>{jsx ?? v}</span>
                     </div>
                   ) : null)}
                 </Panel>

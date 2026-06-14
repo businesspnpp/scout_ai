@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import CountryFlag from './CountryFlag.jsx';
 import {
   getPositionGroup, getOverallColor, getScoreTone, initials, POS_COLORS,
 } from '../data/mockPlayers.js';
@@ -148,8 +149,8 @@ export default function PlayerCard({ player, onOpenLightbox, onSaveToggle, isSav
             <div className="font-syne" style={{ fontWeight: 700, fontSize: '0.94rem', color: THEME.colors.textMain, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {player.name}
             </div>
-            <div style={{ marginTop: 2, fontSize: '0.75rem', color: THEME.colors.textMuted }}>
-              {player.country} · {player.age} yrs
+            <div style={{ marginTop: 2, fontSize: '0.75rem', color: THEME.colors.textMuted, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+              <CountryFlag name={player.country} size={11} /> {player.country} · {player.age} yrs
               <span style={{ color: THEME.colors.textDark }}> · {player.club}</span>
             </div>
             {/* position + region badges */}
