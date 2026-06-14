@@ -38,24 +38,24 @@ function colFor(eventType) {
 // Penalty spot at x=11, penalty area edge at x=16.5 → dy = √(9.15²−5.5²) ≈ 7.31
 const ARC_DY = Math.sqrt(9.15 * 9.15 - 5.5 * 5.5); // 7.313
 
-const LINE    = 'rgba(255,255,255,0.20)';
-const LINE_DIM = 'rgba(255,255,255,0.10)';
+const LINE     = 'rgba(255,255,255,0.45)';
+const LINE_DIM = 'rgba(255,255,255,0.25)';
 
 function PitchSVG() {
   return (
     <svg
       viewBox="0 0 105 68"
       preserveAspectRatio="none"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
     >
       {/* Pitch surface */}
-      <rect x={0} y={0} width={105} height={68} fill="#060e18" />
+      <rect x={0} y={0} width={105} height={68} fill="#071120" />
 
       {/* Subtle stripe effect */}
       {Array.from({ length: 10 }, (_, i) => (
         <rect
           key={i} x={i * 10.5} y={0} width={10.5} height={68}
-          fill={i % 2 === 0 ? 'rgba(255,255,255,0.018)' : 'transparent'}
+          fill={i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent'}
         />
       ))}
 
@@ -205,9 +205,10 @@ export default function PlayerHeatmap({ playerId }) {
     const sync = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const { width, height } = wrapper.getBoundingClientRect();
-      const w = Math.round(width);
-      const h = Math.round(height);
+      // Use offsetWidth/offsetHeight for reliable integer pixel dimensions
+      const w = wrapper.offsetWidth  || Math.round(wrapper.getBoundingClientRect().width);
+      const h = wrapper.offsetHeight || Math.round(wrapper.getBoundingClientRect().height);
+      if (!w || !h) return; // container not laid out yet
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width  = w;
         canvas.height = h;
@@ -251,21 +252,22 @@ export default function PlayerHeatmap({ playerId }) {
         style={{
           position: 'relative',
           width: '100%',
-          paddingTop: `${(PITCH_ASPECT * 100).toFixed(2)}%`,
-          border: `1px solid rgba(255,255,255,0.08)`,
+          aspectRatio: '105 / 68',
+          minHeight: 180,
+          border: `1px solid rgba(255,255,255,0.12)`,
           borderRadius: 10,
           overflow: 'hidden',
-          background: '#060e18',
+          background: '#071120',
         }}
       >
         {/* SVG pitch markings */}
         <PitchSVG />
 
         {/* Canvas heatmap — fills same bounds as SVG */}
-        <div ref={wrapperRef} style={{ position: 'absolute', inset: 0 }}>
+        <div ref={wrapperRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
           <canvas
             ref={canvasRef}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            style={{ display: 'block', width: '100%', height: '100%' }}
           />
         </div>
 
@@ -276,14 +278,14 @@ export default function PlayerHeatmap({ playerId }) {
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: 10, pointerEvents: 'none',
           }}>
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" opacity="0.14">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" opacity="0.5">
               <circle cx="18" cy="18" r="16" stroke="white" strokeWidth="1.4" />
               <circle cx="18" cy="18" r="6"  stroke="white" strokeWidth="1.4" />
               <line x1="18" y1="2"  x2="18" y2="34" stroke="white" strokeWidth="1" />
               <line x1="2"  y1="18" x2="34" y2="18" stroke="white" strokeWidth="1" />
             </svg>
             <span style={{
-              fontSize: '0.78rem', color: 'rgba(255,255,255,0.22)',
+              fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)',
               textAlign: 'center', maxWidth: 240, lineHeight: 1.5,
             }}>
               No tracking data for this player yet.{' '}
