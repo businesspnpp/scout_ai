@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       const stream = genai.models.generateContentStream({
         model:    'gemini-2.5-flash',
         contents: [{ role: 'user', parts }],
-        config:   { temperature: 0.3, maxOutputTokens: 8192 },
+        config:   { temperature: 0.3, maxOutputTokens: 16384 },
       });
 
       for (let attempt = 1; attempt <= 4; attempt++) {
