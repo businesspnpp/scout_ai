@@ -448,7 +448,7 @@ const SEL_STYLE = {
   fontWeight: '500',
 };
 
-export default function PlayerHeatmap({ playerId }) {
+export default function PlayerHeatmap({ playerId, videos = [] }) {
   const [points, setPoints]               = useState([]);
   const [loading, setLoading]             = useState(false);
   const [matches, setMatches]             = useState([]);
