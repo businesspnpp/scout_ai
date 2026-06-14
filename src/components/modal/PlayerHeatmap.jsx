@@ -442,7 +442,15 @@ export default function PlayerHeatmap({ playerId }) {
   const wrapperRef = useRef(null);
 
   useEffect(() => {
-    if (!isSupabaseEnabled || !playerId) { setPoints([]); return; }
+    if (!isSupabaseEnabled || !playerId) {
+      // Still populate matches from the player's video list even with no DB
+      const videoMatches = videos
+        .map(v => v.fileName ? v.fileName.replace(/\.[^.]+$/, '') : null)
+        .filter(Boolean);
+      setMatches([...new Set(videoMatches)]);
+      setPoints([]);
+      return;
+    }
     setLoading(true);
     supabase
       .from(COORDS_TABLE)
@@ -455,11 +463,17 @@ export default function PlayerHeatmap({ playerId }) {
         } else {
           const rows = data ?? [];
           setPoints(rows);
-          setMatches([...new Set(rows.map(p => p.match_name).filter(Boolean))]);
+          // Merge DB match names with the player's uploaded video filenames
+          const dbMatches = [...new Set(rows.map(p => p.match_name).filter(Boolean))];
+          const videoMatches = videos
+            .map(v => v.fileName ? v.fileName.replace(/\.[^.]+$/, '') : null)
+            .filter(Boolean);
+          const allMatches = [...new Set([...dbMatches, ...videoMatches])];
+          setMatches(allMatches);
         }
         setLoading(false);
       });
-  }, [playerId]);
+  }, [playerId, videos]);
 
   const filtered = points.filter(p =>
     (selectedMatch === 'all' || p.match_name === selectedMatch) &&

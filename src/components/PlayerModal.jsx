@@ -476,7 +476,7 @@ export default function PlayerModal({ player, onClose, onOpenLightbox, isSaved, 
           )}
 
           {tab === 'heatmap' && (
-            <PlayerHeatmap playerId={player.id} />
+            <PlayerHeatmap playerId={player.id} videos={player.videos ?? []} />
           )}
 
           {tab === 'notes' && (
