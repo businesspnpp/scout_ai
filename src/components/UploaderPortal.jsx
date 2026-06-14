@@ -164,7 +164,7 @@ export default function UploaderPortal({
 
       // -- Phase 1: Gemini analysis --
       let analysisResult = await analyzePlayer(
-        { name: form.name, age: form.age, position: form.position, region: form.region, height: form.height, foot: form.foot, club: form.club },
+        { name: form.name, age: form.age, position: form.position, region: form.region, height: form.height, foot: form.foot, club: form.club, id: editingId ?? undefined },
         videoMode === 'file' ? videoFiles : [],
         videoMode === 'url'  ? videoUrl   : '',
         headshotForAnalysis,
@@ -251,7 +251,7 @@ export default function UploaderPortal({
         }).catch(() => setSyncStatus('error'));
       } else if (onSaveProfile) {
         onSaveProfile({
-          formData:          form,
+          formData:          { ...form, _videoFileName: videoFiles[0]?.name ?? null },
           headshotFile:      headshot,
           existingHeadshotUrl,
           existingHeadshotPath,

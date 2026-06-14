@@ -109,8 +109,21 @@ Return ONLY a valid JSON object (no markdown, no explanation):
       "ageWhen": number (age of the pro when they were at this level),
       "similarity": number (0-100, based on structural metrics match)
     }
+  ],
+  "trackingPoints": [
+    Estimate 40-80 spatial tracking points from the video showing WHERE on the pitch this player was active.
+    x_pos and y_pos are percentages (0.00 to 100.00) of the pitch dimensions.
+    Coordinate origin: top-left corner. x=0 is the left goal line, x=100 is the right goal line. y=0 is the top touchline, y=100 is the bottom touchline.
+    Spread the points realistically across the areas of the pitch where the player was most active based on their position and what you observed.
+    {
+      "x": number (0.00-100.00),
+      "y": number (0.00-100.00),
+      "eventType": "movement" | "shot" | "pass" | "tackle" | "dribble",
+      "t": number (approximate second offset in the video, e.g. 12.5)
+    }
   ]
   IMPORTANT: Include 2-3 real professionals whose playing style genuinely mirrors this player's calculated metrics and position. Only select players whose tactical profile matches the data — do not output generic superstar names unless explicitly justified by the metrics.
+  IMPORTANT for trackingPoints: if no video was provided, still generate realistic estimated positional data for a player of this position and region (use typical positional heat zones — e.g. a striker clusters around x=75-95, y=30-70).
 }
 `;
 }
@@ -211,6 +224,27 @@ async function runAnalysis(playerDetails, videoFiles, headshotFile, onStream) {
   const result = await streamViaProxy(parts, playerDetails, onStream);
   console.timeEnd('[gemini] stream');
   console.log('[gemini] - runAnalysis COMPLETE -', result._isMock ? 'MOCK' : 'Analyzed', 'score:', result.overallScore);
+
+  // 4. Fire-and-forget: persist tracking points to player_coordinates table
+  if (!result._isMock && Array.isArray(result.trackingPoints) && result.trackingPoints.length > 0 && playerDetails.id) {
+    const videoId   = videoFiles[0]?.name ?? 'unknown';
+    const matchName = videoFiles[0]?.name
+      ? videoFiles[0].name.replace(/\.[^.]+$/, '')   // strip extension
+      : 'Scouting Video';
+    fetch('/api/gemini/ingest-coordinates', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        playerId:  playerDetails.id,
+        videoId,
+        matchName,
+        points:    result.trackingPoints,
+      }),
+    }).then(r => r.json())
+      .then(d => console.log('[gemini] coordinates ingested:', d.inserted ?? d))
+      .catch(e => console.warn('[gemini] coordinate ingest failed (non-critical):', e.message));
+  }
+
   return result;
 }
 

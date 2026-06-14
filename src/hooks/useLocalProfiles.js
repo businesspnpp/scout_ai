@@ -314,6 +314,22 @@ export function useLocalProfiles() {
           setBlobUrls(prev => ({ ...prev, [id]: supaEntry }));
           setProfiles(prev => prev.map(p => p.id === id ? { ...p, _fromSupabase: true } : p));
           onSyncProgress?.({ status: 'done', videoPublicUrl: videoPublicUrl ?? null });
+
+          // Fire-and-forget: persist Gemini tracking points for new profiles
+          const trackingPoints = analysis?.trackingPoints;
+          if (Array.isArray(trackingPoints) && trackingPoints.length > 0) {
+            const videoId   = formData._videoFileName ?? 'unknown';
+            const matchName = formData._videoFileName
+              ? String(formData._videoFileName).replace(/\.[^.]+$/, '')
+              : 'Scouting Video';
+            fetch('/api/gemini/ingest-coordinates', {
+              method:  'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body:    JSON.stringify({ playerId: id, videoId, matchName, points: trackingPoints }),
+            }).then(r => r.json())
+              .then(d => console.log('[useLocalProfiles] coordinates ingested:', d.inserted ?? d))
+              .catch(e => console.warn('[useLocalProfiles] coordinate ingest failed (non-critical):', e.message));
+          }
         } catch (err) {
           console.error('[useLocalProfiles] Supabase sync failed:', err.message);
           onSyncProgress?.({ status: 'error' });
